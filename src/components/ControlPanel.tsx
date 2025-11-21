@@ -1,0 +1,58 @@
+import { Play, Pause, RotateCcw, Settings, Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+interface ControlPanelProps {
+  isRunning: boolean;
+  onToggle: () => void;
+  onReset: () => void;
+  onSettings: () => void;
+  onNotifications: () => void;
+}
+
+export const ControlPanel = ({
+  isRunning,
+  onToggle,
+  onReset,
+  onSettings,
+  onNotifications,
+}: ControlPanelProps) => {
+  return (
+    <Card className="p-4 bg-card shadow-soft border-2 border-border">
+      <div className="flex items-center justify-center gap-3 flex-wrap">
+        <Button
+          onClick={onToggle}
+          size="lg"
+          className="gradient-primary hover:opacity-90 transition-smooth"
+        >
+          {isRunning ? (
+            <>
+              <Pause size={20} className="mr-2" />
+              Pausar
+            </>
+          ) : (
+            <>
+              <Play size={20} className="mr-2" />
+              Iniciar
+            </>
+          )}
+        </Button>
+
+        <Button onClick={onReset} variant="outline" size="lg">
+          <RotateCcw size={20} className="mr-2" />
+          Reiniciar
+        </Button>
+
+        <Button onClick={onNotifications} variant="outline" size="lg">
+          <Bell size={20} className="mr-2" />
+          Notificações
+        </Button>
+
+        <Button onClick={onSettings} variant="outline" size="lg">
+          <Settings size={20} className="mr-2" />
+          Configurar
+        </Button>
+      </div>
+    </Card>
+  );
+};
