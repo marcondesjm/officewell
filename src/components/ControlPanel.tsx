@@ -18,12 +18,12 @@ export const ControlPanel = ({
   onNotifications,
 }: ControlPanelProps) => {
   return (
-    <Card className="p-4 bg-card shadow-soft border-2 border-border">
+    <Card className="p-4 md:p-6 bg-card shadow-soft border-2 border-border">
       <div className="flex items-center justify-center gap-3 flex-wrap">
         <Button
           onClick={onToggle}
           size="lg"
-          className="gradient-primary hover:opacity-90 transition-smooth"
+          className="gradient-primary hover:opacity-90 transition-smooth min-h-12 px-6 touch-manipulation"
         >
           {isRunning ? (
             <>
@@ -38,17 +38,32 @@ export const ControlPanel = ({
           )}
         </Button>
 
-        <Button onClick={onReset} variant="outline" size="lg">
+        <Button 
+          onClick={onReset} 
+          variant="outline" 
+          size="lg"
+          className="min-h-12 px-6 touch-manipulation"
+        >
           <RotateCcw size={20} className="mr-2" />
           Reiniciar
         </Button>
 
-        <Button onClick={onNotifications} variant="outline" size="lg">
+        <Button 
+          onClick={onNotifications} 
+          variant="outline" 
+          size="lg"
+          className="min-h-12 px-6 touch-manipulation"
+        >
           <Bell size={20} className="mr-2" />
           Notificações
         </Button>
 
-        <Button onClick={onSettings} variant="outline" size="lg">
+        <Button 
+          onClick={onSettings} 
+          variant="outline" 
+          size="lg"
+          className="min-h-12 px-6 touch-manipulation"
+        >
           <Settings size={20} className="mr-2" />
           Configurar
         </Button>
