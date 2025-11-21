@@ -54,17 +54,28 @@ export const useReminders = () => {
     };
 
     const notification = notifications[type];
-    toast.success(notification.title, {
-      description: notification.description,
-      duration: 5000,
-    });
-
-    // Tentar notificação do navegador
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(notification.title, {
-        body: notification.description,
-        icon: "/favicon.ico",
+    
+    try {
+      toast.success(notification.title, {
+        description: notification.description,
+        duration: 5000,
       });
+
+      // Tentar notificação do navegador apenas se suportado
+      if (typeof window !== "undefined" && 
+          "Notification" in window && 
+          Notification.permission === "granted") {
+        try {
+          new Notification(notification.title, {
+            body: notification.description,
+            icon: "/favicon.ico",
+          });
+        } catch (error) {
+          console.log("Notificação do navegador não disponível");
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao mostrar notificação:", error);
     }
   }, []);
 
@@ -77,7 +88,11 @@ export const useReminders = () => {
 
         // Timer de descanso visual
         if (prev.eyeTimeLeft <= 1) {
-          showNotification("eye");
+          try {
+            showNotification("eye");
+          } catch (error) {
+            console.error("Erro ao mostrar notificação de descanso visual:", error);
+          }
           newState.eyeTimeLeft = config.eyeInterval * 60;
         } else {
           newState.eyeTimeLeft = prev.eyeTimeLeft - 1;
@@ -85,7 +100,11 @@ export const useReminders = () => {
 
         // Timer de alongamento
         if (prev.stretchTimeLeft <= 1) {
-          showNotification("stretch");
+          try {
+            showNotification("stretch");
+          } catch (error) {
+            console.error("Erro ao mostrar notificação de alongamento:", error);
+          }
           newState.stretchTimeLeft = config.stretchInterval * 60;
         } else {
           newState.stretchTimeLeft = prev.stretchTimeLeft - 1;
@@ -93,7 +112,11 @@ export const useReminders = () => {
 
         // Timer de água
         if (prev.waterTimeLeft <= 1) {
-          showNotification("water");
+          try {
+            showNotification("water");
+          } catch (error) {
+            console.error("Erro ao mostrar notificação de água:", error);
+          }
           newState.waterTimeLeft = config.waterInterval * 60;
         } else {
           newState.waterTimeLeft = prev.waterTimeLeft - 1;
@@ -124,11 +147,22 @@ export const useReminders = () => {
   }, []);
 
   const requestNotificationPermission = useCallback(async () => {
-    if ("Notification" in window && Notification.permission === "default") {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        toast.success("Notificações ativadas com sucesso!");
+    try {
+      if (typeof window !== "undefined" && 
+          "Notification" in window && 
+          Notification.permission === "default") {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          toast.success("Notificações ativadas com sucesso!");
+        } else {
+          toast.info("As notificações serão exibidas apenas no aplicativo");
+        }
+      } else if (Notification.permission === "denied") {
+        toast.info("Notificações bloqueadas pelo navegador");
       }
+    } catch (error) {
+      console.error("Erro ao solicitar permissão de notificação:", error);
+      toast.info("As notificações serão exibidas apenas no aplicativo");
     }
   }, []);
 
