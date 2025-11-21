@@ -130,16 +130,33 @@ export const useReminders = () => {
   }, [state.isRunning, config, showNotification]);
 
   const toggleRunning = useCallback(() => {
-    setState((prev) => ({ ...prev, isRunning: !prev.isRunning }));
+    try {
+      console.log("Toggle running called");
+      setState((prev) => {
+        const newState = { ...prev, isRunning: !prev.isRunning };
+        console.log("New state:", newState);
+        return newState;
+      });
+    } catch (error) {
+      console.error("Erro ao alternar estado:", error);
+      toast.error("Erro ao pausar/iniciar");
+    }
   }, []);
 
   const resetTimers = useCallback(() => {
-    setState({
-      eyeTimeLeft: config.eyeInterval * 60,
-      stretchTimeLeft: config.stretchInterval * 60,
-      waterTimeLeft: config.waterInterval * 60,
-      isRunning: state.isRunning,
-    });
+    try {
+      console.log("Reset timers called");
+      setState({
+        eyeTimeLeft: config.eyeInterval * 60,
+        stretchTimeLeft: config.stretchInterval * 60,
+        waterTimeLeft: config.waterInterval * 60,
+        isRunning: state.isRunning,
+      });
+      toast.success("Timers reiniciados!");
+    } catch (error) {
+      console.error("Erro ao reiniciar timers:", error);
+      toast.error("Erro ao reiniciar");
+    }
   }, [config, state.isRunning]);
 
   const updateConfig = useCallback((newConfig: Partial<ReminderConfig>) => {
