@@ -37,30 +37,6 @@ export const useReminders = () => {
     localStorage.setItem("reminderConfig", JSON.stringify(config));
   }, [config]);
 
-  const playBeep = useCallback(() => {
-    try {
-      if (typeof window !== "undefined" && "AudioContext" in window) {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = 800;
-        oscillator.type = "sine";
-
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-      }
-    } catch (error) {
-      console.log("Não foi possível reproduzir o som:", error);
-    }
-  }, []);
-
   const showNotification = useCallback((type: "eye" | "stretch" | "water") => {
     const notifications = {
       eye: {
@@ -81,7 +57,27 @@ export const useReminders = () => {
     
     try {
       // Tocar som de alerta
-      playBeep();
+      try {
+        if (typeof window !== "undefined" && "AudioContext" in window) {
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+
+          oscillator.frequency.value = 800;
+          oscillator.type = "sine";
+
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.5);
+        }
+      } catch (error) {
+        console.log("Não foi possível reproduzir o som:", error);
+      }
       
       toast.success(notification.title, {
         description: notification.description,
@@ -104,7 +100,7 @@ export const useReminders = () => {
     } catch (error) {
       console.error("Erro ao mostrar notificação:", error);
     }
-  }, [playBeep]);
+  }, []);
 
   useEffect(() => {
     if (!state.isRunning) return;
