@@ -105,51 +105,95 @@ export const useReminders = () => {
   useEffect(() => {
     if (!state.isRunning) return;
 
-    const timer = setInterval(() => {
-      setState((prev) => {
-        const newState = { ...prev };
+    let lastTick = Date.now();
 
-        // Timer de descanso visual
-        if (prev.eyeTimeLeft <= 1) {
-          try {
-            showNotification("eye");
-          } catch (error) {
-            console.error("Erro ao mostrar notificação de descanso visual:", error);
+    const tick = () => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - lastTick) / 1000);
+      
+      if (elapsed >= 1) {
+        lastTick = now;
+        
+        setState((prev) => {
+          const newState = { ...prev };
+
+          // Timer de descanso visual
+          const newEyeTime = Math.max(0, prev.eyeTimeLeft - elapsed);
+          if (newEyeTime <= 0 && prev.eyeTimeLeft > 0) {
+            try {
+              showNotification("eye");
+            } catch (error) {
+              console.error("Erro ao mostrar notificação de descanso visual:", error);
+            }
+            newState.eyeTimeLeft = config.eyeInterval * 60;
+          } else {
+            newState.eyeTimeLeft = newEyeTime;
           }
-          newState.eyeTimeLeft = config.eyeInterval * 60;
-        } else {
-          newState.eyeTimeLeft = prev.eyeTimeLeft - 1;
-        }
 
-        // Timer de alongamento
-        if (prev.stretchTimeLeft <= 1) {
-          try {
-            showNotification("stretch");
-          } catch (error) {
-            console.error("Erro ao mostrar notificação de alongamento:", error);
+          // Timer de alongamento
+          const newStretchTime = Math.max(0, prev.stretchTimeLeft - elapsed);
+          if (newStretchTime <= 0 && prev.stretchTimeLeft > 0) {
+            try {
+              showNotification("stretch");
+            } catch (error) {
+              console.error("Erro ao mostrar notificação de alongamento:", error);
+            }
+            newState.stretchTimeLeft = config.stretchInterval * 60;
+          } else {
+            newState.stretchTimeLeft = newStretchTime;
           }
-          newState.stretchTimeLeft = config.stretchInterval * 60;
-        } else {
-          newState.stretchTimeLeft = prev.stretchTimeLeft - 1;
-        }
 
-        // Timer de água
-        if (prev.waterTimeLeft <= 1) {
-          try {
-            showNotification("water");
-          } catch (error) {
-            console.error("Erro ao mostrar notificação de água:", error);
+          // Timer de água
+          const newWaterTime = Math.max(0, prev.waterTimeLeft - elapsed);
+          if (newWaterTime <= 0 && prev.waterTimeLeft > 0) {
+            try {
+              showNotification("water");
+            } catch (error) {
+              console.error("Erro ao mostrar notificação de água:", error);
+            }
+            newState.waterTimeLeft = config.waterInterval * 60;
+          } else {
+            newState.waterTimeLeft = newWaterTime;
           }
-          newState.waterTimeLeft = config.waterInterval * 60;
-        } else {
-          newState.waterTimeLeft = prev.waterTimeLeft - 1;
-        }
 
-        return newState;
-      });
-    }, 1000);
+          return newState;
+        });
+      }
+    };
 
-    return () => clearInterval(timer);
+    // Usar requestAnimationFrame para melhor compatibilidade mobile
+    let animationId: number;
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const runTimer = () => {
+      tick();
+      animationId = requestAnimationFrame(runTimer);
+    };
+
+    // Fallback com setInterval para quando a aba está em background
+    intervalId = setInterval(tick, 1000);
+    
+    // requestAnimationFrame para quando a aba está ativa
+    if (typeof window !== "undefined" && "requestAnimationFrame" in window) {
+      animationId = requestAnimationFrame(runTimer);
+    }
+
+    // Listener para quando a página volta ao foco (importante para mobile)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        tick();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [state.isRunning, config, showNotification]);
 
   const toggleRunning = useCallback(() => {
