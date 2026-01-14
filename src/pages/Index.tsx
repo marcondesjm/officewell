@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Sparkles } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -19,20 +19,28 @@ const Index = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen p-4 md:p-8 bg-decoration">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <header className="text-center space-y-2 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-bold gradient-primary bg-clip-text text-transparent">
-            Bem-Estar Home Office
+        <header className="text-center space-y-4 py-6 animate-fade-in">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-medium text-muted-foreground mb-4 animate-float">
+            <Sparkles size={16} className="text-primary" />
+            <span>Seu parceiro de bem-estar</span>
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-extrabold text-gradient tracking-tight">
+            OfficeWell
           </h1>
-          <p className="text-muted-foreground text-lg">
+          
+          <p className="text-muted-foreground text-lg md:text-xl max-w-md mx-auto">
             Cuide da sua saúde enquanto trabalha 🌱
           </p>
+          
           {!state.isRunning && (
-            <p className="text-sm text-accent font-medium animate-pulse-soft">
-              ⏸️ Lembretes pausados
-            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive text-sm font-medium animate-pulse-soft">
+              <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+              Lembretes pausados
+            </div>
           )}
         </header>
 
@@ -82,8 +90,11 @@ const Index = () => {
         />
 
         {/* Footer */}
-        <footer className="text-center text-sm text-muted-foreground pt-8">
-          <p>Mantenha-se saudável e produtivo 💪</p>
+        <footer className="text-center text-sm text-muted-foreground pt-8 pb-4">
+          <p className="flex items-center justify-center gap-2">
+            Mantenha-se saudável e produtivo 
+            <span className="text-lg">💪</span>
+          </p>
         </footer>
       </div>
     </div>

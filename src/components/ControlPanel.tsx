@@ -18,21 +18,28 @@ export const ControlPanel = ({
   onNotifications,
 }: ControlPanelProps) => {
   return (
-    <Card className="p-4 md:p-6 bg-card shadow-soft border-2 border-border">
-      <div className="flex items-center justify-center gap-3 flex-wrap">
+    <Card className="p-5 md:p-6 glass-strong shadow-card border-0 animate-fade-in">
+      <div className="flex items-center justify-center gap-3 md:gap-4 flex-wrap">
         <Button
           onClick={onToggle}
           size="lg"
-          className="gradient-primary hover:opacity-90 transition-smooth min-h-12 px-6 touch-manipulation"
+          className={`
+            min-h-14 px-8 rounded-2xl font-semibold text-base
+            transition-all duration-300 ease-out touch-manipulation
+            ${isRunning 
+              ? 'gradient-primary hover:opacity-90 shadow-lg hover:shadow-xl hover:scale-105' 
+              : 'bg-accent hover:bg-accent/90 shadow-lg hover:shadow-xl hover:scale-105'
+            }
+          `}
         >
           {isRunning ? (
             <>
-              <Pause size={20} className="mr-2" />
+              <Pause size={22} className="mr-2" />
               Pausar
             </>
           ) : (
             <>
-              <Play size={20} className="mr-2" />
+              <Play size={22} className="mr-2" />
               Iniciar
             </>
           )}
@@ -42,7 +49,7 @@ export const ControlPanel = ({
           onClick={onReset} 
           variant="outline" 
           size="lg"
-          className="min-h-12 px-6 touch-manipulation"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation"
         >
           <RotateCcw size={20} className="mr-2" />
           Reiniciar
@@ -52,20 +59,20 @@ export const ControlPanel = ({
           onClick={onNotifications} 
           variant="outline" 
           size="lg"
-          className="min-h-12 px-6 touch-manipulation"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation"
         >
           <Bell size={20} className="mr-2" />
-          Notificações
+          Alertas
         </Button>
 
         <Button 
           onClick={onSettings} 
           variant="outline" 
           size="lg"
-          className="min-h-12 px-6 touch-manipulation"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation"
         >
           <Settings size={20} className="mr-2" />
-          Configurar
+          Ajustes
         </Button>
       </div>
     </Card>
