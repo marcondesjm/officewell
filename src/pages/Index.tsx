@@ -1,10 +1,12 @@
-import { Eye, Dumbbell, Droplets, Sparkles } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Sparkles, Download } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { ActiveTimerCard } from "@/components/ActiveTimerCard";
 import { useReminders } from "@/hooks/useReminders";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const {
@@ -17,6 +19,14 @@ const Index = () => {
   } = useReminders();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Mostrar botão de instalar se não estiver no modo standalone
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+    setShowInstallButton(!isStandalone);
+  }, []);
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-decoration">
@@ -90,8 +100,18 @@ const Index = () => {
         />
 
         {/* Footer */}
-        <footer className="text-center text-sm text-muted-foreground pt-8 pb-4">
-          <p className="flex items-center justify-center gap-2">
+        <footer className="text-center pt-8 pb-4 space-y-4">
+          {showInstallButton && (
+            <Button
+              onClick={() => navigate("/install")}
+              variant="outline"
+              className="rounded-2xl border-2 hover:bg-primary/5"
+            >
+              <Download size={18} className="mr-2" />
+              Instalar App
+            </Button>
+          )}
+          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
             Mantenha-se saudável e produtivo 
             <span className="text-lg">💪</span>
           </p>
