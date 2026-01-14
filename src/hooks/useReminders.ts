@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 
 export interface ReminderConfig {
-  eyeInterval: number; // em minutos
+  eyeInterval: number;
   stretchInterval: number;
   waterInterval: number;
 }
@@ -27,7 +27,23 @@ const DEFAULT_CONFIG: ReminderConfig = {
   waterInterval: 30,
 };
 
-const getInitialTimestamps = (config: ReminderConfig): TimerTimestamps => {
+const loadConfig = (): ReminderConfig => {
+  try {
+    const saved = localStorage.getItem("reminderConfig");
+    return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
+  } catch {
+    return DEFAULT_CONFIG;
+  }
+};
+
+const loadTimestamps = (config: ReminderConfig): TimerTimestamps => {
+  try {
+    const saved = localStorage.getItem("timerTimestamps");
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch {}
+  
   const now = Date.now();
   return {
     eyeEndTime: now + config.eyeInterval * 60 * 1000,
@@ -37,35 +53,22 @@ const getInitialTimestamps = (config: ReminderConfig): TimerTimestamps => {
   };
 };
 
+const loadIsRunning = (): boolean => {
+  try {
+    const saved = localStorage.getItem("timersRunning");
+    return saved !== "false";
+  } catch {
+    return true;
+  }
+};
+
 export const useReminders = () => {
-  const [config, setConfig] = useState<ReminderConfig>(() => {
-    try {
-      const saved = localStorage.getItem("reminderConfig");
-      return saved ? JSON.parse(saved) : DEFAULT_CONFIG;
-    } catch {
-      return DEFAULT_CONFIG;
-    }
-  });
-
-  const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => {
-    try {
-      const saved = localStorage.getItem("timerTimestamps");
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch {}
-    return getInitialTimestamps(config);
-  });
-
-  const [isRunning, setIsRunning] = useState(() => {
-    try {
-      const saved = localStorage.getItem("timersRunning");
-      return saved !== "false";
-    } catch {
-      return true;
-    }
-  });
-
+  // Carregar valores iniciais de forma síncrona
+  const initialConfig = useRef(loadConfig());
+  
+  const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
+  const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
+  const [isRunning, setIsRunning] = useState<boolean>(loadIsRunning);
   const [state, setState] = useState<ReminderState>({
     eyeTimeLeft: 0,
     stretchTimeLeft: 0,
@@ -73,11 +76,7 @@ export const useReminders = () => {
     isRunning: true,
   });
 
-  const notifiedRef = useRef<{ eye: boolean; stretch: boolean; water: boolean }>({
-    eye: false,
-    stretch: false,
-    water: false,
-  });
+  const notifiedRef = useRef({ eye: false, stretch: false, water: false });
 
   // Salvar config
   useEffect(() => {
@@ -159,13 +158,12 @@ export const useReminders = () => {
     } catch (e) {}
   }, []);
 
-  // Timer principal - usa timestamps absolutos
+  // Timer principal
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = Date.now();
 
       if (!isRunning) {
-        // Quando pausado, mostra o tempo que tinha quando pausou
         const pauseTime = timestamps.lastPausedAt || now;
         return {
           eyeTimeLeft: Math.max(0, Math.floor((timestamps.eyeEndTime - pauseTime) / 1000)),
@@ -179,104 +177,98 @@ export const useReminders = () => {
       const stretchTimeLeft = Math.max(0, Math.floor((timestamps.stretchEndTime - now) / 1000));
       const waterTimeLeft = Math.max(0, Math.floor((timestamps.waterEndTime - now) / 1000));
 
-      // Verificar se algum timer expirou
-      if (eyeTimeLeft === 0 && !notifiedRef.current.eye) {
+      return { eyeTimeLeft, stretchTimeLeft, waterTimeLeft, isRunning: true };
+    };
+
+    const checkAndNotify = () => {
+      if (!isRunning) return;
+      
+      const now = Date.now();
+
+      if (timestamps.eyeEndTime <= now && !notifiedRef.current.eye) {
         notifiedRef.current.eye = true;
         showNotification("eye");
         setTimestamps(prev => ({
           ...prev,
           eyeEndTime: now + config.eyeInterval * 60 * 1000,
         }));
-      } else if (eyeTimeLeft > 0) {
+      } else if (timestamps.eyeEndTime > now) {
         notifiedRef.current.eye = false;
       }
 
-      if (stretchTimeLeft === 0 && !notifiedRef.current.stretch) {
+      if (timestamps.stretchEndTime <= now && !notifiedRef.current.stretch) {
         notifiedRef.current.stretch = true;
         showNotification("stretch");
         setTimestamps(prev => ({
           ...prev,
           stretchEndTime: now + config.stretchInterval * 60 * 1000,
         }));
-      } else if (stretchTimeLeft > 0) {
+      } else if (timestamps.stretchEndTime > now) {
         notifiedRef.current.stretch = false;
       }
 
-      if (waterTimeLeft === 0 && !notifiedRef.current.water) {
+      if (timestamps.waterEndTime <= now && !notifiedRef.current.water) {
         notifiedRef.current.water = true;
         showNotification("water");
         setTimestamps(prev => ({
           ...prev,
           waterEndTime: now + config.waterInterval * 60 * 1000,
         }));
-      } else if (waterTimeLeft > 0) {
+      } else if (timestamps.waterEndTime > now) {
         notifiedRef.current.water = false;
       }
-
-      return {
-        eyeTimeLeft,
-        stretchTimeLeft,
-        waterTimeLeft,
-        isRunning: true,
-      };
     };
 
-    // Atualizar imediatamente
     setState(calculateTimeLeft());
+    checkAndNotify();
 
-    // Atualizar a cada segundo
     const intervalId = setInterval(() => {
       setState(calculateTimeLeft());
+      checkAndNotify();
     }, 1000);
 
-    // Atualizar quando a página volta ao foco
     const handleVisibility = () => {
       if (!document.hidden) {
         setState(calculateTimeLeft());
+        checkAndNotify();
       }
     };
 
-    const handleFocus = () => {
-      setState(calculateTimeLeft());
-    };
-
     document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("focus", handleFocus);
+    window.addEventListener("focus", handleVisibility);
 
     return () => {
       clearInterval(intervalId);
       document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("focus", handleVisibility);
     };
   }, [isRunning, timestamps, config, showNotification]);
 
   const toggleRunning = useCallback(() => {
+    const now = Date.now();
+
     setIsRunning(prev => {
-      const newIsRunning = !prev;
-      const now = Date.now();
-
-      if (newIsRunning) {
-        // Retomando - ajustar timestamps baseado no tempo pausado
-        if (timestamps.lastPausedAt) {
-          const pausedDuration = now - timestamps.lastPausedAt;
-          setTimestamps(prev => ({
-            eyeEndTime: prev.eyeEndTime + pausedDuration,
-            stretchEndTime: prev.stretchEndTime + pausedDuration,
-            waterEndTime: prev.waterEndTime + pausedDuration,
-            lastPausedAt: null,
-          }));
-        }
+      if (!prev) {
+        // Retomando
+        setTimestamps(ts => {
+          if (ts.lastPausedAt) {
+            const pausedDuration = now - ts.lastPausedAt;
+            return {
+              eyeEndTime: ts.eyeEndTime + pausedDuration,
+              stretchEndTime: ts.stretchEndTime + pausedDuration,
+              waterEndTime: ts.waterEndTime + pausedDuration,
+              lastPausedAt: null,
+            };
+          }
+          return ts;
+        });
       } else {
-        // Pausando - salvar quando pausou
-        setTimestamps(prev => ({
-          ...prev,
-          lastPausedAt: now,
-        }));
+        // Pausando
+        setTimestamps(ts => ({ ...ts, lastPausedAt: now }));
       }
-
-      return newIsRunning;
+      return !prev;
     });
-  }, [timestamps.lastPausedAt]);
+  }, []);
 
   const resetTimers = useCallback(() => {
     const now = Date.now();
