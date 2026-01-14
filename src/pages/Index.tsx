@@ -1,8 +1,9 @@
-import { Eye, Dumbbell, Droplets, Sparkles, Download } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Sparkles, Download, Heart } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { ActiveTimerCard } from "@/components/ActiveTimerCard";
+import { DonationDialog } from "@/components/DonationDialog";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const Index = () => {
   } = useReminders();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [donationOpen, setDonationOpen] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const navigate = useNavigate();
 
@@ -99,18 +101,34 @@ const Index = () => {
           onSave={updateConfig}
         />
 
+        {/* Dialog de Doação */}
+        <DonationDialog
+          open={donationOpen}
+          onOpenChange={setDonationOpen}
+        />
+
         {/* Footer */}
         <footer className="text-center pt-8 pb-4 space-y-4">
-          {showInstallButton && (
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {showInstallButton && (
+              <Button
+                onClick={() => navigate("/install")}
+                variant="outline"
+                className="rounded-2xl border-2 hover:bg-primary/5"
+              >
+                <Download size={18} className="mr-2" />
+                Instalar App
+              </Button>
+            )}
             <Button
-              onClick={() => navigate("/install")}
+              onClick={() => setDonationOpen(true)}
               variant="outline"
-              className="rounded-2xl border-2 hover:bg-primary/5"
+              className="rounded-2xl border-2 hover:bg-pink-500/5 hover:border-pink-500/50 hover:text-pink-500"
             >
-              <Download size={18} className="mr-2" />
-              Instalar App
+              <Heart size={18} className="mr-2" />
+              Apoiar Projeto
             </Button>
-          )}
+          </div>
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
             Mantenha-se saudável e produtivo 
             <span className="text-lg">💪</span>
