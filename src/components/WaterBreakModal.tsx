@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import waterBreakImage from "@/assets/water-break.png";
@@ -7,7 +8,74 @@ interface WaterBreakModalProps {
   onClose: () => void;
 }
 
+const descriptions = [
+  "Beba um copo de água agora. Mantenha-se saudável!",
+  "Hora de hidratar! Seu corpo agradece.",
+  "Pause e beba água. Hidratação é essencial!",
+  "Momento perfeito para um gole de água fresca!",
+  "Cuide do seu corpo. Beba água agora!",
+  "Recarregue suas energias com um copo de água!",
+  "Lembre-se: água é vida. Hidrate-se!",
+];
+
+const tipSets = [
+  {
+    title: "Benefícios da hidratação:",
+    tips: [
+      "Melhora a concentração e foco",
+      "Ajuda a manter a pele saudável",
+      "Regula a temperatura corporal",
+      "Elimina toxinas do corpo",
+    ],
+  },
+  {
+    title: "Dicas de hidratação:",
+    tips: [
+      "Beba 2 litros de água por dia",
+      "Tenha uma garrafa sempre por perto",
+      "Adicione limão para mais sabor",
+      "Evite esperar sentir sede",
+    ],
+  },
+  {
+    title: "Água e produtividade:",
+    tips: [
+      "Desidratação reduz a concentração",
+      "Beba água ao acordar",
+      "Mantenha um copo na sua mesa",
+      "Água gelada ajuda a despertar",
+    ],
+  },
+  {
+    title: "Sinais de desidratação:",
+    tips: [
+      "Boca seca e lábios rachados",
+      "Dor de cabeça frequente",
+      "Cansaço e falta de energia",
+      "Urina de cor escura",
+    ],
+  },
+  {
+    title: "Hidratação inteligente:",
+    tips: [
+      "Comece o dia com um copo de água",
+      "Beba antes, durante e após exercícios",
+      "Frutas também hidratam o corpo",
+      "Reduza bebidas com cafeína",
+    ],
+  },
+];
+
 export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
+  const { description, tipSet } = useMemo(() => {
+    const descIndex = Math.floor(Math.random() * descriptions.length);
+    const tipIndex = Math.floor(Math.random() * tipSets.length);
+    return {
+      description: descriptions[descIndex],
+      tipSet: tipSets[tipIndex],
+    };
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-md glass-strong border-accent/30">
@@ -16,7 +84,7 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
             💧 Hora de Hidratar!
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Beba um copo de água agora. Mantenha-se saudável!
+            {description}
           </DialogDescription>
         </DialogHeader>
         
@@ -31,12 +99,11 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
           </div>
           
           <div className="bg-accent/10 rounded-lg p-4 space-y-2">
-            <h4 className="font-semibold text-accent text-sm">Benefícios da hidratação:</h4>
+            <h4 className="font-semibold text-accent text-sm">{tipSet.title}</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Melhora a concentração e foco</li>
-              <li>• Ajuda a manter a pele saudável</li>
-              <li>• Regula a temperatura corporal</li>
-              <li>• Elimina toxinas do corpo</li>
+              {tipSet.tips.map((tip, index) => (
+                <li key={index}>• {tip}</li>
+              ))}
             </ul>
           </div>
           
