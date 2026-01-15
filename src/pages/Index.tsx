@@ -10,6 +10,7 @@ import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { ReminderStatsCard } from "@/components/ReminderStatsCard";
+import { ComplianceReport } from "@/components/ComplianceReport";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,9 @@ const Index = () => {
 
         {/* Estatísticas */}
         <ReminderStatsCard stats={stats} />
+
+        {/* Relatório de Conformidade */}
+        <ComplianceReport />
 
         {/* Dicas de Saúde */}
         <HealthTips />
