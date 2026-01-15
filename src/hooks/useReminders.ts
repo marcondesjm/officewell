@@ -228,10 +228,7 @@ export const useReminders = () => {
         notifiedRef.current.eye = true;
         showNotification("eye");
         setState(prev => ({ ...prev, showEyeModal: true }));
-        setTimestamps(prev => ({
-          ...prev,
-          eyeEndTime: now + config.eyeInterval * 60 * 1000,
-        }));
+        // Timer será reiniciado ao fechar o modal
       } else if (timestamps.eyeEndTime > now) {
         notifiedRef.current.eye = false;
       }
@@ -240,10 +237,7 @@ export const useReminders = () => {
         notifiedRef.current.stretch = true;
         showNotification("stretch");
         setState(prev => ({ ...prev, showStretchModal: true }));
-        setTimestamps(prev => ({
-          ...prev,
-          stretchEndTime: now + config.stretchInterval * 60 * 1000,
-        }));
+        // Timer será reiniciado ao fechar o modal
       } else if (timestamps.stretchEndTime > now) {
         notifiedRef.current.stretch = false;
       }
@@ -252,10 +246,7 @@ export const useReminders = () => {
         notifiedRef.current.water = true;
         showNotification("water");
         setState(prev => ({ ...prev, showWaterModal: true }));
-        setTimestamps(prev => ({
-          ...prev,
-          waterEndTime: now + config.waterInterval * 60 * 1000,
-        }));
+        // Timer será reiniciado ao fechar o modal
       } else if (timestamps.waterEndTime > now) {
         notifiedRef.current.water = false;
       }
@@ -348,17 +339,38 @@ export const useReminders = () => {
   const closeStretchModal = useCallback(() => {
     setState(prev => ({ ...prev, showStretchModal: false }));
     recordCompletion("stretch");
-  }, [recordCompletion]);
+    // Reiniciar timer após confirmar
+    const now = Date.now();
+    setTimestamps(prev => ({
+      ...prev,
+      stretchEndTime: now + config.stretchInterval * 60 * 1000,
+    }));
+    notifiedRef.current.stretch = false;
+  }, [recordCompletion, config.stretchInterval]);
 
   const closeEyeModal = useCallback(() => {
     setState(prev => ({ ...prev, showEyeModal: false }));
     recordCompletion("eye");
-  }, [recordCompletion]);
+    // Reiniciar timer após confirmar
+    const now = Date.now();
+    setTimestamps(prev => ({
+      ...prev,
+      eyeEndTime: now + config.eyeInterval * 60 * 1000,
+    }));
+    notifiedRef.current.eye = false;
+  }, [recordCompletion, config.eyeInterval]);
 
   const closeWaterModal = useCallback(() => {
     setState(prev => ({ ...prev, showWaterModal: false }));
     recordCompletion("water");
-  }, [recordCompletion]);
+    // Reiniciar timer após confirmar
+    const now = Date.now();
+    setTimestamps(prev => ({
+      ...prev,
+      waterEndTime: now + config.waterInterval * 60 * 1000,
+    }));
+    notifiedRef.current.water = false;
+  }, [recordCompletion, config.waterInterval]);
 
   return {
     config,
