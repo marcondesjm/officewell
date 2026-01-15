@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -17,7 +17,7 @@ import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { PlansHighlight } from "@/components/PlansHighlight";
 import { useReminders } from "@/hooks/useReminders";
-import { useAppRefresh } from "@/hooks/useAppRefresh";
+import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -41,9 +41,37 @@ const Index = () => {
   const [plansOpen, setPlansOpen] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const navigate = useNavigate();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Auto-refresh every hour to keep app updated
-  useAppRefresh(60 * 60 * 1000);
+  const { checkForUpdates } = useAppRefresh(60 * 60 * 1000);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Limpar cache do service worker
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.update();
+        }
+      }
+      
+      // Limpar caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+      }
+      
+      // Forçar reload
+      window.location.reload();
+    } catch (e) {
+      console.error('Erro ao atualizar:', e);
+      window.location.reload();
+    }
+  };
 
   useEffect(() => {
     // Mostrar botão de instalar se não estiver no modo standalone
@@ -161,6 +189,15 @@ const Index = () => {
         <footer className="text-center pt-8 pb-4 space-y-4">
           <div className="flex flex-wrap items-center justify-center gap-3">
             <ThemeToggle />
+            <Button
+              onClick={handleManualRefresh}
+              variant="outline"
+              disabled={isRefreshing}
+              className="rounded-2xl border-2 hover:bg-primary/5"
+            >
+              <RefreshCw size={18} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+            </Button>
             {showInstallButton && (
               <Button
                 onClick={() => navigate("/install")}
@@ -191,6 +228,9 @@ const Index = () => {
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
             Mantenha-se saudável e produtivo 
             <span className="text-lg">💪</span>
+          </p>
+          <p className="text-xs text-muted-foreground/60">
+            Versão {APP_VERSION}
           </p>
         </footer>
       </div>

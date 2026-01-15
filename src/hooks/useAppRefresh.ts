@@ -1,6 +1,9 @@
 import { useEffect, useCallback } from "react";
 import { toast } from "sonner";
 
+// Versão do app - atualize aqui a cada release
+export const APP_VERSION = "1.2.0";
+
 export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1 hour
   const checkForUpdates = useCallback(async () => {
     try {
