@@ -9,13 +9,21 @@ interface UsedMessages {
 
 const STORAGE_KEY = "usedDailyMessages";
 
+const getDefaultTypeData = () => ({ descriptions: [], tipSets: [], images: [] });
+
 const loadUsedMessages = (): UsedMessages => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const data = JSON.parse(saved);
       if (data.date === getDateKey()) {
-        return data;
+        // Migrate old data that doesn't have images array
+        return {
+          date: data.date,
+          eye: { ...getDefaultTypeData(), ...data.eye },
+          stretch: { ...getDefaultTypeData(), ...data.stretch },
+          water: { ...getDefaultTypeData(), ...data.water },
+        };
       }
     }
   } catch {
@@ -24,9 +32,9 @@ const loadUsedMessages = (): UsedMessages => {
   // Reset for new day
   return {
     date: getDateKey(),
-    eye: { descriptions: [], tipSets: [], images: [] },
-    stretch: { descriptions: [], tipSets: [], images: [] },
-    water: { descriptions: [], tipSets: [], images: [] },
+    eye: getDefaultTypeData(),
+    stretch: getDefaultTypeData(),
+    water: getDefaultTypeData(),
   };
 };
 
