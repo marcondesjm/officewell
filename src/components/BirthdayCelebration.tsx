@@ -12,15 +12,30 @@ interface Employee {
   birthday: string | null;
 }
 
+interface BirthdaySettings {
+  id: string;
+  message: string;
+  image_url: string | null;
+}
+
+// Helper function to parse date without timezone issues
+const parseDateLocal = (dateString: string | null): Date | null => {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 const isBirthdayToday = (birthday: string | null): boolean => {
   if (!birthday) return false;
   const today = new Date();
-  const bday = new Date(birthday);
+  const bday = parseDateLocal(birthday);
+  if (!bday) return false;
   return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
 };
 
 export const BirthdayCelebration = () => {
   const [birthdayPeople, setBirthdayPeople] = useState<Employee[]>([]);
+  const [birthdaySettings, setBirthdaySettings] = useState<BirthdaySettings | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -36,17 +51,25 @@ export const BirthdayCelebration = () => {
       }
 
       try {
-        const { data, error } = await supabase
+        const { data: empData, error: empError } = await supabase
           .from("employees")
           .select("*");
 
-        if (error) throw error;
+        if (empError) throw empError;
 
-        const todayBirthdays = (data || []).filter((emp) => 
+        const todayBirthdays = (empData || []).filter((emp) => 
           isBirthdayToday(emp.birthday)
         );
 
         if (todayBirthdays.length > 0) {
+          // Fetch birthday settings
+          const { data: settingsData } = await supabase
+            .from("birthday_settings")
+            .select("*")
+            .limit(1)
+            .single();
+
+          setBirthdaySettings(settingsData);
           setBirthdayPeople(todayBirthdays);
           setShowModal(true);
         }
@@ -65,6 +88,9 @@ export const BirthdayCelebration = () => {
   };
 
   if (dismissed || birthdayPeople.length === 0) return null;
+
+  const customMessage = birthdaySettings?.message || "Desejamos um dia repleto de alegrias, realizações e muita felicidade!";
+  const customImage = birthdaySettings?.image_url;
 
   return (
     <Dialog open={showModal} onOpenChange={setShowModal}>
@@ -97,12 +123,22 @@ export const BirthdayCelebration = () => {
             </p>
           </div>
 
-          {/* Birthday image */}
+          {/* Birthday image - custom or default */}
           <div className="relative mx-auto w-48 h-48 mb-6">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-accent/30 rounded-full blur-xl animate-pulse" />
-            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border-4 border-primary/30">
-              <Gift className="h-20 w-20 text-primary animate-bounce" />
-            </div>
+            {customImage ? (
+              <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-primary/30">
+                <img
+                  src={customImage}
+                  alt="Celebração de aniversário"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border-4 border-primary/30">
+                <Gift className="h-20 w-20 text-primary animate-bounce" />
+              </div>
+            )}
           </div>
 
           {/* Birthday people */}
@@ -125,7 +161,7 @@ export const BirthdayCelebration = () => {
                   </p>
                 )}
                 <p className="text-sm mt-2 italic text-foreground/80">
-                  Desejamos um dia repleto de alegrias, realizações e muita felicidade!
+                  {customMessage}
                 </p>
               </div>
             ))}
