@@ -50,7 +50,7 @@ export const ControlPanel = ({
           onClick={onReset} 
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
           <RotateCcw size={20} />
           <span>Reiniciar</span>
@@ -60,7 +60,7 @@ export const ControlPanel = ({
           onClick={onNotifications} 
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-secondary hover:text-secondary-foreground hover:border-secondary transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
           <Bell size={20} />
           <span>Alertas</span>
@@ -70,7 +70,7 @@ export const ControlPanel = ({
           onClick={onSettings} 
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-accent hover:text-accent-foreground hover:border-accent transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
           <Settings size={20} />
           <span>Ajustes</span>
