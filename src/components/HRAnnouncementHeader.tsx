@@ -9,9 +9,18 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
-  UserCog
+  UserCog,
+  Sparkles,
+  Heart,
+  Coffee,
+  Smile,
+  Sun
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+import waterBreakImg from "@/assets/water-break.png";
+import stretchingBreakImg from "@/assets/stretching-break.png";
+import eyeBreakImg from "@/assets/eye-break.png";
 
 interface Announcement {
   id: string;
@@ -28,11 +37,47 @@ const priorityConfig = {
   urgent: { label: "Urgente", color: "bg-red-500/10 text-red-500", icon: AlertTriangle },
 };
 
+const motivationalMessages = [
+  {
+    title: "Hidrate-se! 💧",
+    content: "Beber água regularmente melhora sua concentração e produtividade.",
+    image: waterBreakImg,
+    icon: Sparkles,
+  },
+  {
+    title: "Hora de alongar! 🧘",
+    content: "Pequenas pausas para alongamento previnem dores e aumentam seu bem-estar.",
+    image: stretchingBreakImg,
+    icon: Heart,
+  },
+  {
+    title: "Descanse seus olhos 👀",
+    content: "A cada 20 minutos, olhe para algo a 6 metros por 20 segundos.",
+    image: eyeBreakImg,
+    icon: Sun,
+  },
+  {
+    title: "Você está indo bem! ⭐",
+    content: "Lembre-se: cuidar de si mesmo é o primeiro passo para o sucesso.",
+    image: stretchingBreakImg,
+    icon: Smile,
+  },
+  {
+    title: "Pausa para o café? ☕",
+    content: "Aproveite para esticar as pernas e renovar sua energia.",
+    image: waterBreakImg,
+    icon: Coffee,
+  },
+];
+
 export const HRAnnouncementHeader = () => {
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [motivationalIndex, setMotivationalIndex] = useState(() => 
+    Math.floor(Math.random() * motivationalMessages.length)
+  );
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -66,6 +111,17 @@ export const HRAnnouncementHeader = () => {
     return () => clearInterval(interval);
   }, [announcements.length]);
 
+  // Auto-rotate motivational messages when no announcements
+  useEffect(() => {
+    if (announcements.length > 0) return;
+    
+    const interval = setInterval(() => {
+      setMotivationalIndex((prev) => (prev + 1) % motivationalMessages.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [announcements.length]);
+
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev - 1 + announcements.length) % announcements.length);
   };
@@ -74,7 +130,16 @@ export const HRAnnouncementHeader = () => {
     setCurrentIndex((prev) => (prev + 1) % announcements.length);
   };
 
+  const goToPreviousMotivational = () => {
+    setMotivationalIndex((prev) => (prev - 1 + motivationalMessages.length) % motivationalMessages.length);
+  };
+
+  const goToNextMotivational = () => {
+    setMotivationalIndex((prev) => (prev + 1) % motivationalMessages.length);
+  };
+
   const currentAnnouncement = announcements[currentIndex];
+  const currentMotivational = motivationalMessages[motivationalIndex];
 
   if (loading) {
     return (
@@ -101,7 +166,7 @@ export const HRAnnouncementHeader = () => {
         </Button>
       </div>
 
-      {/* Announcements Carousel */}
+      {/* Announcements or Motivational Messages Carousel */}
       {announcements.length > 0 ? (
         <div className="glass rounded-2xl p-6 relative overflow-hidden">
           <div className="flex items-center justify-center gap-2 mb-3">
@@ -178,16 +243,65 @@ export const HRAnnouncementHeader = () => {
           )}
         </div>
       ) : (
-        <div className="glass rounded-2xl p-6 text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Megaphone className="h-5 w-5 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">
-              Comunicados do RH
-            </span>
+        <div className="glass rounded-2xl p-6 relative overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            {/* Image */}
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-primary/20 to-secondary/20">
+              <img 
+                src={currentMotivational.image} 
+                alt={currentMotivational.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            {/* Content */}
+            <div className="text-center md:text-left flex-1 animate-fade-in">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                <currentMotivational.icon className="h-5 w-5 text-primary" />
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Dica de Bem-estar
+                </span>
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                {currentMotivational.title}
+              </h3>
+              <p className="text-muted-foreground text-sm md:text-base">
+                {currentMotivational.content}
+              </p>
+            </div>
           </div>
-          <p className="text-muted-foreground text-sm">
-            Nenhum comunicado no momento. Acesse o painel do RH para criar avisos.
-          </p>
+
+          {/* Navigation */}
+          <button
+            onClick={goToPreviousMotivational}
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full glass hover:bg-muted/50 transition-colors"
+            aria-label="Anterior"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={goToNextMotivational}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full glass hover:bg-muted/50 transition-colors"
+            aria-label="Próximo"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+
+          {/* Dots */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            {motivationalMessages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setMotivationalIndex(index)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  index === motivationalIndex 
+                    ? "bg-primary w-4" 
+                    : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                }`}
+                aria-label={`Ir para mensagem ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
