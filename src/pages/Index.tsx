@@ -40,6 +40,8 @@ const Index = () => {
     updateWorkSchedule,
     needsWorkScheduleConfig,
     getWorkStatus,
+    getRemainingWorkMinutes,
+    optimalIntervals,
   } = useReminders();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -107,6 +109,14 @@ const Index = () => {
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium">
                   <Briefcase className="h-4 w-4" />
                   Aguardando início do expediente ({workSchedule.startTime})
+                </div>
+              )}
+              {getWorkStatus() === 'working' && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium">
+                  <Briefcase className="h-4 w-4" />
+                  <span>
+                    Expediente ativo • {Math.floor(getRemainingWorkMinutes() / 60)}h{getRemainingWorkMinutes() % 60}min restantes
+                  </span>
                 </div>
               )}
               {getWorkStatus() === 'lunch' && (

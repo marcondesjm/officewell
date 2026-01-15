@@ -8,6 +8,12 @@ export interface WorkSchedule {
   isConfigured: boolean;
 }
 
+export interface OptimalIntervals {
+  eyeInterval: number;      // minutos
+  stretchInterval: number;  // minutos
+  waterInterval: number;    // minutos
+}
+
 const DEFAULT_SCHEDULE: WorkSchedule = {
   startTime: "08:00",
   lunchStart: "12:00",
@@ -105,12 +111,88 @@ export const useWorkSchedule = () => {
     return 0;
   }, [schedule, getWorkStatus]);
 
+  // Calcular o total de minutos de trabalho efetivo (excluindo almoço)
+  const getWorkMinutes = useCallback((): number => {
+    if (!schedule.isConfigured) return 8 * 60; // Default 8h
+
+    const [startH, startM] = schedule.startTime.split(":").map(Number);
+    const [endH, endM] = schedule.endTime.split(":").map(Number);
+
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    return (endMinutes - startMinutes) - schedule.lunchDuration;
+  }, [schedule]);
+
+  // Calcular intervalos otimizados baseado no expediente
+  const calculateOptimalIntervals = useCallback((): OptimalIntervals => {
+    const workMinutes = getWorkMinutes();
+    
+    // Padrões NR-17 como referência base:
+    // - Descanso visual: 20 min (regra 20-20-20)
+    // - Alongamento: 50 min (pausas ergonômicas)
+    // - Hidratação: 30 min (manter bem hidratado)
+    
+    // Calcular quantas pausas cabem no expediente
+    const targetEyeBreaks = Math.max(1, Math.floor(workMinutes / 20)); // Mínimo a cada 20 min
+    const targetStretchBreaks = Math.max(1, Math.floor(workMinutes / 50)); // Mínimo a cada 50 min
+    const targetWaterBreaks = Math.max(1, Math.floor(workMinutes / 30)); // Mínimo a cada 30 min
+    
+    // Distribuir uniformemente
+    const eyeInterval = Math.floor(workMinutes / targetEyeBreaks);
+    const stretchInterval = Math.floor(workMinutes / targetStretchBreaks);
+    const waterInterval = Math.floor(workMinutes / targetWaterBreaks);
+    
+    // Garantir valores mínimos e máximos
+    return {
+      eyeInterval: Math.max(15, Math.min(30, eyeInterval)),       // Entre 15-30 min
+      stretchInterval: Math.max(40, Math.min(60, stretchInterval)), // Entre 40-60 min
+      waterInterval: Math.max(20, Math.min(45, waterInterval)),     // Entre 20-45 min
+    };
+  }, [getWorkMinutes]);
+
+  // Calcular minutos restantes de trabalho
+  const getRemainingWorkMinutes = useCallback((): number => {
+    if (!schedule.isConfigured) return 0;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [lunchStartH, lunchStartM] = schedule.lunchStart.split(":").map(Number);
+    const [endH, endM] = schedule.endTime.split(":").map(Number);
+
+    const lunchStartMinutes = lunchStartH * 60 + lunchStartM;
+    const lunchEndMinutes = lunchStartMinutes + schedule.lunchDuration;
+    const endMinutes = endH * 60 + endM;
+
+    const status = getWorkStatus();
+    
+    if (status === 'before_work' || status === 'after_work') return 0;
+    
+    if (status === 'working') {
+      if (currentMinutes < lunchStartMinutes) {
+        // Antes do almoço: tempo até almoço + tempo após almoço
+        const untilLunch = lunchStartMinutes - currentMinutes;
+        const afterLunch = endMinutes - lunchEndMinutes;
+        return untilLunch + afterLunch;
+      } else {
+        // Após o almoço: tempo até o fim
+        return endMinutes - currentMinutes;
+      }
+    }
+    
+    return 0;
+  }, [schedule, getWorkStatus]);
+
   return {
     schedule,
     updateSchedule,
     isWithinWorkHours,
     getWorkStatus,
     getTimeUntilNextWork,
+    getWorkMinutes,
+    calculateOptimalIntervals,
+    getRemainingWorkMinutes,
     needsConfiguration: !schedule.isConfigured,
   };
 };
