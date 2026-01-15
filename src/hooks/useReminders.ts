@@ -77,7 +77,16 @@ export const useReminders = () => {
   const initialConfig = useRef(loadConfig());
   const { syncTimerState } = useBackgroundSync();
   const { stats, recordCompletion } = useReminderStats();
-  const { isWithinWorkHours, getWorkStatus, schedule, updateSchedule, needsConfiguration, getTimeUntilNextWork } = useWorkSchedule();
+  const { 
+    isWithinWorkHours, 
+    getWorkStatus, 
+    schedule, 
+    updateSchedule, 
+    needsConfiguration, 
+    getTimeUntilNextWork,
+    calculateOptimalIntervals,
+    getRemainingWorkMinutes 
+  } = useWorkSchedule();
   
   const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
   const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
@@ -93,6 +102,7 @@ export const useReminders = () => {
   });
 
   const notifiedRef = useRef({ eye: false, stretch: false, water: false });
+  const hasAppliedOptimalIntervalsRef = useRef(false);
 
   // Salvar config
   useEffect(() => {
@@ -116,6 +126,36 @@ export const useReminders = () => {
   useEffect(() => {
     localStorage.setItem("timersRunning", String(isRunning));
   }, [isRunning]);
+
+  // Aplicar intervalos otimizados quando o expediente começa
+  useEffect(() => {
+    if (schedule.isConfigured && getWorkStatus() === 'working' && !hasAppliedOptimalIntervalsRef.current) {
+      const optimalIntervals = calculateOptimalIntervals();
+      
+      // Atualizar config com intervalos otimizados
+      setConfig(prev => ({
+        eyeInterval: optimalIntervals.eyeInterval,
+        stretchInterval: optimalIntervals.stretchInterval,
+        waterInterval: optimalIntervals.waterInterval,
+      }));
+      
+      // Resetar timers com novos intervalos
+      const now = Date.now();
+      setTimestamps({
+        eyeEndTime: now + optimalIntervals.eyeInterval * 60 * 1000,
+        stretchEndTime: now + optimalIntervals.stretchInterval * 60 * 1000,
+        waterEndTime: now + optimalIntervals.waterInterval * 60 * 1000,
+        lastPausedAt: null,
+      });
+      
+      hasAppliedOptimalIntervalsRef.current = true;
+    }
+    
+    // Reset flag quando sai do horário de trabalho para reaplicar no próximo dia
+    if (getWorkStatus() === 'after_work') {
+      hasAppliedOptimalIntervalsRef.current = false;
+    }
+  }, [schedule.isConfigured, getWorkStatus, calculateOptimalIntervals]);
 
   const showNotification = useCallback((type: "eye" | "stretch" | "water") => {
     const notifications = {
@@ -407,5 +447,7 @@ export const useReminders = () => {
     updateWorkSchedule: updateSchedule,
     needsWorkScheduleConfig: needsConfiguration,
     getWorkStatus,
+    getRemainingWorkMinutes,
+    optimalIntervals: calculateOptimalIntervals(),
   };
 };
