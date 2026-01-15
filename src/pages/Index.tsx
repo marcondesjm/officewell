@@ -9,13 +9,14 @@ import { HealthTips } from "@/components/HealthTips";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
-import { ReminderStatsCard } from "@/components/ReminderStatsCard";
+
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
 import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { PlansHighlight } from "@/components/PlansHighlight";
 import { useReminders } from "@/hooks/useReminders";
+import { useAppRefresh } from "@/hooks/useAppRefresh";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +40,9 @@ const Index = () => {
   const [plansOpen, setPlansOpen] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const navigate = useNavigate();
+
+  // Auto-refresh every hour to keep app updated
+  useAppRefresh(60 * 60 * 1000);
 
   useEffect(() => {
     // Mostrar botão de instalar se não estiver no modo standalone

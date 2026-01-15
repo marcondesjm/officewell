@@ -79,25 +79,47 @@ export const HRAnnouncementHeader = () => {
     Math.floor(Math.random() * motivationalMessages.length)
   );
 
+  const fetchAnnouncements = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setAnnouncements(data || []);
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("announcements")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(5);
-
-        if (error) throw error;
-        setAnnouncements(data || []);
-      } catch (error) {
-        console.error("Error fetching announcements:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchAnnouncements();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('announcements-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'announcements'
+        },
+        (payload) => {
+          console.log('Announcement change received:', payload);
+          // Refetch announcements when there's any change
+          fetchAnnouncements();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Auto-rotate announcements
