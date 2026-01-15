@@ -26,10 +26,14 @@ interface TimerTimestamps {
   lastPausedAt: number | null;
 }
 
+// Valores padrão conforme NR-17 (Ergonomia no Trabalho)
+// - Pausas visuais: 20 min (regra 20-20-20)
+// - Pausas para alongamento: 50 min (conforme lei)
+// - Hidratação: 60 min
 const DEFAULT_CONFIG: ReminderConfig = {
-  eyeInterval: 20,
-  stretchInterval: 45,
-  waterInterval: 30,
+  eyeInterval: 20,      // Regra 20-20-20 para descanso visual
+  stretchInterval: 50,  // NR-17: pausas ergonômicas a cada 50 min
+  waterInterval: 60,    // Hidratação regular a cada hora
 };
 
 const loadConfig = (): ReminderConfig => {

@@ -9,6 +9,7 @@ import { HealthTips } from "@/components/HealthTips";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
+import { BirthdayCelebration } from "@/components/BirthdayCelebration";
 
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
@@ -152,6 +153,9 @@ const Index = () => {
           open={state.showWaterModal}
           onClose={closeWaterModal}
         />
+
+        {/* Celebração de Aniversário */}
+        <BirthdayCelebration />
 
         {/* Footer */}
         <footer className="text-center pt-8 pb-4 space-y-4">
