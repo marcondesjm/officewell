@@ -147,15 +147,36 @@ export const useReminders = () => {
       duration: 5000,
     });
 
-    // Notificação do navegador
+    // Notificação do navegador (funciona em segundo plano no celular)
     try {
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(notification.title, {
+        const notifOptions: NotificationOptions & { renotify?: boolean; vibrate?: number[] } = {
           body: notification.description,
-          icon: "/favicon.ico",
-        });
+          icon: "/pwa-192x192.png",
+          badge: "/pwa-192x192.png",
+          tag: `officewell-${type}`,
+          requireInteraction: true,
+          silent: false,
+        };
+        
+        // Propriedades extras para mobile (podem não existir em todos os navegadores)
+        (notifOptions as any).renotify = true;
+        (notifOptions as any).vibrate = [200, 100, 200, 100, 200];
+        
+        const notif = new Notification(notification.title, notifOptions);
+        
+        // Fechar automaticamente após 10 segundos
+        setTimeout(() => notif.close(), 10000);
+        
+        // Abrir o app ao clicar na notificação
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
       }
-    } catch (e) {}
+    } catch (e) {
+      console.log("Notificação não disponível:", e);
+    }
   }, []);
 
   // Timer principal
