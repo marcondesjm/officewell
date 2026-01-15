@@ -3,8 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lock, Unlock } from "lucide-react";
-import waterBreakImage from "@/assets/water-break.png";
+import waterBreakImage1 from "@/assets/water-break.png";
+import waterBreakImage2 from "@/assets/water-break-2.png";
+import waterBreakImage3 from "@/assets/water-break-3.png";
+import waterBreakImage4 from "@/assets/water-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
+
+const waterBreakImages = [waterBreakImage1, waterBreakImage2, waterBreakImage3, waterBreakImage4];
 
 interface WaterBreakModalProps {
   open: boolean;
@@ -129,6 +134,7 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [description, setDescription] = useState("");
   const [tipSet, setTipSet] = useState(tipSets[0]);
+  const [currentImage, setCurrentImage] = useState(waterBreakImages[0]);
 
   // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
@@ -138,8 +144,10 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
       // Get non-repeating random indices for today
       const descIdx = getRandomIndex("water", "descriptions", descriptions.length);
       const tipIdx = getRandomIndex("water", "tipSets", tipSets.length);
+      const imageIdx = getRandomIndex("water", "images", waterBreakImages.length);
       setDescription(descriptions[descIdx]);
       setTipSet(tipSets[tipIdx]);
+      setCurrentImage(waterBreakImages[imageIdx]);
     } else {
       setStartTime(null);
       setElapsed(0);
@@ -223,8 +231,8 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
         <div className="space-y-4">
           <div className="relative rounded-xl overflow-hidden shadow-lg">
             <img 
-              src={waterBreakImage} 
-              alt="Pessoa bebendo água no escritório"
+              src={currentImage} 
+              alt="Hidratação e água no trabalho"
               className="w-full h-auto object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />

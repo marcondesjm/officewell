@@ -3,8 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lock, Unlock } from "lucide-react";
-import eyeBreakImage from "@/assets/eye-break.png";
+import eyeBreakImage1 from "@/assets/eye-break.png";
+import eyeBreakImage2 from "@/assets/eye-break-2.png";
+import eyeBreakImage3 from "@/assets/eye-break-3.png";
+import eyeBreakImage4 from "@/assets/eye-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
+
+const eyeBreakImages = [eyeBreakImage1, eyeBreakImage2, eyeBreakImage3, eyeBreakImage4];
 
 interface EyeBreakModalProps {
   open: boolean;
@@ -129,6 +134,7 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [description, setDescription] = useState("");
   const [tipSet, setTipSet] = useState(tipSets[0]);
+  const [currentImage, setCurrentImage] = useState(eyeBreakImages[0]);
 
   // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
@@ -138,8 +144,10 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
       // Get non-repeating random indices for today
       const descIdx = getRandomIndex("eye", "descriptions", descriptions.length);
       const tipIdx = getRandomIndex("eye", "tipSets", tipSets.length);
+      const imageIdx = getRandomIndex("eye", "images", eyeBreakImages.length);
       setDescription(descriptions[descIdx]);
       setTipSet(tipSets[tipIdx]);
+      setCurrentImage(eyeBreakImages[imageIdx]);
     } else {
       setStartTime(null);
       setElapsed(0);
@@ -223,8 +231,8 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
         <div className="space-y-4">
           <div className="relative rounded-xl overflow-hidden shadow-lg">
             <img 
-              src={eyeBreakImage} 
-              alt="Pessoa olhando pela janela para descansar os olhos"
+              src={currentImage} 
+              alt="Pessoa fazendo pausa para descansar os olhos"
               className="w-full h-auto object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />

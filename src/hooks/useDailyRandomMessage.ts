@@ -2,9 +2,9 @@ const getDateKey = () => new Date().toISOString().split('T')[0];
 
 interface UsedMessages {
   date: string;
-  eye: { descriptions: number[]; tipSets: number[] };
-  stretch: { descriptions: number[]; tipSets: number[] };
-  water: { descriptions: number[]; tipSets: number[] };
+  eye: { descriptions: number[]; tipSets: number[]; images: number[] };
+  stretch: { descriptions: number[]; tipSets: number[]; images: number[] };
+  water: { descriptions: number[]; tipSets: number[]; images: number[] };
 }
 
 const STORAGE_KEY = "usedDailyMessages";
@@ -24,9 +24,9 @@ const loadUsedMessages = (): UsedMessages => {
   // Reset for new day
   return {
     date: getDateKey(),
-    eye: { descriptions: [], tipSets: [] },
-    stretch: { descriptions: [], tipSets: [] },
-    water: { descriptions: [], tipSets: [] },
+    eye: { descriptions: [], tipSets: [], images: [] },
+    stretch: { descriptions: [], tipSets: [], images: [] },
+    water: { descriptions: [], tipSets: [], images: [] },
   };
 };
 
@@ -36,7 +36,7 @@ const saveUsedMessages = (data: UsedMessages) => {
 
 export const getRandomIndex = (
   type: "eye" | "stretch" | "water",
-  category: "descriptions" | "tipSets",
+  category: "descriptions" | "tipSets" | "images",
   totalItems: number
 ): number => {
   const used = loadUsedMessages();

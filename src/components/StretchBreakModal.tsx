@@ -3,8 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lock, Unlock } from "lucide-react";
-import stretchingImage from "@/assets/stretching-break.png";
+import stretchingImage1 from "@/assets/stretching-break.png";
+import stretchingImage2 from "@/assets/stretching-break-2.png";
+import stretchingImage3 from "@/assets/stretching-break-3.png";
+import stretchingImage4 from "@/assets/stretching-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
+
+const stretchingImages = [stretchingImage1, stretchingImage2, stretchingImage3, stretchingImage4];
 
 interface StretchBreakModalProps {
   open: boolean;
@@ -147,6 +152,7 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
   const [startTime, setStartTime] = useState<number | null>(null);
   const [description, setDescription] = useState("");
   const [tipSet, setTipSet] = useState(tipSets[0]);
+  const [currentImage, setCurrentImage] = useState(stretchingImages[0]);
 
   // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
@@ -156,8 +162,10 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
       // Get non-repeating random indices for today
       const descIdx = getRandomIndex("stretch", "descriptions", descriptions.length);
       const tipIdx = getRandomIndex("stretch", "tipSets", tipSets.length);
+      const imageIdx = getRandomIndex("stretch", "images", stretchingImages.length);
       setDescription(descriptions[descIdx]);
       setTipSet(tipSets[tipIdx]);
+      setCurrentImage(stretchingImages[imageIdx]);
     } else {
       setStartTime(null);
       setElapsed(0);
@@ -241,7 +249,7 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
         <div className="space-y-4">
           <div className="relative rounded-xl overflow-hidden shadow-lg">
             <img 
-              src={stretchingImage} 
+              src={currentImage} 
               alt="Pessoa fazendo alongamento no escritório"
               className="w-full h-auto object-cover"
             />
