@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -10,7 +12,8 @@ import {
   AlertTriangle,
   Info,
   AlertCircle,
-  PartyPopper
+  PartyPopper,
+  Settings
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -66,6 +69,7 @@ const getDayOfBirthday = (birthday: string | null): number => {
 };
 
 export const HRPanel = () => {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,9 +131,20 @@ export const HRPanel = () => {
   return (
     <Card className="glass-strong shadow-card border-0 animate-fade-in overflow-hidden">
       <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          <CardTitle className="text-xl text-gradient">Painel RH</CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            <CardTitle className="text-xl text-gradient">Painel RH</CardTitle>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/rh")}
+            className="gap-2 text-muted-foreground hover:text-primary"
+          >
+            <Settings className="h-4 w-4" />
+            Gerenciar
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
