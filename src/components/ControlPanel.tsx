@@ -26,6 +26,7 @@ export const ControlPanel = ({
           className={`
             min-h-14 px-8 rounded-2xl font-semibold text-base
             transition-all duration-300 ease-out touch-manipulation
+            inline-flex items-center gap-2
             ${isRunning 
               ? 'gradient-primary hover:opacity-90 shadow-lg hover:shadow-xl hover:scale-105' 
               : 'bg-accent hover:bg-accent/90 shadow-lg hover:shadow-xl hover:scale-105'
@@ -34,13 +35,13 @@ export const ControlPanel = ({
         >
           {isRunning ? (
             <>
-              <Pause size={22} className="mr-2" />
-              Pausar
+              <Pause size={22} />
+              <span>Pausar</span>
             </>
           ) : (
             <>
-              <Play size={22} className="mr-2" />
-              Iniciar
+              <Play size={22} />
+              <span>Iniciar</span>
             </>
           )}
         </Button>
@@ -49,10 +50,10 @@ export const ControlPanel = ({
           onClick={onReset} 
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
-          <RotateCcw size={20} className="mr-2" />
-          Reiniciar
+          <RotateCcw size={20} />
+          <span>Reiniciar</span>
         </Button>
 
         <Button 
@@ -69,10 +70,10 @@ export const ControlPanel = ({
           onClick={onSettings} 
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
-          <Settings size={20} className="mr-2" />
-          Ajustes
+          <Settings size={20} />
+          <span>Ajustes</span>
         </Button>
       </div>
     </Card>
