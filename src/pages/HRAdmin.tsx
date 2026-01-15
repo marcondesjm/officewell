@@ -70,6 +70,7 @@ interface BirthdaySettings {
   id: string;
   message: string;
   image_url: string | null;
+  display_time: string | null;
 }
 
 // Helper function to parse date without timezone issues
@@ -147,6 +148,7 @@ const HRAdmin = () => {
   const [birthdaySettingsDialogOpen, setBirthdaySettingsDialogOpen] = useState(false);
   const [birthdayMessage, setBirthdayMessage] = useState("");
   const [birthdayImageUrl, setBirthdayImageUrl] = useState("");
+  const [birthdayDisplayTime, setBirthdayDisplayTime] = useState("09:00");
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -354,6 +356,7 @@ const HRAdmin = () => {
   const openBirthdaySettingsDialog = () => {
     setBirthdayMessage(birthdaySettings?.message || "Desejamos um dia repleto de alegrias, realizações e muita felicidade!");
     setBirthdayImageUrl(birthdaySettings?.image_url || "");
+    setBirthdayDisplayTime(birthdaySettings?.display_time?.slice(0, 5) || "09:00");
     setBirthdaySettingsDialogOpen(true);
   };
 
@@ -411,6 +414,7 @@ const HRAdmin = () => {
           .update({
             message: birthdayMessage.trim(),
             image_url: birthdayImageUrl || null,
+            display_time: birthdayDisplayTime + ":00",
           })
           .eq("id", birthdaySettings.id);
 
@@ -421,6 +425,7 @@ const HRAdmin = () => {
           .insert({
             message: birthdayMessage.trim(),
             image_url: birthdayImageUrl || null,
+            display_time: birthdayDisplayTime + ":00",
           });
 
         if (error) throw error;
@@ -698,6 +703,19 @@ const HRAdmin = () => {
                       />
                       <p className="text-xs text-muted-foreground">
                         Esta mensagem será exibida no painel de todos os usuários no dia do aniversário
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="bday-time">Horário para Exibir o Lembrete</Label>
+                      <Input
+                        id="bday-time"
+                        type="time"
+                        value={birthdayDisplayTime}
+                        onChange={(e) => setBirthdayDisplayTime(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        O lembrete de aniversário será exibido a partir deste horário
                       </p>
                     </div>
                     
