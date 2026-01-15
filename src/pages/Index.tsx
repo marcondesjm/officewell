@@ -9,6 +9,7 @@ import { HealthTips } from "@/components/HealthTips";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
+import { ReminderStatsCard } from "@/components/ReminderStatsCard";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const Index = () => {
   const {
     config,
     state,
+    stats,
     toggleRunning,
     resetTimers,
     updateConfig,
@@ -100,6 +102,9 @@ const Index = () => {
 
         {/* Contador de Água */}
         <WaterTracker />
+
+        {/* Estatísticas */}
+        <ReminderStatsCard stats={stats} />
 
         {/* Dicas de Saúde */}
         <HealthTips />
