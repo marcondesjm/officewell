@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -16,10 +16,12 @@ import { HRPanel } from "@/components/HRPanel";
 import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { PlansHighlight } from "@/components/PlansHighlight";
+import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 
 const Index = () => {
@@ -34,14 +36,26 @@ const Index = () => {
     closeStretchModal,
     closeEyeModal,
     closeWaterModal,
+    workSchedule,
+    updateWorkSchedule,
+    needsWorkScheduleConfig,
+    getWorkStatus,
   } = useReminders();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [workScheduleOpen, setWorkScheduleOpen] = useState(false);
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Show work schedule setup on first load
+  useEffect(() => {
+    if (needsWorkScheduleConfig) {
+      setWorkScheduleOpen(true);
+    }
+  }, [needsWorkScheduleConfig]);
 
   // Auto-refresh every hour to keep app updated
   const { checkForUpdates } = useAppRefresh(60 * 60 * 1000);
@@ -86,7 +100,39 @@ const Index = () => {
         <header className="text-center space-y-6 py-6 animate-fade-in">
           <HRAnnouncementHeader />
           
-          {!state.isRunning && (
+          {/* Work Status Indicator */}
+          {workSchedule.isConfigured && (
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {getWorkStatus() === 'before_work' && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-sm font-medium">
+                  <Briefcase className="h-4 w-4" />
+                  Aguardando início do expediente ({workSchedule.startTime})
+                </div>
+              )}
+              {getWorkStatus() === 'lunch' && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-sm font-medium">
+                  <Coffee className="h-4 w-4" />
+                  Horário de almoço - Bom apetite! 🍽️
+                </div>
+              )}
+              {getWorkStatus() === 'after_work' && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-sm font-medium">
+                  <Moon className="h-4 w-4" />
+                  Fim do expediente - Descanse bem! 🌙
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setWorkScheduleOpen(true)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ⚙️ {workSchedule.startTime} - {workSchedule.endTime}
+              </Button>
+            </div>
+          )}
+          
+          {!state.isRunning && getWorkStatus() === 'working' && (
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive text-sm font-medium animate-pulse-soft">
               <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
               Lembretes pausados
@@ -184,6 +230,16 @@ const Index = () => {
 
         {/* Celebração de Aniversário */}
         <BirthdayCelebration />
+
+        {/* Work Schedule Setup */}
+        <WorkScheduleSetup
+          open={workScheduleOpen}
+          onSave={(newSchedule) => {
+            updateWorkSchedule(newSchedule);
+            setWorkScheduleOpen(false);
+          }}
+          currentSchedule={workSchedule}
+        />
 
         {/* Footer */}
         <footer className="text-center pt-8 pb-4 space-y-4">

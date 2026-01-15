@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useBackgroundSync } from "./useBackgroundSync";
 import { useReminderStats } from "./useReminderStats";
+import { useWorkSchedule } from "./useWorkSchedule";
 
 export interface ReminderConfig {
   eyeInterval: number;
@@ -76,6 +77,7 @@ export const useReminders = () => {
   const initialConfig = useRef(loadConfig());
   const { syncTimerState } = useBackgroundSync();
   const { stats, recordCompletion } = useReminderStats();
+  const { isWithinWorkHours, getWorkStatus, schedule, updateSchedule, needsConfiguration, getTimeUntilNextWork } = useWorkSchedule();
   
   const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
   const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
@@ -201,10 +203,24 @@ export const useReminders = () => {
     }
   }, []);
 
-  // Timer principal
+  // Timer principal - agora respeita horário de trabalho
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = Date.now();
+      const withinWorkHours = isWithinWorkHours();
+      const workStatus = getWorkStatus();
+
+      // Se estiver fora do horário de trabalho, pausar os timers
+      if (!withinWorkHours && schedule.isConfigured) {
+        const timeUntilWork = getTimeUntilNextWork();
+        return {
+          eyeTimeLeft: timeUntilWork > 0 ? timeUntilWork : 0,
+          stretchTimeLeft: timeUntilWork > 0 ? timeUntilWork : 0,
+          waterTimeLeft: timeUntilWork > 0 ? timeUntilWork : 0,
+          isRunning: false,
+          workStatus,
+        };
+      }
 
       if (!isRunning) {
         const pauseTime = timestamps.lastPausedAt || now;
@@ -213,6 +229,7 @@ export const useReminders = () => {
           stretchTimeLeft: Math.max(0, Math.floor((timestamps.stretchEndTime - pauseTime) / 1000)),
           waterTimeLeft: Math.max(0, Math.floor((timestamps.waterEndTime - pauseTime) / 1000)),
           isRunning: false,
+          workStatus,
         };
       }
 
@@ -220,11 +237,12 @@ export const useReminders = () => {
       const stretchTimeLeft = Math.max(0, Math.floor((timestamps.stretchEndTime - now) / 1000));
       const waterTimeLeft = Math.max(0, Math.floor((timestamps.waterEndTime - now) / 1000));
 
-      return { eyeTimeLeft, stretchTimeLeft, waterTimeLeft, isRunning: true };
+      return { eyeTimeLeft, stretchTimeLeft, waterTimeLeft, isRunning: true, workStatus };
     };
 
     const checkAndNotify = () => {
-      if (!isRunning) return;
+      // Não notificar fora do horário de trabalho
+      if (!isRunning || !isWithinWorkHours()) return;
       
       const now = Date.now();
 
@@ -232,7 +250,6 @@ export const useReminders = () => {
         notifiedRef.current.eye = true;
         showNotification("eye");
         setState(prev => ({ ...prev, showEyeModal: true }));
-        // Timer será reiniciado ao fechar o modal
       } else if (timestamps.eyeEndTime > now) {
         notifiedRef.current.eye = false;
       }
@@ -241,7 +258,6 @@ export const useReminders = () => {
         notifiedRef.current.stretch = true;
         showNotification("stretch");
         setState(prev => ({ ...prev, showStretchModal: true }));
-        // Timer será reiniciado ao fechar o modal
       } else if (timestamps.stretchEndTime > now) {
         notifiedRef.current.stretch = false;
       }
@@ -250,7 +266,6 @@ export const useReminders = () => {
         notifiedRef.current.water = true;
         showNotification("water");
         setState(prev => ({ ...prev, showWaterModal: true }));
-        // Timer será reiniciado ao fechar o modal
       } else if (timestamps.waterEndTime > now) {
         notifiedRef.current.water = false;
       }
@@ -279,7 +294,7 @@ export const useReminders = () => {
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", handleVisibility);
     };
-  }, [isRunning, timestamps, config, showNotification]);
+  }, [isRunning, timestamps, config, showNotification, isWithinWorkHours, getWorkStatus, schedule.isConfigured, getTimeUntilNextWork]);
 
   const toggleRunning = useCallback(() => {
     const now = Date.now();
@@ -387,5 +402,10 @@ export const useReminders = () => {
     closeStretchModal,
     closeEyeModal,
     closeWaterModal,
+    // Work schedule
+    workSchedule: schedule,
+    updateWorkSchedule: updateSchedule,
+    needsWorkScheduleConfig: needsConfiguration,
+    getWorkStatus,
   };
 };
