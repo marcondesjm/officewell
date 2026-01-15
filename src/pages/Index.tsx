@@ -5,6 +5,7 @@ import { SettingsDialog } from "@/components/SettingsDialog";
 import { ActiveTimerCard } from "@/components/ActiveTimerCard";
 import { DonationDialog } from "@/components/DonationDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { HealthTips } from "@/components/HealthTips";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,9 @@ const Index = () => {
 
         {/* Contador de Água */}
         <WaterTracker />
+
+        {/* Dicas de Saúde */}
+        <HealthTips />
 
         {/* Dialog de Configurações */}
         <SettingsDialog
