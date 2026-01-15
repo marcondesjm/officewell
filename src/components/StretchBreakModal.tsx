@@ -82,21 +82,17 @@ const tipSets = [
 export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => {
   const [elapsed, setElapsed] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [description, setDescription] = useState("");
+  const [tipSet, setTipSet] = useState(tipSets[0]);
 
-  const { description, tipSet } = useMemo(() => {
-    const descIndex = Math.floor(Math.random() * descriptions.length);
-    const tipIndex = Math.floor(Math.random() * tipSets.length);
-    return {
-      description: descriptions[descIndex],
-      tipSet: tipSets[tipIndex],
-    };
-  }, [open]);
-
-  // Reset timer when modal opens
+  // Reset timer and randomize tips when modal opens
   useEffect(() => {
     if (open) {
       setStartTime(Date.now());
       setElapsed(0);
+      // Randomize tips each time modal opens
+      setDescription(descriptions[Math.floor(Math.random() * descriptions.length)]);
+      setTipSet(tipSets[Math.floor(Math.random() * tipSets.length)]);
     } else {
       setStartTime(null);
       setElapsed(0);
