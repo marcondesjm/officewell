@@ -1,5 +1,33 @@
 import { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useMemo } from "react";
+
+const tips = {
+  primary: [ // Descanso Visual
+    "Olhe para um ponto distante por 20 segundos",
+    "Pisque várias vezes para lubrificar os olhos",
+    "Ajuste o brilho da tela para reduzir o cansaço",
+    "A regra 20-20-20: a cada 20 min, olhe 20m por 20s",
+    "Mantenha a tela a 50-70cm de distância dos olhos",
+    "Prefira luz natural sempre que possível",
+  ],
+  secondary: [ // Alongamento
+    "Gire os ombros para trás e para frente",
+    "Alongue o pescoço inclinando a cabeça",
+    "Levante os braços acima da cabeça e estique",
+    "Faça rotação dos punhos para relaxar",
+    "Levante-se e caminhe um pouco",
+    "Alongue as costas girando o tronco",
+  ],
+  accent: [ // Hidratação
+    "Beba água mesmo sem sentir sede",
+    "Mantenha uma garrafa de água por perto",
+    "A hidratação melhora a concentração",
+    "Água ajuda a manter a pele saudável",
+    "Evite bebidas muito açucaradas",
+    "Chás e água com limão também contam!",
+  ],
+};
 
 interface ActiveTimerCardProps {
   icon: LucideIcon;
@@ -20,6 +48,13 @@ export const ActiveTimerCard = ({
   const seconds = timeLeft % 60;
   const percentage = ((totalTime - timeLeft) / totalTime) * 100;
   const isAlmostDone = percentage >= 80;
+
+  // Trocar dica a cada 10 segundos baseado no tempo restante
+  const currentTip = useMemo(() => {
+    const tipList = tips[variant];
+    const tipIndex = Math.floor(timeLeft / 10) % tipList.length;
+    return tipList[tipIndex];
+  }, [Math.floor(timeLeft / 10), variant]);
 
   const variantStyles = {
     primary: {
@@ -64,7 +99,7 @@ export const ActiveTimerCard = ({
       {/* Background decoration */}
       <div className={`absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br ${styles.icon} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity duration-500`} />
       
-      <div className="relative space-y-5">
+      <div className="relative space-y-4">
         <div className="flex items-start gap-4">
           <div className={`
             relative p-4 rounded-2xl 
@@ -86,6 +121,12 @@ export const ActiveTimerCard = ({
               {String(seconds).padStart(2, '0')}
             </div>
           </div>
+        </div>
+
+        {/* Dica animada */}
+        <div className={`text-xs ${styles.text} bg-card/50 rounded-lg px-3 py-2 transition-all duration-500`}>
+          <span className="opacity-70">💡</span>{" "}
+          <span className="text-muted-foreground">{currentTip}</span>
         </div>
         
         <div className="space-y-2">
