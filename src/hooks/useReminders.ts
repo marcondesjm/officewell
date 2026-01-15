@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
+import { useBackgroundSync } from "./useBackgroundSync";
 
 export interface ReminderConfig {
   eyeInterval: number;
@@ -65,6 +66,7 @@ const loadIsRunning = (): boolean => {
 export const useReminders = () => {
   // Carregar valores iniciais de forma síncrona
   const initialConfig = useRef(loadConfig());
+  const { syncTimerState } = useBackgroundSync();
   
   const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
   const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
@@ -83,10 +85,18 @@ export const useReminders = () => {
     localStorage.setItem("reminderConfig", JSON.stringify(config));
   }, [config]);
 
-  // Salvar timestamps
+  // Salvar timestamps e sincronizar com Service Worker
   useEffect(() => {
     localStorage.setItem("timerTimestamps", JSON.stringify(timestamps));
-  }, [timestamps]);
+    
+    // Sincronizar estado para o Service Worker poder verificar em segundo plano
+    syncTimerState({
+      eyeEndTime: timestamps.eyeEndTime,
+      stretchEndTime: timestamps.stretchEndTime,
+      waterEndTime: timestamps.waterEndTime,
+      isRunning,
+    });
+  }, [timestamps, isRunning, syncTimerState]);
 
   // Salvar estado running
   useEffect(() => {
