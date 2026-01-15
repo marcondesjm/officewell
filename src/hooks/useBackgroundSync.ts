@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 
 interface TimerState {
   eyeEndTime: number;
@@ -8,13 +8,30 @@ interface TimerState {
 }
 
 export const useBackgroundSync = () => {
+  const keepAliveInterval = useRef<NodeJS.Timeout | null>(null);
+
   // Salvar estado no cache para o Service Worker acessar
   const syncTimerState = useCallback(async (state: TimerState) => {
     try {
+      // Salvar no cache
       if ('caches' in window) {
         const cache = await caches.open('officewell-timers');
         const response = new Response(JSON.stringify(state));
         await cache.put('timer-state', response);
+      }
+
+      // Enviar para o Service Worker agendar os timers
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        const now = Date.now();
+        
+        registration.active?.postMessage({
+          type: 'SCHEDULE_ALL',
+          eyeDelay: state.eyeEndTime - now,
+          stretchDelay: state.stretchEndTime - now,
+          waterDelay: state.waterEndTime - now,
+          isRunning: state.isRunning,
+        });
       }
     } catch (e) {
       console.log('Erro ao sincronizar estado:', e);
@@ -60,12 +77,32 @@ export const useBackgroundSync = () => {
     }
   }, []);
 
+  // Manter o Service Worker ativo com pings periódicos
+  const keepServiceWorkerAlive = useCallback(async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        
+        // Criar um canal de mensagem
+        const messageChannel = new MessageChannel();
+        
+        registration.active?.postMessage(
+          { type: 'PING' },
+          [messageChannel.port2]
+        );
+      }
+    } catch (e) {
+      console.log('Erro ao manter SW ativo:', e);
+    }
+  }, []);
+
   // Solicitar permissão de background sync
   const requestBackgroundSyncPermission = useCallback(async () => {
     try {
       // Solicitar permissão de notificações primeiro
       if ('Notification' in window && Notification.permission === 'default') {
-        await Notification.requestPermission();
+        const permission = await Notification.requestPermission();
+        console.log('Permissão de notificação:', permission);
       }
 
       // Registrar background sync
@@ -86,7 +123,29 @@ export const useBackgroundSync = () => {
   useEffect(() => {
     registerPeriodicSync();
     requestBackgroundSyncPermission();
-  }, [registerPeriodicSync, requestBackgroundSyncPermission]);
+    
+    // Manter SW ativo a cada 20 segundos
+    keepAliveInterval.current = setInterval(() => {
+      keepServiceWorkerAlive();
+    }, 20000);
+
+    // Verificar timers ao voltar ao foco
+    const handleVisibilityChange = async () => {
+      if (!document.hidden && 'serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        registration.active?.postMessage({ type: 'CHECK_TIMERS' });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      if (keepAliveInterval.current) {
+        clearInterval(keepAliveInterval.current);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [registerPeriodicSync, requestBackgroundSyncPermission, keepServiceWorkerAlive]);
 
   return {
     syncTimerState,
