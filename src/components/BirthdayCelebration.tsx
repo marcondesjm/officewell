@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PartyPopper, Gift, Sparkles, X, Download } from "lucide-react";
@@ -17,6 +17,7 @@ interface BirthdaySettings {
   id: string;
   message: string;
   image_url: string | null;
+  display_time: string | null;
 }
 
 // Helper function to parse date without timezone issues
@@ -34,53 +35,88 @@ const isBirthdayToday = (birthday: string | null): boolean => {
   return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
 };
 
+// Check if current time is past the configured display time
+const isTimeToShow = (displayTime: string | null): boolean => {
+  if (!displayTime) return true; // Default: show immediately
+  
+  const now = new Date();
+  const [hours, minutes] = displayTime.split(':').map(Number);
+  const targetTime = new Date();
+  targetTime.setHours(hours, minutes, 0, 0);
+  
+  return now >= targetTime;
+};
+
 export const BirthdayCelebration = () => {
   const [birthdayPeople, setBirthdayPeople] = useState<Employee[]>([]);
   const [birthdaySettings, setBirthdaySettings] = useState<BirthdaySettings | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [waitingForTime, setWaitingForTime] = useState(false);
 
-  useEffect(() => {
-    const checkBirthdays = async () => {
-      // Check if already dismissed today
-      const dismissedDate = localStorage.getItem("birthdayDismissedDate");
-      const today = new Date().toDateString();
-      
-      if (dismissedDate === today) {
-        setDismissed(true);
+  const checkBirthdays = useCallback(async () => {
+    // Check if already dismissed today
+    const dismissedDate = localStorage.getItem("birthdayDismissedDate");
+    const today = new Date().toDateString();
+    
+    if (dismissedDate === today) {
+      setDismissed(true);
+      return;
+    }
+
+    try {
+      // Fetch birthday settings first to check the time
+      const { data: settingsData } = await supabase
+        .from("birthday_settings")
+        .select("*")
+        .limit(1)
+        .single();
+
+      // Check if it's time to show
+      if (settingsData && !isTimeToShow(settingsData.display_time)) {
+        setWaitingForTime(true);
+        setBirthdaySettings(settingsData);
         return;
       }
 
-      try {
-        const { data: empData, error: empError } = await supabase
-          .from("employees")
-          .select("*");
+      const { data: empData, error: empError } = await supabase
+        .from("employees")
+        .select("*");
 
-        if (empError) throw empError;
+      if (empError) throw empError;
 
-        const todayBirthdays = (empData || []).filter((emp) => 
-          isBirthdayToday(emp.birthday)
-        );
+      const todayBirthdays = (empData || []).filter((emp) => 
+        isBirthdayToday(emp.birthday)
+      );
 
-        if (todayBirthdays.length > 0) {
-          // Fetch birthday settings
-          const { data: settingsData } = await supabase
-            .from("birthday_settings")
-            .select("*")
-            .limit(1)
-            .single();
-
-          setBirthdaySettings(settingsData);
-          setBirthdayPeople(todayBirthdays);
-          setShowModal(true);
-        }
-      } catch (error) {
-        console.error("Error checking birthdays:", error);
+      if (todayBirthdays.length > 0) {
+        setBirthdaySettings(settingsData);
+        setBirthdayPeople(todayBirthdays);
+        setShowModal(true);
+        setWaitingForTime(false);
       }
-    };
-
-    checkBirthdays();
+    } catch (error) {
+      console.error("Error checking birthdays:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    checkBirthdays();
+    
+    // If waiting for time, check every minute
+    let intervalId: NodeJS.Timeout | null = null;
+    if (waitingForTime && !dismissed) {
+      intervalId = setInterval(() => {
+        if (birthdaySettings && isTimeToShow(birthdaySettings.display_time)) {
+          checkBirthdays();
+        }
+      }, 60000); // Check every minute
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [checkBirthdays, waitingForTime, dismissed, birthdaySettings]);
 
   const handleClose = () => {
     setShowModal(false);
