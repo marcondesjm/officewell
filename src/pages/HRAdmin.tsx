@@ -773,11 +773,11 @@ const HRAdmin = () => {
                       <Label className="text-sm font-medium mb-2 block">Pré-visualização</Label>
                       <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-pink-500/10 border border-primary/20">
                         {birthdayImageUrl && (
-                          <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-primary/30">
+                          <div className="mb-3 rounded-lg overflow-hidden border-2 border-primary/30">
                             <img
                               src={birthdayImageUrl}
                               alt="Preview"
-                              className="w-full h-full object-cover"
+                              className="w-full h-auto object-contain"
                             />
                           </div>
                         )}
