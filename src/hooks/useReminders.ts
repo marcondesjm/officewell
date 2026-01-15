@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { useBackgroundSync } from "./useBackgroundSync";
+import { useReminderStats } from "./useReminderStats";
 
 export interface ReminderConfig {
   eyeInterval: number;
@@ -70,6 +71,7 @@ export const useReminders = () => {
   // Carregar valores iniciais de forma síncrona
   const initialConfig = useRef(loadConfig());
   const { syncTimerState } = useBackgroundSync();
+  const { stats, recordCompletion } = useReminderStats();
   
   const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
   const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
@@ -345,19 +347,23 @@ export const useReminders = () => {
 
   const closeStretchModal = useCallback(() => {
     setState(prev => ({ ...prev, showStretchModal: false }));
-  }, []);
+    recordCompletion("stretch");
+  }, [recordCompletion]);
 
   const closeEyeModal = useCallback(() => {
     setState(prev => ({ ...prev, showEyeModal: false }));
-  }, []);
+    recordCompletion("eye");
+  }, [recordCompletion]);
 
   const closeWaterModal = useCallback(() => {
     setState(prev => ({ ...prev, showWaterModal: false }));
-  }, []);
+    recordCompletion("water");
+  }, [recordCompletion]);
 
   return {
     config,
     state,
+    stats,
     toggleRunning,
     resetTimers,
     updateConfig,
