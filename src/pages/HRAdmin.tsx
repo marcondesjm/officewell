@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,9 @@ import {
   Cake,
   Building,
   PartyPopper,
+  Settings,
+  Upload,
+  Image,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -61,6 +64,12 @@ interface Announcement {
   priority: string | null;
   is_active: boolean | null;
   created_at: string;
+}
+
+interface BirthdaySettings {
+  id: string;
+  message: string;
+  image_url: string | null;
 }
 
 // Helper function to parse date without timezone issues
@@ -116,6 +125,7 @@ const HRAdmin = () => {
   const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [birthdaySettings, setBirthdaySettings] = useState<BirthdaySettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Employee form state
@@ -133,6 +143,13 @@ const HRAdmin = () => {
   const [announcementContent, setAnnouncementContent] = useState("");
   const [announcementPriority, setAnnouncementPriority] = useState("normal");
 
+  // Birthday settings form state
+  const [birthdaySettingsDialogOpen, setBirthdaySettingsDialogOpen] = useState(false);
+  const [birthdayMessage, setBirthdayMessage] = useState("");
+  const [birthdayImageUrl, setBirthdayImageUrl] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const fetchData = async () => {
     try {
       const { data: empData } = await supabase
@@ -145,8 +162,17 @@ const HRAdmin = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
+      const { data: bdaySettings } = await supabase
+        .from("birthday_settings")
+        .select("*")
+        .limit(1)
+        .single();
+
       setEmployees(empData || []);
       setAnnouncements(annData || []);
+      if (bdaySettings) {
+        setBirthdaySettings(bdaySettings);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -322,6 +348,91 @@ const HRAdmin = () => {
     normal: "Normal",
     high: "Alta",
     urgent: "Urgente",
+  };
+
+  // Birthday Settings Functions
+  const openBirthdaySettingsDialog = () => {
+    setBirthdayMessage(birthdaySettings?.message || "Desejamos um dia repleto de alegrias, realizações e muita felicidade!");
+    setBirthdayImageUrl(birthdaySettings?.image_url || "");
+    setBirthdaySettingsDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 5MB");
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `birthday-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("birthday-images")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("birthday-images")
+        .getPublicUrl(fileName);
+
+      setBirthdayImageUrl(urlData.publicUrl);
+      toast.success("Imagem carregada com sucesso!");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Erro ao carregar imagem");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const saveBirthdaySettings = async () => {
+    if (!birthdayMessage.trim()) {
+      toast.error("A mensagem é obrigatória");
+      return;
+    }
+
+    try {
+      if (birthdaySettings?.id) {
+        const { error } = await supabase
+          .from("birthday_settings")
+          .update({
+            message: birthdayMessage.trim(),
+            image_url: birthdayImageUrl || null,
+          })
+          .eq("id", birthdaySettings.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("birthday_settings")
+          .insert({
+            message: birthdayMessage.trim(),
+            image_url: birthdayImageUrl || null,
+          });
+
+        if (error) throw error;
+      }
+
+      toast.success("Configurações de aniversário salvas!");
+      setBirthdaySettingsDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error saving birthday settings:", error);
+      toast.error("Erro ao salvar configurações");
+    }
   };
 
   if (loading) {
@@ -559,6 +670,134 @@ const HRAdmin = () => {
 
           {/* Birthdays Tab */}
           <TabsContent value="birthdays" className="space-y-4">
+            {/* Birthday Settings Button */}
+            <div className="flex justify-end">
+              <Dialog open={birthdaySettingsDialogOpen} onOpenChange={setBirthdaySettingsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={openBirthdaySettingsDialog} variant="outline" className="gap-2">
+                    <Settings className="h-4 w-4" />
+                    Configurar Mensagem de Aniversário
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <PartyPopper className="h-5 w-5 text-primary" />
+                      Configurar Celebração de Aniversário
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bday-message">Mensagem de Aniversário *</Label>
+                      <Textarea
+                        id="bday-message"
+                        value={birthdayMessage}
+                        onChange={(e) => setBirthdayMessage(e.target.value)}
+                        placeholder="Escreva uma mensagem especial..."
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Esta mensagem será exibida no painel de todos os usuários no dia do aniversário
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Imagem de Aniversário</Label>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        className="hidden"
+                      />
+                      
+                      {birthdayImageUrl ? (
+                        <div className="space-y-2">
+                          <div className="relative rounded-lg overflow-hidden border bg-muted aspect-video">
+                            <img
+                              src={birthdayImageUrl}
+                              alt="Imagem de aniversário"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={uploadingImage}
+                              className="flex-1"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Trocar Imagem
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setBirthdayImageUrl("")}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingImage}
+                          className="w-full h-24 border-dashed"
+                        >
+                          {uploadingImage ? (
+                            <span className="animate-pulse">Carregando...</span>
+                          ) : (
+                            <div className="flex flex-col items-center gap-2">
+                              <Image className="h-6 w-6 text-muted-foreground" />
+                              <span className="text-sm text-muted-foreground">
+                                Clique para adicionar imagem
+                              </span>
+                            </div>
+                          )}
+                        </Button>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB
+                      </p>
+                    </div>
+
+                    {/* Preview */}
+                    <div className="pt-4 border-t">
+                      <Label className="text-sm font-medium mb-2 block">Pré-visualização</Label>
+                      <div className="p-4 rounded-xl bg-gradient-to-r from-primary/10 to-pink-500/10 border border-primary/20">
+                        {birthdayImageUrl && (
+                          <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden border-2 border-primary/30">
+                            <img
+                              src={birthdayImageUrl}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <p className="text-center text-sm italic text-foreground/80">
+                          "{birthdayMessage || "Sua mensagem aparecerá aqui..."}"
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-4">
+                      <Button variant="outline" onClick={() => setBirthdaySettingsDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={saveBirthdaySettings}>Salvar</Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
