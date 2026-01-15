@@ -63,18 +63,27 @@ interface Announcement {
   created_at: string;
 }
 
+// Helper function to parse date without timezone issues
+const parseDateLocal = (dateString: string | null): Date | null => {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
 // Helper functions for birthday checks
 const isBirthdayToday = (birthday: string | null): boolean => {
   if (!birthday) return false;
   const today = new Date();
-  const bday = new Date(birthday);
+  const bday = parseDateLocal(birthday);
+  if (!bday) return false;
   return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
 };
 
 const isBirthdayThisWeek = (birthday: string | null): boolean => {
   if (!birthday) return false;
   const today = new Date();
-  const bday = new Date(birthday);
+  const bday = parseDateLocal(birthday);
+  if (!bday) return false;
   bday.setFullYear(today.getFullYear());
   
   const startOfWeek = new Date(today);
@@ -86,6 +95,21 @@ const isBirthdayThisWeek = (birthday: string | null): boolean => {
   endOfWeek.setHours(23, 59, 59, 999);
   
   return bday >= startOfWeek && bday <= endOfWeek;
+};
+
+const isBirthdayThisMonth = (birthday: string | null): boolean => {
+  if (!birthday) return false;
+  const today = new Date();
+  const bday = parseDateLocal(birthday);
+  if (!bday) return false;
+  return bday.getMonth() === today.getMonth();
+};
+
+const formatBirthdayDisplay = (birthday: string | null): string => {
+  if (!birthday) return "";
+  const bday = parseDateLocal(birthday);
+  if (!bday) return "";
+  return bday.toLocaleDateString("pt-BR");
 };
 
 const HRAdmin = () => {
@@ -132,6 +156,13 @@ const HRAdmin = () => {
 
   useEffect(() => {
     fetchData();
+    
+    // Auto-refresh every 10 minutes
+    const refreshInterval = setInterval(() => {
+      fetchData();
+    }, 10 * 60 * 1000);
+    
+    return () => clearInterval(refreshInterval);
   }, []);
 
   // Employee CRUD
@@ -353,7 +384,7 @@ const HRAdmin = () => {
                       <div className="flex flex-wrap gap-2 mt-1">
                         {birthdaysThisWeek.map(emp => (
                           <Badge key={emp.id} variant="secondary" className="text-xs">
-                            {emp.name} - {emp.birthday && new Date(emp.birthday).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                            {emp.name} - {formatBirthdayDisplay(emp.birthday)?.slice(0, 5)}
                           </Badge>
                         ))}
                       </div>
@@ -473,7 +504,7 @@ const HRAdmin = () => {
                               {emp.birthday && (
                                 <span className="flex items-center gap-1">
                                   <Cake className="h-3 w-3" />
-                                  {new Date(emp.birthday).toLocaleDateString("pt-BR")}
+                                  {formatBirthdayDisplay(emp.birthday)}
                                 </span>
                               )}
                             </div>
@@ -588,10 +619,7 @@ const HRAdmin = () => {
                             <p className="text-xs text-muted-foreground">{emp.department}</p>
                           </div>
                           <Badge variant="outline">
-                            {emp.birthday && new Date(emp.birthday).toLocaleDateString("pt-BR", { 
-                              day: "2-digit", 
-                              month: "2-digit" 
-                            })}
+                            {formatBirthdayDisplay(emp.birthday)?.slice(0, 5)}
                           </Badge>
                         </div>
                       ))}
@@ -611,13 +639,15 @@ const HRAdmin = () => {
                   {(() => {
                     const thisMonth = employees.filter(emp => {
                       if (!emp.birthday) return false;
-                      const bday = new Date(emp.birthday);
-                      return bday.getMonth() === new Date().getMonth() && 
+                      const bday = parseDateLocal(emp.birthday);
+                      return bday && bday.getMonth() === new Date().getMonth() && 
                              !isBirthdayToday(emp.birthday) && 
                              !isBirthdayThisWeek(emp.birthday);
                     }).sort((a, b) => {
-                      const dayA = a.birthday ? new Date(a.birthday).getDate() : 0;
-                      const dayB = b.birthday ? new Date(b.birthday).getDate() : 0;
+                      const bdayA = parseDateLocal(a.birthday);
+                      const bdayB = parseDateLocal(b.birthday);
+                      const dayA = bdayA ? bdayA.getDate() : 0;
+                      const dayB = bdayB ? bdayB.getDate() : 0;
                       return dayA - dayB;
                     });
                     
@@ -631,10 +661,7 @@ const HRAdmin = () => {
                             <Cake className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm flex-1 truncate">{emp.name}</span>
                             <span className="text-xs text-muted-foreground">
-                              {emp.birthday && new Date(emp.birthday).toLocaleDateString("pt-BR", { 
-                                day: "2-digit", 
-                                month: "2-digit" 
-                              })}
+                              {formatBirthdayDisplay(emp.birthday)?.slice(0, 5)}
                             </span>
                           </div>
                         ))}
