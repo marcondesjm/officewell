@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Sparkles, Download, Heart } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -12,6 +12,7 @@ import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { ReminderStatsCard } from "@/components/ReminderStatsCard";
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
+import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -45,20 +46,9 @@ const Index = () => {
   return (
     <div className="min-h-screen p-4 md:p-8 bg-decoration">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
-        <header className="text-center space-y-4 py-6 animate-fade-in">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-medium text-muted-foreground mb-4 animate-float">
-            <Sparkles size={16} className="text-primary" />
-            <span>Seu parceiro de bem-estar</span>
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-extrabold text-gradient tracking-tight">
-            OfficeWell
-          </h1>
-          
-          <p className="text-muted-foreground text-lg md:text-xl max-w-md mx-auto">
-            Cuide da sua saúde enquanto trabalha 🌱
-          </p>
+        {/* Header with HR Announcements */}
+        <header className="text-center space-y-6 py-6 animate-fade-in">
+          <HRAnnouncementHeader />
           
           {!state.isRunning && (
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive text-sm font-medium animate-pulse-soft">
