@@ -19,7 +19,8 @@ import {
   Cake
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { parseISO } from "date-fns";
+import { parseISO, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 import waterBreakImg from "@/assets/water-break.png";
 import stretchingBreakImg from "@/assets/stretching-break.png";
@@ -89,7 +90,10 @@ export const HRAnnouncementHeader = () => {
   const [motivationalIndex, setMotivationalIndex] = useState(() => 
     Math.floor(Math.random() * motivationalMessages.length)
   );
-  const [todayBirthdays, setTodayBirthdays] = useState<Employee[]>([]);
+  const [birthdayData, setBirthdayData] = useState<{
+    employees: Employee[];
+    type: 'today' | 'week' | 'month';
+  }>({ employees: [], type: 'today' });
   const [birthdayIndex, setBirthdayIndex] = useState(0);
 
   const fetchAnnouncements = async () => {
@@ -109,7 +113,7 @@ export const HRAnnouncementHeader = () => {
     }
   };
 
-  const fetchTodayBirthdays = async () => {
+  const fetchBirthdays = async () => {
     try {
       const { data: employees, error } = await supabase
         .from("employees")
@@ -121,13 +125,72 @@ export const HRAnnouncementHeader = () => {
       const todayMonth = today.getMonth() + 1;
       const todayDay = today.getDate();
       
-      const birthdayEmployees = (employees || []).filter(emp => {
+      // Helper to check if birthday is today
+      const isBirthdayToday = (emp: Employee) => {
         if (!emp.birthday) return false;
         const birthDate = parseISO(emp.birthday);
         return birthDate.getMonth() + 1 === todayMonth && birthDate.getDate() === todayDay;
-      });
+      };
       
-      setTodayBirthdays(birthdayEmployees);
+      // Helper to check if birthday is this week (next 7 days)
+      const isBirthdayThisWeek = (emp: Employee) => {
+        if (!emp.birthday) return false;
+        const birthDate = parseISO(emp.birthday);
+        const birthMonth = birthDate.getMonth() + 1;
+        const birthDay = birthDate.getDate();
+        
+        for (let i = 1; i <= 7; i++) {
+          const futureDate = new Date(today);
+          futureDate.setDate(today.getDate() + i);
+          if (futureDate.getMonth() + 1 === birthMonth && futureDate.getDate() === birthDay) {
+            return true;
+          }
+        }
+        return false;
+      };
+      
+      // Helper to check if birthday is this month
+      const isBirthdayThisMonth = (emp: Employee) => {
+        if (!emp.birthday) return false;
+        const birthDate = parseISO(emp.birthday);
+        const birthMonth = birthDate.getMonth() + 1;
+        const birthDay = birthDate.getDate();
+        // Only future days this month
+        return birthMonth === todayMonth && birthDay > todayDay;
+      };
+      
+      // Sort by upcoming birthday date
+      const sortByUpcomingBirthday = (a: Employee, b: Employee) => {
+        if (!a.birthday || !b.birthday) return 0;
+        const aDate = parseISO(a.birthday);
+        const bDate = parseISO(b.birthday);
+        const aDay = aDate.getDate();
+        const bDay = bDate.getDate();
+        return aDay - bDay;
+      };
+      
+      // Check today first
+      const todayBirthdays = (employees || []).filter(isBirthdayToday);
+      if (todayBirthdays.length > 0) {
+        setBirthdayData({ employees: todayBirthdays, type: 'today' });
+        return;
+      }
+      
+      // Check this week
+      const weekBirthdays = (employees || []).filter(isBirthdayThisWeek).sort(sortByUpcomingBirthday);
+      if (weekBirthdays.length > 0) {
+        setBirthdayData({ employees: weekBirthdays, type: 'week' });
+        return;
+      }
+      
+      // Check this month
+      const monthBirthdays = (employees || []).filter(isBirthdayThisMonth).sort(sortByUpcomingBirthday);
+      if (monthBirthdays.length > 0) {
+        setBirthdayData({ employees: monthBirthdays, type: 'month' });
+        return;
+      }
+      
+      setBirthdayData({ employees: [], type: 'today' });
     } catch (error) {
       console.error("Error fetching birthdays:", error);
     }
@@ -135,7 +198,7 @@ export const HRAnnouncementHeader = () => {
 
   useEffect(() => {
     fetchAnnouncements();
-    fetchTodayBirthdays();
+    fetchBirthdays();
 
     // Subscribe to realtime changes
     const channel = supabase
@@ -160,7 +223,7 @@ export const HRAnnouncementHeader = () => {
           table: 'employees'
         },
         () => {
-          fetchTodayBirthdays();
+          fetchBirthdays();
         }
       )
       .subscribe();
@@ -210,26 +273,39 @@ export const HRAnnouncementHeader = () => {
 
   // Auto-rotate birthdays
   useEffect(() => {
-    if (todayBirthdays.length <= 1) return;
+    if (birthdayData.employees.length <= 1) return;
     
     const interval = setInterval(() => {
-      setBirthdayIndex((prev) => (prev + 1) % todayBirthdays.length);
+      setBirthdayIndex((prev) => (prev + 1) % birthdayData.employees.length);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [todayBirthdays.length]);
+  }, [birthdayData.employees.length]);
 
   const goToPreviousBirthday = () => {
-    setBirthdayIndex((prev) => (prev - 1 + todayBirthdays.length) % todayBirthdays.length);
+    setBirthdayIndex((prev) => (prev - 1 + birthdayData.employees.length) % birthdayData.employees.length);
   };
 
   const goToNextBirthday = () => {
-    setBirthdayIndex((prev) => (prev + 1) % todayBirthdays.length);
+    setBirthdayIndex((prev) => (prev + 1) % birthdayData.employees.length);
   };
 
   const currentAnnouncement = announcements[currentIndex];
   const currentMotivational = motivationalMessages[motivationalIndex];
-  const currentBirthday = todayBirthdays[birthdayIndex];
+  const currentBirthday = birthdayData.employees[birthdayIndex];
+  
+  const getBirthdayTitle = () => {
+    switch (birthdayData.type) {
+      case 'today':
+        return '🎉 Aniversariantes de Hoje 🎉';
+      case 'week':
+        return '🎂 Próximos Aniversariantes da Semana';
+      case 'month':
+        return '📅 Próximos Aniversariantes do Mês';
+      default:
+        return '🎉 Aniversariantes 🎉';
+    }
+  };
 
   if (loading) {
     return (
@@ -256,13 +332,13 @@ export const HRAnnouncementHeader = () => {
         </Button>
       </div>
 
-      {/* Today's Birthdays */}
-      {todayBirthdays.length > 0 && (
+      {/* Birthdays */}
+      {birthdayData.employees.length > 0 && (
         <div className="glass rounded-2xl p-4 border border-pink-500/20 bg-gradient-to-r from-pink-500/5 to-purple-500/5 relative overflow-hidden">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Cake className="h-5 w-5 text-pink-500" />
             <span className="text-sm font-medium text-pink-500">
-              🎉 Aniversariantes de Hoje 🎉
+              {getBirthdayTitle()}
             </span>
           </div>
           
@@ -280,16 +356,26 @@ export const HRAnnouncementHeader = () => {
                 </Avatar>
                 <div className="text-left">
                   <p className="font-semibold text-foreground text-sm">{currentBirthday.name}</p>
-                  {currentBirthday.department && (
-                    <p className="text-xs text-muted-foreground">{currentBirthday.department}</p>
-                  )}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {currentBirthday.department && (
+                      <span>{currentBirthday.department}</span>
+                    )}
+                    {birthdayData.type !== 'today' && currentBirthday.birthday && (
+                      <>
+                        {currentBirthday.department && <span>•</span>}
+                        <span className="text-pink-500">
+                          {format(parseISO(currentBirthday.birthday), "dd 'de' MMMM", { locale: ptBR })}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
           {/* Navigation */}
-          {todayBirthdays.length > 1 && (
+          {birthdayData.employees.length > 1 && (
             <>
               <button
                 onClick={goToPreviousBirthday}
@@ -308,7 +394,7 @@ export const HRAnnouncementHeader = () => {
 
               {/* Dots */}
               <div className="flex items-center justify-center gap-2 mt-3">
-                {todayBirthdays.map((_, index) => (
+                {birthdayData.employees.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setBirthdayIndex(index)}
