@@ -7,6 +7,7 @@ import { DonationDialog } from "@/components/DonationDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { HealthTips } from "@/components/HealthTips";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
+import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const Index = () => {
     updateConfig,
     requestNotificationPermission,
     closeStretchModal,
+    closeEyeModal,
   } = useReminders();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -118,6 +120,12 @@ const Index = () => {
         <StretchBreakModal
           open={state.showStretchModal}
           onClose={closeStretchModal}
+        />
+
+        {/* Modal de Descanso Visual */}
+        <EyeBreakModal
+          open={state.showEyeModal}
+          onClose={closeEyeModal}
         />
 
         {/* Footer */}

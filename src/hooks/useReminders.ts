@@ -14,6 +14,7 @@ export interface ReminderState {
   waterTimeLeft: number;
   isRunning: boolean;
   showStretchModal: boolean;
+  showEyeModal: boolean;
 }
 
 interface TimerTimestamps {
@@ -78,6 +79,7 @@ export const useReminders = () => {
     waterTimeLeft: 0,
     isRunning: true,
     showStretchModal: false,
+    showEyeModal: false,
   });
 
   const notifiedRef = useRef({ eye: false, stretch: false, water: false });
@@ -221,6 +223,7 @@ export const useReminders = () => {
       if (timestamps.eyeEndTime <= now && !notifiedRef.current.eye) {
         notifiedRef.current.eye = true;
         showNotification("eye");
+        setState(prev => ({ ...prev, showEyeModal: true }));
         setTimestamps(prev => ({
           ...prev,
           eyeEndTime: now + config.eyeInterval * 60 * 1000,
@@ -341,6 +344,10 @@ export const useReminders = () => {
     setState(prev => ({ ...prev, showStretchModal: false }));
   }, []);
 
+  const closeEyeModal = useCallback(() => {
+    setState(prev => ({ ...prev, showEyeModal: false }));
+  }, []);
+
   return {
     config,
     state,
@@ -349,5 +356,6 @@ export const useReminders = () => {
     updateConfig,
     requestNotificationPermission,
     closeStretchModal,
+    closeEyeModal,
   };
 };
