@@ -4,6 +4,7 @@ import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { ActiveTimerCard } from "@/components/ActiveTimerCard";
 import { DonationDialog } from "@/components/DonationDialog";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,7 @@ const Index = () => {
         {/* Footer */}
         <footer className="text-center pt-8 pb-4 space-y-4">
           <div className="flex flex-wrap items-center justify-center gap-3">
+            <ThemeToggle />
             {showInstallButton && (
               <Button
                 onClick={() => navigate("/install")}
