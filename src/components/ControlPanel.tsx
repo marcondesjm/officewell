@@ -59,10 +59,10 @@ export const ControlPanel = ({
           onClick={onNotifications} 
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-muted/50 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
-          <Bell size={20} className="mr-2" />
-          Alertas
+          <Bell size={20} />
+          <span>Alertas</span>
         </Button>
 
         <Button 
