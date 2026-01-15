@@ -98,8 +98,6 @@ const Index = () => {
         {/* Contador de Água */}
         <WaterTracker />
 
-        {/* Estatísticas */}
-        <ReminderStatsCard stats={stats} />
 
         {/* Relatório de Conformidade */}
         <ComplianceReport />
