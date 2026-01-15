@@ -41,6 +41,7 @@ import {
   Trash2,
   Cake,
   Building,
+  PartyPopper,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -61,6 +62,31 @@ interface Announcement {
   is_active: boolean | null;
   created_at: string;
 }
+
+// Helper functions for birthday checks
+const isBirthdayToday = (birthday: string | null): boolean => {
+  if (!birthday) return false;
+  const today = new Date();
+  const bday = new Date(birthday);
+  return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
+};
+
+const isBirthdayThisWeek = (birthday: string | null): boolean => {
+  if (!birthday) return false;
+  const today = new Date();
+  const bday = new Date(birthday);
+  bday.setFullYear(today.getFullYear());
+  
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+  
+  return bday >= startOfWeek && bday <= endOfWeek;
+};
 
 const HRAdmin = () => {
   const navigate = useNavigate();
@@ -275,6 +301,10 @@ const HRAdmin = () => {
     );
   }
 
+  // Calculate birthdays
+  const birthdaysToday = employees.filter(emp => isBirthdayToday(emp.birthday));
+  const birthdaysThisWeek = employees.filter(emp => isBirthdayThisWeek(emp.birthday) && !isBirthdayToday(emp.birthday));
+
   return (
     <div className="min-h-screen p-4 md:p-8 bg-decoration">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -283,7 +313,7 @@ const HRAdmin = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-gradient">Painel Administrativo RH</h1>
             <p className="text-sm text-muted-foreground">
               Gerencie funcionários e avisos da empresa
@@ -291,11 +321,64 @@ const HRAdmin = () => {
           </div>
         </div>
 
+        {/* Birthday Alert Banner */}
+        {(birthdaysToday.length > 0 || birthdaysThisWeek.length > 0) && (
+          <Card className="border-primary/50 bg-gradient-to-r from-primary/10 to-pink-500/10 overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-full bg-primary/20 animate-bounce">
+                  <PartyPopper className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  {birthdaysToday.length > 0 && (
+                    <div className="mb-2">
+                      <p className="font-semibold text-primary flex items-center gap-2">
+                        🎂 Aniversário Hoje!
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {birthdaysToday.map(emp => (
+                          <Badge key={emp.id} className="bg-primary text-primary-foreground">
+                            {emp.name} {emp.department && `(${emp.department})`}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {birthdaysThisWeek.length > 0 && (
+                    <div>
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Cake className="h-4 w-4" />
+                        Próximos aniversários esta semana:
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {birthdaysThisWeek.map(emp => (
+                          <Badge key={emp.id} variant="secondary" className="text-xs">
+                            {emp.name} - {emp.birthday && new Date(emp.birthday).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="employees" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="employees" className="gap-2">
               <Users className="h-4 w-4" />
               Funcionários ({employees.length})
+            </TabsTrigger>
+            <TabsTrigger value="birthdays" className="gap-2 relative">
+              <Cake className="h-4 w-4" />
+              Aniversários
+              {birthdaysToday.length > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center animate-pulse">
+                  {birthdaysToday.length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="announcements" className="gap-2">
               <Megaphone className="h-4 w-4" />
@@ -439,6 +522,130 @@ const HRAdmin = () => {
                     <p>Nenhum funcionário cadastrado</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Birthdays Tab */}
+          <TabsContent value="birthdays" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <PartyPopper className="h-5 w-5 text-primary" />
+                  Aniversariantes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Today's Birthdays */}
+                <div>
+                  <h3 className="font-medium text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                    🎂 Aniversariantes de Hoje
+                  </h3>
+                  {birthdaysToday.length > 0 ? (
+                    <div className="space-y-2">
+                      {birthdaysToday.map((emp) => (
+                        <div
+                          key={emp.id}
+                          className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/20 to-pink-500/20 border border-primary/30"
+                        >
+                          <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold animate-bounce">
+                            🎉
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-lg">{emp.name}</p>
+                            <p className="text-sm text-muted-foreground">{emp.department}</p>
+                          </div>
+                          <Badge className="bg-primary text-primary-foreground">
+                            Hoje! 🎈
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground py-4 text-center">
+                      Nenhum aniversariante hoje
+                    </p>
+                  )}
+                </div>
+
+                {/* This Week's Birthdays */}
+                <div>
+                  <h3 className="font-medium text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                    📅 Esta Semana
+                  </h3>
+                  {birthdaysThisWeek.length > 0 ? (
+                    <div className="space-y-2">
+                      {birthdaysThisWeek.map((emp) => (
+                        <div
+                          key={emp.id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                        >
+                          <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
+                            <Cake className="h-5 w-5 text-secondary-foreground" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{emp.name}</p>
+                            <p className="text-xs text-muted-foreground">{emp.department}</p>
+                          </div>
+                          <Badge variant="outline">
+                            {emp.birthday && new Date(emp.birthday).toLocaleDateString("pt-BR", { 
+                              day: "2-digit", 
+                              month: "2-digit" 
+                            })}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground py-4 text-center">
+                      Nenhum aniversariante esta semana
+                    </p>
+                  )}
+                </div>
+
+                {/* This Month's Birthdays */}
+                <div>
+                  <h3 className="font-medium text-sm text-muted-foreground mb-3 flex items-center gap-2">
+                    🗓️ Este Mês
+                  </h3>
+                  {(() => {
+                    const thisMonth = employees.filter(emp => {
+                      if (!emp.birthday) return false;
+                      const bday = new Date(emp.birthday);
+                      return bday.getMonth() === new Date().getMonth() && 
+                             !isBirthdayToday(emp.birthday) && 
+                             !isBirthdayThisWeek(emp.birthday);
+                    }).sort((a, b) => {
+                      const dayA = a.birthday ? new Date(a.birthday).getDate() : 0;
+                      const dayB = b.birthday ? new Date(b.birthday).getDate() : 0;
+                      return dayA - dayB;
+                    });
+                    
+                    return thisMonth.length > 0 ? (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {thisMonth.map((emp) => (
+                          <div
+                            key={emp.id}
+                            className="flex items-center gap-2 p-2 rounded-lg bg-muted/30"
+                          >
+                            <Cake className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm flex-1 truncate">{emp.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {emp.birthday && new Date(emp.birthday).toLocaleDateString("pt-BR", { 
+                                day: "2-digit", 
+                                month: "2-digit" 
+                              })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground py-4 text-center">
+                        Nenhum outro aniversariante este mês
+                      </p>
+                    );
+                  })()}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
