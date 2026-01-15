@@ -94,7 +94,7 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
     }
   }, [open]);
 
-  // Update elapsed time
+  // Update elapsed time and auto-close
   useEffect(() => {
     if (!open || !startTime) return;
 
@@ -102,6 +102,26 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
       const now = Date.now();
       const elapsedSecs = Math.floor((now - startTime) / 1000);
       setElapsed(elapsedSecs);
+
+      // Auto-close when timer completes
+      if (elapsedSecs >= MIN_DURATION) {
+        // Record compliance
+        try {
+          const records = JSON.parse(localStorage.getItem("complianceRecords") || "[]");
+          records.push({
+            type: "water",
+            scheduledAt: startTime,
+            completedAt: Date.now(),
+            duration: elapsedSecs,
+            wasCompliant: true,
+          });
+          localStorage.setItem("complianceRecords", JSON.stringify(records));
+        } catch (e) {
+          console.log("Error saving compliance:", e);
+        }
+        clearInterval(interval);
+        onClose();
+      }
     }, 100);
 
     return () => clearInterval(interval);
