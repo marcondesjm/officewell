@@ -19,8 +19,7 @@ import {
   Cake
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { format, isToday, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { parseISO } from "date-fns";
 
 import waterBreakImg from "@/assets/water-break.png";
 import stretchingBreakImg from "@/assets/stretching-break.png";
@@ -91,6 +90,7 @@ export const HRAnnouncementHeader = () => {
     Math.floor(Math.random() * motivationalMessages.length)
   );
   const [todayBirthdays, setTodayBirthdays] = useState<Employee[]>([]);
+  const [birthdayIndex, setBirthdayIndex] = useState(0);
 
   const fetchAnnouncements = async () => {
     try {
@@ -208,8 +208,28 @@ export const HRAnnouncementHeader = () => {
     setMotivationalIndex((prev) => (prev + 1) % motivationalMessages.length);
   };
 
+  // Auto-rotate birthdays
+  useEffect(() => {
+    if (todayBirthdays.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setBirthdayIndex((prev) => (prev + 1) % todayBirthdays.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [todayBirthdays.length]);
+
+  const goToPreviousBirthday = () => {
+    setBirthdayIndex((prev) => (prev - 1 + todayBirthdays.length) % todayBirthdays.length);
+  };
+
+  const goToNextBirthday = () => {
+    setBirthdayIndex((prev) => (prev + 1) % todayBirthdays.length);
+  };
+
   const currentAnnouncement = announcements[currentIndex];
   const currentMotivational = motivationalMessages[motivationalIndex];
+  const currentBirthday = todayBirthdays[birthdayIndex];
 
   if (loading) {
     return (
@@ -238,34 +258,71 @@ export const HRAnnouncementHeader = () => {
 
       {/* Today's Birthdays */}
       {todayBirthdays.length > 0 && (
-        <div className="glass rounded-2xl p-4 border border-pink-500/20 bg-gradient-to-r from-pink-500/5 to-purple-500/5">
+        <div className="glass rounded-2xl p-4 border border-pink-500/20 bg-gradient-to-r from-pink-500/5 to-purple-500/5 relative overflow-hidden">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Cake className="h-5 w-5 text-pink-500" />
             <span className="text-sm font-medium text-pink-500">
               🎉 Aniversariantes de Hoje 🎉
             </span>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {todayBirthdays.map((employee) => (
+          
+          <div className="min-h-[60px] flex items-center justify-center">
+            {currentBirthday && (
               <div 
-                key={employee.id} 
-                className="flex items-center gap-3 bg-background/50 rounded-full px-4 py-2 border border-pink-500/20"
+                key={currentBirthday.id} 
+                className="flex items-center gap-3 bg-background/50 rounded-full px-4 py-2 border border-pink-500/20 animate-fade-in"
               >
                 <Avatar className="h-10 w-10 border-2 border-pink-500/50">
-                  <AvatarImage src={employee.avatar_url || undefined} alt={employee.name} />
+                  <AvatarImage src={currentBirthday.avatar_url || undefined} alt={currentBirthday.name} />
                   <AvatarFallback className="bg-pink-500/20 text-pink-700">
-                    {employee.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                    {currentBirthday.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-left">
-                  <p className="font-semibold text-foreground text-sm">{employee.name}</p>
-                  {employee.department && (
-                    <p className="text-xs text-muted-foreground">{employee.department}</p>
+                  <p className="font-semibold text-foreground text-sm">{currentBirthday.name}</p>
+                  {currentBirthday.department && (
+                    <p className="text-xs text-muted-foreground">{currentBirthday.department}</p>
                   )}
                 </div>
               </div>
-            ))}
+            )}
           </div>
+
+          {/* Navigation */}
+          {todayBirthdays.length > 1 && (
+            <>
+              <button
+                onClick={goToPreviousBirthday}
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full glass hover:bg-muted/50 transition-colors"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={goToNextBirthday}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full glass hover:bg-muted/50 transition-colors"
+                aria-label="Próximo"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+
+              {/* Dots */}
+              <div className="flex items-center justify-center gap-2 mt-3">
+                {todayBirthdays.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setBirthdayIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === birthdayIndex 
+                        ? "bg-pink-500 w-4" 
+                        : "bg-pink-500/30 hover:bg-pink-500/50"
+                    }`}
+                    aria-label={`Ir para aniversariante ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
