@@ -11,6 +11,7 @@ import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { ReminderStatsCard } from "@/components/ReminderStatsCard";
 import { ComplianceReport } from "@/components/ComplianceReport";
+import { HRPanel } from "@/components/HRPanel";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -109,6 +110,9 @@ const Index = () => {
 
         {/* Relatório de Conformidade */}
         <ComplianceReport />
+
+        {/* Painel RH */}
+        <HRPanel />
 
         {/* Dicas de Saúde */}
         <HealthTips />
