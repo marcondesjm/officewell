@@ -1,4 +1,4 @@
-import { Clock, BookOpen, TreePine, Coffee, Eye, Heart, Activity, Droplet, Brain, Dumbbell, Sun, LucideIcon } from "lucide-react";
+import { Clock, BookOpen, TreePine, Coffee, Eye, Heart, Activity, Droplet, Brain, Dumbbell, Sun, Armchair, Monitor, Salad, Moon, Wind, LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Accordion,
@@ -6,6 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useMemo } from "react";
 
 // Static tips - no AI credits consumed
 const staticTips = [
@@ -54,8 +55,8 @@ const staticTips = [
   {
     id: "8",
     iconType: "coffee",
-    title: "Pausas estratégicas",
-    description: "Use as pausas para sair do ambiente de trabalho. Tome um café na cozinha, vá até a janela, ou converse brevemente com alguém. A mudança de cenário renova a mente.",
+    title: "☕ Reduza a cafeína - Prefira descafeinado",
+    description: "O café em excesso causa ansiedade, insônia e aumenta a pressão arterial. Limite a 2 xícaras por dia e prefira café descafeinado após as 14h. Experimente chás como camomila ou hortelã que relaxam sem tirar o sono.",
   },
   {
     id: "9",
@@ -68,6 +69,54 @@ const staticTips = [
     iconType: "book",
     title: "Desconexão ao fim do dia",
     description: "Defina um horário para encerrar o trabalho e desligue notificações. Leia um livro físico ou faça atividades offline. Isso ajuda a separar trabalho e vida pessoal.",
+  },
+  {
+    id: "11",
+    iconType: "armchair",
+    title: "Postura correta na cadeira",
+    description: "Mantenha os pés apoiados no chão, costas retas e ombros relaxados. A tela deve estar na altura dos olhos. Uma boa postura previne dores crônicas e problemas na coluna.",
+  },
+  {
+    id: "12",
+    iconType: "monitor",
+    title: "Distância ideal da tela",
+    description: "Mantenha a tela a cerca de um braço de distância (50-70cm) dos olhos. Configure o tamanho da fonte para leitura confortável sem forçar a vista.",
+  },
+  {
+    id: "13",
+    iconType: "salad",
+    title: "Lanches saudáveis",
+    description: "Troque doces e salgadinhos por frutas, castanhas ou iogurte natural. Lanches saudáveis mantêm a energia estável e evitam picos de açúcar que causam sonolência.",
+  },
+  {
+    id: "14",
+    iconType: "moon",
+    title: "Qualidade do sono",
+    description: "Durma 7-8 horas por noite. Evite telas 1 hora antes de dormir e mantenha o quarto escuro e fresco. Um sono de qualidade melhora a produtividade e a saúde mental.",
+  },
+  {
+    id: "15",
+    iconType: "wind",
+    title: "Ventilação do ambiente",
+    description: "Mantenha o ambiente bem ventilado. Ar fresco melhora a concentração e reduz a fadiga. Abra janelas regularmente ou garanta uma boa circulação de ar.",
+  },
+  {
+    id: "16",
+    iconType: "coffee",
+    title: "Alternativas ao café",
+    description: "Experimente chá verde (menos cafeína), água com limão, ou smoothies energéticos. Essas opções hidratam, fornecem nutrientes e dão energia sem os efeitos colaterais do excesso de cafeína.",
+  },
+  {
+    id: "17",
+    iconType: "brain",
+    title: "Evite multitarefa excessiva",
+    description: "Foque em uma tarefa por vez. Alternar constantemente entre tarefas reduz a produtividade em até 40% e aumenta o estresse mental. Priorize e execute uma coisa de cada vez.",
+  },
+  {
+    id: "18",
+    iconType: "heart",
+    title: "Conexões sociais no trabalho",
+    description: "Reserve tempo para conversas breves com colegas. Relações positivas no trabalho reduzem estresse, aumentam a satisfação e melhoram a saúde mental.",
   },
 ];
 
@@ -83,6 +132,11 @@ const iconMap: Record<string, LucideIcon> = {
   droplet: Droplet,
   brain: Brain,
   dumbbell: Dumbbell,
+  armchair: Armchair,
+  monitor: Monitor,
+  salad: Salad,
+  moon: Moon,
+  wind: Wind,
 };
 
 const colorVariants = [
@@ -92,8 +146,11 @@ const colorVariants = [
 ];
 
 export const HealthTips = () => {
-  // Show 5 random tips
-  const displayTips = staticTips.slice(0, 5);
+  // Shuffle and show 6 random tips each render
+  const displayTips = useMemo(() => {
+    const shuffled = [...staticTips].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 6);
+  }, []);
 
   return (
     <Card className="p-5 md:p-6 glass-strong shadow-card border-0 animate-fade-in">
