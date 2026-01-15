@@ -13,6 +13,7 @@ export interface ReminderState {
   stretchTimeLeft: number;
   waterTimeLeft: number;
   isRunning: boolean;
+  showStretchModal: boolean;
 }
 
 interface TimerTimestamps {
@@ -76,6 +77,7 @@ export const useReminders = () => {
     stretchTimeLeft: 0,
     waterTimeLeft: 0,
     isRunning: true,
+    showStretchModal: false,
   });
 
   const notifiedRef = useRef({ eye: false, stretch: false, water: false });
@@ -230,6 +232,7 @@ export const useReminders = () => {
       if (timestamps.stretchEndTime <= now && !notifiedRef.current.stretch) {
         notifiedRef.current.stretch = true;
         showNotification("stretch");
+        setState(prev => ({ ...prev, showStretchModal: true }));
         setTimestamps(prev => ({
           ...prev,
           stretchEndTime: now + config.stretchInterval * 60 * 1000,
@@ -250,17 +253,17 @@ export const useReminders = () => {
       }
     };
 
-    setState(calculateTimeLeft());
+    setState(prev => ({ ...prev, ...calculateTimeLeft() }));
     checkAndNotify();
 
     const intervalId = setInterval(() => {
-      setState(calculateTimeLeft());
+      setState(prev => ({ ...prev, ...calculateTimeLeft() }));
       checkAndNotify();
     }, 1000);
 
     const handleVisibility = () => {
       if (!document.hidden) {
-        setState(calculateTimeLeft());
+        setState(prev => ({ ...prev, ...calculateTimeLeft() }));
         checkAndNotify();
       }
     };
@@ -334,6 +337,10 @@ export const useReminders = () => {
     }
   }, []);
 
+  const closeStretchModal = useCallback(() => {
+    setState(prev => ({ ...prev, showStretchModal: false }));
+  }, []);
+
   return {
     config,
     state,
@@ -341,5 +348,6 @@ export const useReminders = () => {
     resetTimers,
     updateConfig,
     requestNotificationPermission,
+    closeStretchModal,
   };
 };

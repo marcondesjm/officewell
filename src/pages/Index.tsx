@@ -6,6 +6,7 @@ import { ActiveTimerCard } from "@/components/ActiveTimerCard";
 import { DonationDialog } from "@/components/DonationDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { HealthTips } from "@/components/HealthTips";
+import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const Index = () => {
     resetTimers,
     updateConfig,
     requestNotificationPermission,
+    closeStretchModal,
   } = useReminders();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -110,6 +112,12 @@ const Index = () => {
         <DonationDialog
           open={donationOpen}
           onOpenChange={setDonationOpen}
+        />
+
+        {/* Modal de Alongamento */}
+        <StretchBreakModal
+          open={state.showStretchModal}
+          onClose={closeStretchModal}
         />
 
         {/* Footer */}
