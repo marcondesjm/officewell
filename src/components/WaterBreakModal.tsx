@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lock, Unlock } from "lucide-react";
 import waterBreakImage from "@/assets/water-break.png";
+import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
 
 interface WaterBreakModalProps {
   open: boolean;
@@ -76,14 +77,16 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
   const [description, setDescription] = useState("");
   const [tipSet, setTipSet] = useState(tipSets[0]);
 
-  // Reset timer and randomize tips when modal opens
+  // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
     if (open) {
       setStartTime(Date.now());
       setElapsed(0);
-      // Randomize tips each time modal opens
-      setDescription(descriptions[Math.floor(Math.random() * descriptions.length)]);
-      setTipSet(tipSets[Math.floor(Math.random() * tipSets.length)]);
+      // Get non-repeating random indices for today
+      const descIdx = getRandomIndex("water", "descriptions", descriptions.length);
+      const tipIdx = getRandomIndex("water", "tipSets", tipSets.length);
+      setDescription(descriptions[descIdx]);
+      setTipSet(tipSets[tipIdx]);
     } else {
       setStartTime(null);
       setElapsed(0);
