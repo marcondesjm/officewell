@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   Megaphone, 
   AlertTriangle,
@@ -14,9 +15,12 @@ import {
   Heart,
   Coffee,
   Smile,
-  Sun
+  Sun,
+  Cake
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { format, isToday, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 import waterBreakImg from "@/assets/water-break.png";
 import stretchingBreakImg from "@/assets/stretching-break.png";
@@ -28,6 +32,14 @@ interface Announcement {
   content: string;
   priority: string | null;
   created_at: string;
+}
+
+interface Employee {
+  id: string;
+  name: string;
+  department: string | null;
+  avatar_url: string | null;
+  birthday: string | null;
 }
 
 const priorityConfig = {
@@ -78,6 +90,7 @@ export const HRAnnouncementHeader = () => {
   const [motivationalIndex, setMotivationalIndex] = useState(() => 
     Math.floor(Math.random() * motivationalMessages.length)
   );
+  const [todayBirthdays, setTodayBirthdays] = useState<Employee[]>([]);
 
   const fetchAnnouncements = async () => {
     try {
@@ -96,8 +109,33 @@ export const HRAnnouncementHeader = () => {
     }
   };
 
+  const fetchTodayBirthdays = async () => {
+    try {
+      const { data: employees, error } = await supabase
+        .from("employees")
+        .select("*");
+      
+      if (error) throw error;
+      
+      const today = new Date();
+      const todayMonth = today.getMonth() + 1;
+      const todayDay = today.getDate();
+      
+      const birthdayEmployees = (employees || []).filter(emp => {
+        if (!emp.birthday) return false;
+        const birthDate = parseISO(emp.birthday);
+        return birthDate.getMonth() + 1 === todayMonth && birthDate.getDate() === todayDay;
+      });
+      
+      setTodayBirthdays(birthdayEmployees);
+    } catch (error) {
+      console.error("Error fetching birthdays:", error);
+    }
+  };
+
   useEffect(() => {
     fetchAnnouncements();
+    fetchTodayBirthdays();
 
     // Subscribe to realtime changes
     const channel = supabase
@@ -111,8 +149,18 @@ export const HRAnnouncementHeader = () => {
         },
         (payload) => {
           console.log('Announcement change received:', payload);
-          // Refetch announcements when there's any change
           fetchAnnouncements();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employees'
+        },
+        () => {
+          fetchTodayBirthdays();
         }
       )
       .subscribe();
@@ -187,6 +235,39 @@ export const HRAnnouncementHeader = () => {
           Conta Demo RH
         </Button>
       </div>
+
+      {/* Today's Birthdays */}
+      {todayBirthdays.length > 0 && (
+        <div className="glass rounded-2xl p-4 border border-pink-500/20 bg-gradient-to-r from-pink-500/5 to-purple-500/5">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Cake className="h-5 w-5 text-pink-500" />
+            <span className="text-sm font-medium text-pink-500">
+              🎉 Aniversariantes de Hoje 🎉
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {todayBirthdays.map((employee) => (
+              <div 
+                key={employee.id} 
+                className="flex items-center gap-3 bg-background/50 rounded-full px-4 py-2 border border-pink-500/20"
+              >
+                <Avatar className="h-10 w-10 border-2 border-pink-500/50">
+                  <AvatarImage src={employee.avatar_url || undefined} alt={employee.name} />
+                  <AvatarFallback className="bg-pink-500/20 text-pink-700">
+                    {employee.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-left">
+                  <p className="font-semibold text-foreground text-sm">{employee.name}</p>
+                  {employee.department && (
+                    <p className="text-xs text-muted-foreground">{employee.department}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Announcements or Motivational Messages Carousel */}
       {announcements.length > 0 ? (
