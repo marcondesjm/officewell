@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -13,6 +13,7 @@ import { ReminderStatsCard } from "@/components/ReminderStatsCard";
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
 import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
+import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const Index = () => {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
+  const [plansOpen, setPlansOpen] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const navigate = useNavigate();
 
@@ -121,6 +123,12 @@ const Index = () => {
           onOpenChange={setDonationOpen}
         />
 
+        {/* Dialog de Planos */}
+        <SubscriptionPlans
+          open={plansOpen}
+          onOpenChange={setPlansOpen}
+        />
+
         {/* Modal de Alongamento */}
         <StretchBreakModal
           open={state.showStretchModal}
@@ -160,6 +168,14 @@ const Index = () => {
             >
               <Heart size={18} className="mr-2" />
               Apoiar Projeto
+            </Button>
+            <Button
+              onClick={() => setPlansOpen(true)}
+              variant="outline"
+              className="rounded-2xl border-2 hover:bg-yellow-500/5 hover:border-yellow-500/50 hover:text-yellow-600"
+            >
+              <Crown size={18} className="mr-2" />
+              Ver Planos
             </Button>
           </div>
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
