@@ -14,6 +14,7 @@ import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
 import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
+import { PlansHighlight } from "@/components/PlansHighlight";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,9 @@ const Index = () => {
 
         {/* Painel RH */}
         <HRPanel />
+
+        {/* Planos em Destaque */}
+        <PlansHighlight onSelectPlan={() => setPlansOpen(true)} />
 
         {/* Dicas de Saúde */}
         <HealthTips />
