@@ -21,6 +21,14 @@ const descriptions = [
   "Cuide da sua postura. Faça um alongamento!",
   "Seu corpo pede movimento. Atenda esse chamado!",
   "Energize-se com um bom alongamento!",
+  "Libere a tensão acumulada. Alongue-se!",
+  "Músculos felizes = trabalho mais produtivo!",
+  "Previna dores: alongue-se regularmente!",
+  "Seu corpo é seu instrumento. Cuide dele!",
+  "Pausa ativa para renovar as energias!",
+  "Alongamento: investimento na sua saúde!",
+  "Movimente-se e sinta a diferença!",
+  "Quebre a rigidez. Seu corpo agradece!",
 ];
 
 const tipSets = [
@@ -76,6 +84,60 @@ const tipSets = [
       "Respire fundo 5 vezes",
       "Balance os braços soltos",
       "Sacuda as mãos vigorosamente",
+    ],
+  },
+  {
+    title: "Alongamento de quadril:",
+    tips: [
+      "Cruze uma perna sobre a outra",
+      "Incline o tronco para frente",
+      "Gire o quadril sentado",
+      "Estenda as pernas sob a mesa",
+    ],
+  },
+  {
+    title: "Exercícios para ombros:",
+    tips: [
+      "Eleve os ombros até as orelhas",
+      "Role os ombros para trás 10x",
+      "Cruze os braços e abrace-se",
+      "Estique um braço e puxe com o outro",
+    ],
+  },
+  {
+    title: "Postura correta:",
+    tips: [
+      "Pés apoiados no chão",
+      "Costas retas encostadas na cadeira",
+      "Ombros relaxados, não elevados",
+      "Queixo paralelo ao chão",
+    ],
+  },
+  {
+    title: "Movimentos anti-sedentarismo:",
+    tips: [
+      "Fique em pé ao atender ligações",
+      "Use escadas ao invés do elevador",
+      "Caminhe durante reuniões se possível",
+      "Faça micro-pausas a cada 30 minutos",
+    ],
+  },
+  {
+    title: "Respiração e alongamento:",
+    tips: [
+      "Inspire ao alongar, expire ao relaxar",
+      "Respiração profunda pelo nariz",
+      "Segure 5 segundos cada posição",
+      "Nunca force além do confortável",
+    ],
+  },
+  {
+    title: "Prevenção de LER/DORT:",
+    tips: [
+      "Alterne tarefas repetitivas",
+      "Mantenha pulsos neutros ao digitar",
+      "Faça pausas frequentes",
+      "Use apoio ergonômico para mouse",
     ],
   },
 ];

@@ -21,6 +21,14 @@ const descriptions = [
   "Tempo de aliviar a tensão ocular. Respire fundo.",
   "Cuide dos seus olhos agora. Olhe para longe!",
   "Momento de renovar sua visão. Pisque bastante!",
+  "Descanse os olhos e recarregue sua energia visual!",
+  "Seus olhos trabalham duro. Dê a eles esse descanso!",
+  "Pausa estratégica para manter sua visão saudável!",
+  "Olhos descansados = produtividade aumentada!",
+  "Dedique este momento à saúde dos seus olhos!",
+  "Sua visão é preciosa. Cuide dela agora!",
+  "Relaxe o foco e deixe seus olhos respirarem.",
+  "Momento zen para seus olhos. Aproveite!",
 ];
 
 const tipSets = [
@@ -67,6 +75,51 @@ const tipSets = [
       "Aumente o tamanho da fonte se necessário",
       "Mantenha os olhos hidratados",
       "Consulte um oftalmologista anualmente",
+    ],
+  },
+  {
+    title: "Prevenção da fadiga visual:",
+    tips: [
+      "Evite usar o celular em ambientes escuros",
+      "Pisque conscientemente a cada minuto",
+      "Use óculos com filtro de luz azul",
+      "Mantenha distância adequada das telas",
+    ],
+  },
+  {
+    title: "Relaxamento ocular profundo:",
+    tips: [
+      "Cubra os olhos com as palmas por 30s",
+      "Respire profundamente 5 vezes",
+      "Imagine um cenário natural relaxante",
+      "Solte a tensão da testa e sobrancelhas",
+    ],
+  },
+  {
+    title: "Yoga para os olhos:",
+    tips: [
+      "Mova os olhos em forma de 8 deitado",
+      "Foque alternadamente perto e longe",
+      "Aperte e relaxe os olhos 5 vezes",
+      "Olhe para os 4 cantos lentamente",
+    ],
+  },
+  {
+    title: "Ergonomia visual:",
+    tips: [
+      "Tela ligeiramente inclinada para trás",
+      "Centro da tela na altura dos olhos",
+      "Iluminação lateral, nunca por trás",
+      "Evite trabalhar de frente para janelas",
+    ],
+  },
+  {
+    title: "Nutrientes para os olhos:",
+    tips: [
+      "Vitamina A: cenoura, abóbora, manga",
+      "Ômega-3: peixes, chia, linhaça",
+      "Luteína: espinafre, couve, brócolis",
+      "Zinco: castanhas, sementes, ovos",
     ],
   },
 ];

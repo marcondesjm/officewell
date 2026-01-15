@@ -21,6 +21,14 @@ const descriptions = [
   "Cuide do seu corpo. Beba água agora!",
   "Recarregue suas energias com um copo de água!",
   "Lembre-se: água é vida. Hidrate-se!",
+  "Seu corpo precisa de água. Atenda esse chamado!",
+  "Hidratação constante = saúde em dia!",
+  "Faça uma pausa refrescante com água!",
+  "Beber água melhora sua concentração!",
+  "Mantenha o foco: hidrate-se agora!",
+  "Água: o combustível do seu cérebro!",
+  "Momento de renovar as energias com água!",
+  "Sua produtividade agradece: beba água!",
 ];
 
 const tipSets = [
@@ -67,6 +75,51 @@ const tipSets = [
       "Beba antes, durante e após exercícios",
       "Frutas também hidratam o corpo",
       "Reduza bebidas com cafeína",
+    ],
+  },
+  {
+    title: "Água e bem-estar:",
+    tips: [
+      "Ajuda na digestão dos alimentos",
+      "Previne dores de cabeça",
+      "Melhora o humor e disposição",
+      "Contribui para perda de peso",
+    ],
+  },
+  {
+    title: "Hidratação no trabalho:",
+    tips: [
+      "Use app para lembrar de beber água",
+      "Associe água com tarefas diárias",
+      "Prefira água a refrigerantes",
+      "Beba um copo a cada hora",
+    ],
+  },
+  {
+    title: "Água e saúde mental:",
+    tips: [
+      "Desidratação aumenta o estresse",
+      "Água melhora a memória",
+      "Hidratação reduz ansiedade",
+      "Beber água ajuda a relaxar",
+    ],
+  },
+  {
+    title: "Mitos sobre hidratação:",
+    tips: [
+      "Chá e café também contam",
+      "Não precisa ser só água pura",
+      "Sede já é sinal de desidratação leve",
+      "Excesso de água também faz mal",
+    ],
+  },
+  {
+    title: "Alternativas refrescantes:",
+    tips: [
+      "Água com rodelas de pepino",
+      "Água com hortelã fresca",
+      "Água de coco natural",
+      "Chás gelados sem açúcar",
     ],
   },
 ];
