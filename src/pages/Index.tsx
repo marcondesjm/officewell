@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { HealthTips } from "@/components/HealthTips";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
+import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { useReminders } from "@/hooks/useReminders";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ const Index = () => {
     requestNotificationPermission,
     closeStretchModal,
     closeEyeModal,
+    closeWaterModal,
   } = useReminders();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -126,6 +128,12 @@ const Index = () => {
         <EyeBreakModal
           open={state.showEyeModal}
           onClose={closeEyeModal}
+        />
+
+        {/* Modal de Hidratação */}
+        <WaterBreakModal
+          open={state.showWaterModal}
+          onClose={closeWaterModal}
         />
 
         {/* Footer */}

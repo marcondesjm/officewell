@@ -15,6 +15,7 @@ export interface ReminderState {
   isRunning: boolean;
   showStretchModal: boolean;
   showEyeModal: boolean;
+  showWaterModal: boolean;
 }
 
 interface TimerTimestamps {
@@ -80,6 +81,7 @@ export const useReminders = () => {
     isRunning: true,
     showStretchModal: false,
     showEyeModal: false,
+    showWaterModal: false,
   });
 
   const notifiedRef = useRef({ eye: false, stretch: false, water: false });
@@ -247,6 +249,7 @@ export const useReminders = () => {
       if (timestamps.waterEndTime <= now && !notifiedRef.current.water) {
         notifiedRef.current.water = true;
         showNotification("water");
+        setState(prev => ({ ...prev, showWaterModal: true }));
         setTimestamps(prev => ({
           ...prev,
           waterEndTime: now + config.waterInterval * 60 * 1000,
@@ -348,6 +351,10 @@ export const useReminders = () => {
     setState(prev => ({ ...prev, showEyeModal: false }));
   }, []);
 
+  const closeWaterModal = useCallback(() => {
+    setState(prev => ({ ...prev, showWaterModal: false }));
+  }, []);
+
   return {
     config,
     state,
@@ -357,5 +364,6 @@ export const useReminders = () => {
     requestNotificationPermission,
     closeStretchModal,
     closeEyeModal,
+    closeWaterModal,
   };
 };
