@@ -70,16 +70,22 @@ const Index = () => {
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
+    
     try {
-      // Limpar cache do service worker
+      // Mostrar feedback imediato
+      const { toast } = await import("sonner");
+      toast.info("Atualizando app...", { duration: 2000 });
+      
+      // Limpar cache do service worker e forçar atualização
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const registration of registrations) {
-          await registration.update();
+          // Desregistrar o service worker atual
+          await registration.unregister();
         }
       }
       
-      // Limpar caches
+      // Limpar todos os caches
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(
@@ -87,11 +93,18 @@ const Index = () => {
         );
       }
       
-      // Forçar reload
-      window.location.reload();
+      // Limpar localStorage de versão para forçar nova verificação
+      localStorage.removeItem('app-version');
+      
+      // Pequeno delay para garantir que tudo foi limpo
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Forçar reload completo usando location.href (funciona melhor em PWAs)
+      window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
     } catch (e) {
       console.error('Erro ao atualizar:', e);
-      window.location.reload();
+      // Fallback: reload simples
+      window.location.href = window.location.origin + '?refresh=' + Date.now();
     }
   };
 
