@@ -66,8 +66,10 @@ const slideInRight = {
 
 const Landing = () => {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [objective, setObjective] = useState('');
   const [loading, setLoading] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | undefined>();
@@ -75,7 +77,9 @@ const Landing = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !name) {
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    if (!email || !firstName) {
       toast.error('Por favor, preencha nome e email');
       return;
     }
@@ -94,9 +98,9 @@ const Landing = () => {
       const { error } = await supabase
         .from('leads')
         .insert({
-          name: name.trim().slice(0, 100),
+          name: fullName.slice(0, 100),
           email: email.trim().toLowerCase().slice(0, 255),
-          company: company?.trim().slice(0, 100) || null,
+          company: objective?.trim().slice(0, 100) || null,
           source: 'landing'
         });
 
@@ -110,9 +114,10 @@ const Landing = () => {
       // Open WhatsApp with the lead info
       const message = encodeURIComponent(
         `🎯 *Novo Lead - OfficeWell*\n\n` +
-        `📧 Nome: ${name}\n` +
+        `👤 Nome: ${fullName}\n` +
         `📧 Email: ${email}\n` +
-        `🏢 Empresa: ${company || 'Não informada'}\n\n` +
+        `📱 WhatsApp: ${phone || 'Não informado'}\n` +
+        `🎯 Objetivo: ${objective || 'Não informado'}\n\n` +
         `Tenho interesse em conhecer mais sobre o OfficeWell!`
       );
       
@@ -120,8 +125,10 @@ const Landing = () => {
       
       toast.success('Obrigado pelo interesse! Entraremos em contato em breve.');
       setEmail('');
-      setName('');
-      setCompany('');
+      setFirstName('');
+      setLastName('');
+      setPhone('');
+      setObjective('');
     } catch (err) {
       console.error('Error:', err);
       toast.error('Erro ao enviar. Tente novamente.');
@@ -756,76 +763,147 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-primary text-primary-foreground overflow-hidden">
-        <motion.div 
-          className="container mx-auto max-w-4xl text-center"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={fadeIn}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.h2 
-            className="text-3xl md:text-4xl font-bold mb-4"
-            variants={fadeInUp}
+      <section className="py-20 px-4">
+        <div className="container mx-auto max-w-5xl">
+          <motion.div 
+            className="grid md:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeIn}
+            transition={{ duration: 0.6 }}
           >
-            Comece a cuidar da sua equipe hoje
-          </motion.h2>
-          <motion.p 
-            className="text-xl opacity-90 mb-8 max-w-2xl mx-auto"
-            variants={fadeInUp}
-            transition={{ delay: 0.1 }}
-          >
-            Cadastre-se e receba acesso imediato. Teste grátis por 7 dias.
-          </motion.p>
-          
-          <motion.div
-            variants={scaleIn}
-            transition={{ delay: 0.2 }}
-          >
-            <Card className="bg-background text-foreground max-w-md mx-auto">
-              <CardContent className="pt-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <Input
-                    type="text"
-                    placeholder="Seu nome"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
+            {/* Left Side - Dark */}
+            <div className="bg-primary text-primary-foreground p-8 md:p-12 flex flex-col justify-center">
+              <motion.h2 
+                className="text-3xl md:text-4xl font-bold mb-4"
+                variants={fadeInUp}
+              >
+                Comece a cuidar de você hoje mesmo.
+              </motion.h2>
+              <motion.p 
+                className="text-lg opacity-80 mb-8"
+                variants={fadeInUp}
+                transition={{ delay: 0.1 }}
+              >
+                Junte-se a milhares de profissionais que transformaram sua rotina de trabalho.
+              </motion.p>
+              
+              <motion.ul 
+                className="space-y-3"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={staggerContainer}
+              >
+                {[
+                  'Plano Básico Gratuito',
+                  'Configuração em 2 minutos',
+                  'Relatórios semanais'
+                ].map((item, index) => (
+                  <motion.li 
+                    key={index}
+                    className="flex items-center gap-3"
+                    variants={fadeInUp}
+                  >
+                    <Check className="h-5 w-5 text-primary-foreground/80" />
+                    <span>{item}</span>
+                  </motion.li>
+                ))}
+              </motion.ul>
+            </div>
+
+            {/* Right Side - Form */}
+            <div className="bg-background p-8 md:p-12">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Nome</label>
+                    <Input
+                      type="text"
+                      placeholder="Seu nome"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="bg-muted/50 border-muted"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Sobrenome</label>
+                    <Input
+                      type="text"
+                      placeholder="Sobrenome"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="bg-muted/50 border-muted"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">E-mail Profissional</label>
                   <Input
                     type="email"
-                    placeholder="Seu melhor email"
+                    placeholder="voce@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="bg-muted/50 border-muted"
                     required
                   />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">WhatsApp</label>
                   <Input
-                    type="text"
-                    placeholder="Nome da empresa (opcional)"
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
+                    type="tel"
+                    placeholder="(11) 99999-9999"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="bg-muted/50 border-muted"
                   />
-                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                      {loading ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Enviando...
-                        </>
-                      ) : (
-                        <>
-                          Quero Testar Grátis
-                          <ArrowRight className="ml-2 h-5 w-5" />
-                        </>
-                      )}
-                    </Button>
-                  </motion.div>
-                </form>
-              </CardContent>
-            </Card>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Objetivo Principal</label>
+                  <select
+                    value={objective}
+                    onChange={(e) => setObjective(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-muted bg-muted/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <option value="">Selecione uma opção</option>
+                    <option value="saude">Melhorar a saúde da equipe</option>
+                    <option value="produtividade">Aumentar produtividade</option>
+                    <option value="ergonomia">Programa de ergonomia</option>
+                    <option value="compliance">Compliance e NR-17</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+                
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-primary to-primary/80" 
+                    size="lg" 
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      'Quero Acesso Antecipado'
+                    )}
+                  </Button>
+                </motion.div>
+                
+                <p className="text-xs text-center text-muted-foreground">
+                  Seus dados estão seguros. Respeitamos sua privacidade e não enviamos spam.
+                </p>
+              </form>
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Footer */}
