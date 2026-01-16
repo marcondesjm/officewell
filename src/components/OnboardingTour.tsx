@@ -212,39 +212,72 @@ export const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
               </div>
             </div>
 
-            <CardContent className="p-6">
+            <CardContent className="p-6 overflow-hidden">
               {/* Icon */}
-              <motion.div
-                key={currentTourStep.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="flex flex-col items-center text-center"
-              >
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary mb-4">
-                  {currentTourStep.icon}
-                </div>
-
-                <h3 className="text-xl font-bold mb-2">
-                  {currentTourStep.title}
-                </h3>
-
-                <p className="text-muted-foreground mb-6">
-                  {currentTourStep.description}
-                </p>
-
-                {/* Action button if available */}
-                {currentTourStep.action && (
-                  <Button
-                    variant="outline"
-                    className="mb-4"
-                    onClick={() => handleAction(currentTourStep)}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentTourStep.id}
+                  initial={{ opacity: 0, x: 30, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -30, scale: 0.95 }}
+                  transition={{ 
+                    duration: 0.4, 
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                    opacity: { duration: 0.3 }
+                  }}
+                  className="flex flex-col items-center text-center"
+                >
+                  <motion.div 
+                    className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary mb-4"
+                    initial={{ scale: 0.8, rotate: -10 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ 
+                      delay: 0.1, 
+                      type: "spring", 
+                      stiffness: 200, 
+                      damping: 15 
+                    }}
                   >
-                    {currentTourStep.action.label}
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                )}
-              </motion.div>
+                    {currentTourStep.icon}
+                  </motion.div>
+
+                  <motion.h3 
+                    className="text-xl font-bold mb-2"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.3 }}
+                  >
+                    {currentTourStep.title}
+                  </motion.h3>
+
+                  <motion.p 
+                    className="text-muted-foreground mb-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2, duration: 0.3 }}
+                  >
+                    {currentTourStep.description}
+                  </motion.p>
+
+                  {/* Action button if available */}
+                  {currentTourStep.action && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25, duration: 0.3 }}
+                    >
+                      <Button
+                        variant="outline"
+                        className="mb-4"
+                        onClick={() => handleAction(currentTourStep)}
+                      >
+                        {currentTourStep.action.label}
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
 
               {/* Navigation */}
               <div className="flex items-center justify-between gap-3 pt-4 border-t">
