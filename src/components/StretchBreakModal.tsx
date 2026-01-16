@@ -524,6 +524,11 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
           >
             {canClose ? "Concluído! ✓" : `Aguarde ${remaining}s...`}
           </Button>
+
+          {/* Legal Disclaimer */}
+          <p className="text-[10px] text-muted-foreground/70 text-center leading-tight">
+            ⚖️ As orientações de ergonomia do OfficeWell têm caráter educativo e preventivo, não substituindo avaliação médica ou fisioterapêutica.
+          </p>
         </div>
       </DialogContent>
     </Dialog>
