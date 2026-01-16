@@ -27,6 +27,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { AdBanner } from "@/components/AdBanner";
 import { PartnersBanner } from "@/components/PartnersBanner";
+import logoOfficeWell from "@/assets/logo-officewell.png";
 import { LockedFeature } from "@/components/LockedFeature";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
@@ -527,6 +528,11 @@ const Index = () => {
               Ver Tour
             </Button>
           </div>
+          <img 
+            src={logoOfficeWell} 
+            alt="OfficeWell" 
+            className="h-10 w-auto object-contain mx-auto drop-shadow-md"
+          />
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
             Mantenha-se saudável e produtivo 
             <span className="text-lg">💪</span>
