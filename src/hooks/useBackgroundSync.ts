@@ -7,6 +7,69 @@ interface TimerState {
   isRunning: boolean;
 }
 
+// Som de notificação base64 (beep)
+const NOTIFICATION_SOUND_BASE64 = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2televV9vkJ2dlH5ebGuNpZ+QdE5HX4WipJR4WlFqgpWWh3RSS2mFk5OGdVZQaIGRkIN2WFNngJCPgXhbVWZ/kI6Bd1xXZn+QjYB4XVhngJCNgHhdWGd/j42AeF1YZ3+PjYB4XVhnf4+Nf3hdWGd/j42AeF5YZ3+PjYB4Xlhnf4+NgHheWGd/j42AeF5YaH+PjYB4Xlhof4+NgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIF4XlsA';
+
+// Função para tocar som de notificação
+const playNotificationSound = async (volume: number = 0.8): Promise<void> => {
+  try {
+    // Método 1: Audio API
+    const audio = new Audio(NOTIFICATION_SOUND_BASE64);
+    audio.volume = volume;
+    await audio.play();
+    console.log('Som tocado via Audio API');
+    return;
+  } catch (e) {
+    console.log('Audio API falhou, tentando AudioContext...');
+  }
+
+  try {
+    // Método 2: AudioContext (mais confiável para apps minimizados)
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      const audioContext = new AudioContextClass();
+      
+      // Criar oscilador para beep
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Tom de alerta
+      oscillator.frequency.value = 880; // A5
+      oscillator.type = 'sine';
+      
+      // Envelope
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+      
+      // Segundo beep
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.frequency.value = 1046; // C6
+        osc2.type = 'sine';
+        gain2.gain.setValueAtTime(0, audioContext.currentTime);
+        gain2.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.05);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        osc2.start(audioContext.currentTime);
+        osc2.stop(audioContext.currentTime + 0.4);
+      }, 200);
+      
+      console.log('Som tocado via AudioContext');
+    }
+  } catch (e) {
+    console.log('AudioContext também falhou:', e);
+  }
+};
+
 export const useBackgroundSync = () => {
   const keepAliveInterval = useRef<NodeJS.Timeout | null>(null);
   const isInitialized = useRef(false);
@@ -147,10 +210,24 @@ export const useBackgroundSync = () => {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
+      // Tocar som quando o SW solicitar
+      if (event.data?.type === 'PLAY_NOTIFICATION_SOUND') {
+        console.log(`SW solicitou som para ${event.data.reminderType}`);
+        await playNotificationSound(0.9);
+        
+        // Vibrar também
+        if (navigator.vibrate) {
+          navigator.vibrate([300, 100, 300, 100, 300]);
+        }
+      }
+      
       if (event.data?.type === 'NOTIFICATION_SENT') {
         console.log(`Notificação ${event.data.reminderType} enviada pelo SW`);
+        // Tocar som adicional quando a notificação é enviada
+        await playNotificationSound(0.7);
       }
+      
       if (event.data?.type === 'SNOOZE_REQUESTED') {
         console.log(`Snooze solicitado para ${event.data.reminderType}`);
       }
