@@ -368,7 +368,8 @@ export const useReminders = () => {
       
       const now = Date.now();
 
-      if (timestamps.eyeEndTime <= now && !notifiedRef.current.eye) {
+      // Verificar se modal já está aberto antes de notificar novamente
+      if (timestamps.eyeEndTime <= now && !notifiedRef.current.eye && !state.showEyeModal) {
         notifiedRef.current.eye = true;
         showNotification("eye");
         setState(prev => ({ ...prev, showEyeModal: true }));
@@ -376,7 +377,7 @@ export const useReminders = () => {
         notifiedRef.current.eye = false;
       }
 
-      if (timestamps.stretchEndTime <= now && !notifiedRef.current.stretch) {
+      if (timestamps.stretchEndTime <= now && !notifiedRef.current.stretch && !state.showStretchModal) {
         notifiedRef.current.stretch = true;
         showNotification("stretch");
         setState(prev => ({ ...prev, showStretchModal: true }));
@@ -384,7 +385,7 @@ export const useReminders = () => {
         notifiedRef.current.stretch = false;
       }
 
-      if (timestamps.waterEndTime <= now && !notifiedRef.current.water) {
+      if (timestamps.waterEndTime <= now && !notifiedRef.current.water && !state.showWaterModal) {
         notifiedRef.current.water = true;
         showNotification("water");
         setState(prev => ({ ...prev, showWaterModal: true }));
@@ -416,7 +417,7 @@ export const useReminders = () => {
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", handleVisibility);
     };
-  }, [isRunning, timestamps, config, showNotification, isWithinWorkHours, getWorkStatus, schedule.isConfigured, getTimeUntilNextWork]);
+  }, [isRunning, timestamps, config, showNotification, isWithinWorkHours, getWorkStatus, schedule.isConfigured, getTimeUntilNextWork, state.showEyeModal, state.showStretchModal, state.showWaterModal]);
 
   const toggleRunning = useCallback(() => {
     const now = Date.now();
