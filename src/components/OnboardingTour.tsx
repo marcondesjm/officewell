@@ -166,14 +166,20 @@ export const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto"
+        style={{ 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100dvh'
+        }}
       >
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
           onClick={handleSkip}
         />
 
@@ -183,9 +189,9 @@ export const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative z-10 w-full max-w-md"
+          className="relative z-10 w-full max-w-md my-auto"
         >
-          <Card className="border-2 border-primary/20 shadow-2xl shadow-primary/10 overflow-hidden">
+          <Card className="border-2 border-primary/20 shadow-2xl shadow-primary/10 overflow-hidden bg-background">
             {/* Header with progress */}
             <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 border-b">
               <div className="flex items-center justify-between mb-2">
