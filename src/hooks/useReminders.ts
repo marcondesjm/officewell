@@ -8,6 +8,7 @@ export interface ReminderConfig {
   eyeInterval: number;
   stretchInterval: number;
   waterInterval: number;
+  soundEnabled: boolean;
 }
 
 export interface ReminderState {
@@ -35,6 +36,7 @@ const DEFAULT_CONFIG: ReminderConfig = {
   eyeInterval: 20,      // Regra 20-20-20 para descanso visual
   stretchInterval: 50,  // NR-17: pausas ergonômicas a cada 50 min
   waterInterval: 60,    // Hidratação regular a cada hora
+  soundEnabled: true,   // Som de notificação ativado por padrão
 };
 
 const loadConfig = (): ReminderConfig => {
@@ -134,6 +136,7 @@ export const useReminders = () => {
       
       // Atualizar config com intervalos otimizados
       setConfig(prev => ({
+        ...prev,
         eyeInterval: optimalIntervals.eyeInterval,
         stretchInterval: optimalIntervals.stretchInterval,
         waterInterval: optimalIntervals.waterInterval,
@@ -175,8 +178,10 @@ export const useReminders = () => {
 
     const notification = notifications[type];
 
-    // Tocar som de alerta múltiplas vezes para garantir que o usuário ouça
+    // Tocar som de alerta APENAS se som estiver habilitado
     const playAlertSound = () => {
+      if (!config.soundEnabled) return; // NÃO tocar se som desativado
+      
       try {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         if (AudioContextClass) {
@@ -231,7 +236,7 @@ export const useReminders = () => {
       }
     };
 
-    // Tocar som
+    // Tocar som apenas se habilitado
     playAlertSound();
 
     // Vibrar no mobile - padrão mais longo
@@ -276,7 +281,7 @@ export const useReminders = () => {
     } catch (e) {
       console.log("Notificação não disponível:", e);
     }
-  }, []);
+  }, [config.soundEnabled]);
 
   // Timer principal - agora respeita horário de trabalho
   useEffect(() => {

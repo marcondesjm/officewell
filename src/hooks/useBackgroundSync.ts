@@ -211,18 +211,34 @@ export const useBackgroundSync = () => {
     if (!('serviceWorker' in navigator)) return;
 
     const handleMessage = async (event: MessageEvent) => {
-      // Tocar som APENAS quando o SW solicitar (timer chegou a zero)
+      // Verificar se som está habilitado nas configurações
+      const checkSoundEnabled = (): boolean => {
+        try {
+          const saved = localStorage.getItem("reminderConfig");
+          if (saved) {
+            const config = JSON.parse(saved);
+            return config.soundEnabled !== false; // default true
+          }
+        } catch {}
+        return true;
+      };
+
+      // Tocar som APENAS quando o SW solicitar (timer chegou a zero) E som estiver habilitado
       if (event.data?.type === 'PLAY_NOTIFICATION_SOUND') {
-        console.log(`Timer ${event.data.reminderType} acabou - tocando som`);
-        await playNotificationSound(0.9);
-        
-        // Vibrar também
-        if (navigator.vibrate) {
-          navigator.vibrate([300, 100, 300, 100, 300]);
+        if (checkSoundEnabled()) {
+          console.log(`Timer ${event.data.reminderType} acabou - tocando som`);
+          await playNotificationSound(0.9);
+          
+          // Vibrar também
+          if (navigator.vibrate) {
+            navigator.vibrate([300, 100, 300, 100, 300]);
+          }
+        } else {
+          console.log(`Timer ${event.data.reminderType} acabou - som desativado`);
         }
       }
       
-      // NÃO tocar som novamente em NOTIFICATION_SENT para evitar duplicação
+      // NÃO tocar som em NOTIFICATION_SENT para evitar duplicação
       if (event.data?.type === 'NOTIFICATION_SENT') {
         console.log(`Notificação ${event.data.reminderType} enviada pelo SW`);
       }
