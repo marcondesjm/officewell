@@ -134,29 +134,34 @@ export const ComplianceReport = () => {
         <div className="space-y-2 pt-2 border-t">
           <span className="text-xs text-muted-foreground">Últimos 7 dias:</span>
           <div className="flex gap-1">
-            {week.map((day, index) => (
-              <div
-                key={index}
-                className="flex-1 flex flex-col items-center gap-1"
-              >
+            {week.map((day, index) => {
+              const hasRecords = day.records.length > 0;
+              const isToday = day.date === new Date().toISOString().split("T")[0];
+              
+              return (
                 <div
-                  className={`w-full h-8 rounded-sm flex items-center justify-center text-[10px] font-medium ${
-                    day.complianceRate >= 80
-                      ? "bg-green-500/20 text-green-600"
-                      : day.complianceRate >= 50
-                      ? "bg-yellow-500/20 text-yellow-600"
-                      : day.records.length === 0
-                      ? "bg-muted text-muted-foreground"
-                      : "bg-red-500/20 text-red-600"
-                  }`}
+                  key={index}
+                  className="flex-1 flex flex-col items-center gap-1"
                 >
-                  {day.records.length > 0 ? `${day.complianceRate}%` : "-"}
+                  <div
+                    className={`w-full h-8 rounded-sm flex items-center justify-center text-[10px] font-medium ${
+                      !hasRecords
+                        ? "bg-muted text-muted-foreground"
+                        : day.complianceRate >= 80
+                        ? "bg-green-500/20 text-green-600"
+                        : day.complianceRate >= 50
+                        ? "bg-yellow-500/20 text-yellow-600"
+                        : "bg-red-500/20 text-red-600"
+                    }`}
+                  >
+                    {hasRecords ? `${day.complianceRate}%` : "-"}
+                  </div>
+                  <span className={`text-[9px] ${isToday ? "text-primary font-medium" : "text-muted-foreground"}`}>
+                    {new Date(day.date).toLocaleDateString("pt-BR", { weekday: "short" }).slice(0, 3)}
+                  </span>
                 </div>
-                <span className="text-[9px] text-muted-foreground">
-                  {new Date(day.date).toLocaleDateString("pt-BR", { weekday: "short" }).slice(0, 3)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
