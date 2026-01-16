@@ -380,19 +380,67 @@ export const useReminders = () => {
 
   const requestNotificationPermission = useCallback(async () => {
     try {
-      if ("Notification" in window && Notification.permission === "default") {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          toast.success("Notificações ativadas!");
+      if ("Notification" in window) {
+        if (Notification.permission === "default") {
+          const permission = await Notification.requestPermission();
+          if (permission === "granted") {
+            toast.success("🔔 Notificações ativadas com sucesso!");
+            // Re-registrar service worker para garantir notificações
+            if ('serviceWorker' in navigator) {
+              const registration = await navigator.serviceWorker.ready;
+              registration.active?.postMessage({ type: 'START_CHECKING' });
+            }
+          } else {
+            toast.info("Notificações serão exibidas apenas no app");
+          }
+        } else if (Notification.permission === "granted") {
+          toast.success("🔔 Notificações já estão ativas!");
+          // Refresh do service worker para garantir funcionamento
+          if ('serviceWorker' in navigator) {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.update();
+            registration.active?.postMessage({ type: 'START_CHECKING' });
+          }
         } else {
-          toast.info("Notificações serão exibidas apenas no app");
+          toast.error("⚠️ Notificações bloqueadas. Ative nas configurações do navegador.");
         }
-      } else if (Notification.permission === "denied") {
-        toast.info("Notificações bloqueadas pelo navegador");
       }
     } catch {
       toast.info("Notificações serão exibidas apenas no app");
     }
+  }, []);
+
+  // Auto-solicitar permissão e manter notificações ativas
+  useEffect(() => {
+    const initNotifications = async () => {
+      if ("Notification" in window && Notification.permission === "default") {
+        // Aguardar um pouco antes de pedir permissão (melhor UX)
+        setTimeout(async () => {
+          try {
+            await Notification.requestPermission();
+          } catch {}
+        }, 2000);
+      }
+      
+      // Refresh periódico do service worker para manter notificações ativas
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        registration.active?.postMessage({ type: 'START_CHECKING' });
+        
+        // Refresh a cada 5 minutos para garantir que o SW continue ativo
+        const refreshInterval = setInterval(async () => {
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            await reg.update();
+            reg.active?.postMessage({ type: 'CHECK_TIMERS' });
+          } catch {}
+        }, 5 * 60 * 1000);
+        
+        return () => clearInterval(refreshInterval);
+      }
+    };
+    
+    initNotifications();
   }, []);
 
   const closeStretchModal = useCallback(() => {
