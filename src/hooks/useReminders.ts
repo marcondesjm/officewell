@@ -75,9 +75,9 @@ const loadIsRunning = (): boolean => {
 export const useReminders = () => {
   // Carregar valores iniciais de forma síncrona
   const initialConfig = useRef(loadConfig());
-  const { syncTimerState } = useBackgroundSync();
+  const { syncTimerState, resetNotificationCooldown } = useBackgroundSync();
   const { stats, recordCompletion } = useReminderStats();
-  const { 
+  const {
     isWithinWorkHours, 
     getWorkStatus, 
     schedule, 
@@ -405,7 +405,9 @@ export const useReminders = () => {
       stretchEndTime: now + config.stretchInterval * 60 * 1000,
     }));
     notifiedRef.current.stretch = false;
-  }, [recordCompletion, config.stretchInterval]);
+    // Resetar cooldown no SW para próxima notificação
+    resetNotificationCooldown("stretch");
+  }, [recordCompletion, config.stretchInterval, resetNotificationCooldown]);
 
   const closeEyeModal = useCallback(() => {
     setState(prev => ({ ...prev, showEyeModal: false }));
@@ -417,7 +419,9 @@ export const useReminders = () => {
       eyeEndTime: now + config.eyeInterval * 60 * 1000,
     }));
     notifiedRef.current.eye = false;
-  }, [recordCompletion, config.eyeInterval]);
+    // Resetar cooldown no SW para próxima notificação
+    resetNotificationCooldown("eye");
+  }, [recordCompletion, config.eyeInterval, resetNotificationCooldown]);
 
   const closeWaterModal = useCallback(() => {
     setState(prev => ({ ...prev, showWaterModal: false }));
@@ -429,7 +433,9 @@ export const useReminders = () => {
       waterEndTime: now + config.waterInterval * 60 * 1000,
     }));
     notifiedRef.current.water = false;
-  }, [recordCompletion, config.waterInterval]);
+    // Resetar cooldown no SW para próxima notificação
+    resetNotificationCooldown("water");
+  }, [recordCompletion, config.waterInterval, resetNotificationCooldown]);
 
   return {
     config,

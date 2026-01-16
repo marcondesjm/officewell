@@ -1,5 +1,5 @@
 // Service Worker customizado para notificações em segundo plano
-// Versão 2.0 - Suporte melhorado para background
+// Versão 3.0 - Verificação contínua com setInterval
 
 const NOTIFICATION_TYPES = {
   eye: {
@@ -19,145 +19,189 @@ const NOTIFICATION_TYPES = {
   }
 };
 
-// Armazenamento de timers agendados
-let scheduledTimers = {
-  eye: null,
-  stretch: null,
-  water: null
+// Controle de notificações já enviadas para evitar duplicação
+let lastNotified = {
+  eye: 0,
+  stretch: 0,
+  water: 0
 };
 
-// Limpar timer existente
-function clearScheduledTimer(type) {
-  if (scheduledTimers[type]) {
-    clearTimeout(scheduledTimers[type]);
-    scheduledTimers[type] = null;
-  }
-}
+// Intervalo de verificação ativo
+let checkIntervalId = null;
+const CHECK_INTERVAL = 5000; // Verificar a cada 5 segundos
 
 // Mostrar notificação
-function showTimerNotification(type) {
+async function showTimerNotification(type) {
   const notif = NOTIFICATION_TYPES[type];
   if (!notif) return;
   
-  self.registration.showNotification(notif.title, {
-    body: notif.body,
-    icon: '/pwa-192x192.png',
-    badge: '/pwa-192x192.png',
-    tag: notif.tag,
-    requireInteraction: true,
-    vibrate: [200, 100, 200, 100, 200],
-    renotify: true,
-    data: { type },
-    actions: [
-      { action: 'open', title: 'Abrir App' },
-      { action: 'snooze', title: 'Adiar 5 min' }
-    ]
-  });
-}
-
-// Agendar notificação
-function scheduleNotification(type, delay) {
-  clearScheduledTimer(type);
+  const now = Date.now();
   
-  if (delay <= 0) {
-    showTimerNotification(type);
+  // Evitar notificações duplicadas (cooldown de 30 segundos)
+  if (now - lastNotified[type] < 30000) {
+    console.log(`SW: Notificação ${type} ignorada (cooldown)`);
     return;
   }
   
-  // Limitar a 24 horas máximo
-  const maxDelay = Math.min(delay, 24 * 60 * 60 * 1000);
+  lastNotified[type] = now;
   
-  scheduledTimers[type] = setTimeout(() => {
-    showTimerNotification(type);
-    scheduledTimers[type] = null;
-  }, maxDelay);
+  try {
+    await self.registration.showNotification(notif.title, {
+      body: notif.body,
+      icon: '/pwa-192x192.png',
+      badge: '/pwa-192x192.png',
+      tag: notif.tag,
+      requireInteraction: true,
+      vibrate: [200, 100, 200, 100, 200],
+      renotify: true,
+      data: { type, timestamp: now },
+      actions: [
+        { action: 'open', title: 'Abrir App' },
+        { action: 'snooze', title: 'Adiar 5 min' }
+      ]
+    });
+    console.log(`SW: Notificação ${type} enviada com sucesso`);
+    
+    // Notificar todos os clientes sobre a notificação
+    const allClients = await clients.matchAll({ includeUncontrolled: true });
+    allClients.forEach(client => {
+      client.postMessage({
+        type: 'NOTIFICATION_SENT',
+        reminderType: type,
+        timestamp: now
+      });
+    });
+  } catch (e) {
+    console.error(`SW: Erro ao mostrar notificação ${type}:`, e);
+  }
 }
 
-// Receber mensagens do app
-self.addEventListener('message', (event) => {
-  console.log('SW: Mensagem recebida:', event.data);
-  
-  if (event.data && event.data.type === 'SCHEDULE_NOTIFICATION') {
-    const { reminderType, delay } = event.data;
-    console.log(`SW: Agendando ${reminderType} em ${delay}ms`);
-    scheduleNotification(reminderType, delay);
-  }
-  
-  if (event.data && event.data.type === 'SCHEDULE_ALL') {
-    const { eyeDelay, stretchDelay, waterDelay, isRunning } = event.data;
-    
-    if (!isRunning) {
-      // Limpar todos os timers se pausado
-      clearScheduledTimer('eye');
-      clearScheduledTimer('stretch');
-      clearScheduledTimer('water');
-      console.log('SW: Timers pausados');
-      return;
-    }
-    
-    console.log('SW: Agendando todos os timers:', { eyeDelay, stretchDelay, waterDelay });
-    
-    if (eyeDelay > 0) scheduleNotification('eye', eyeDelay);
-    if (stretchDelay > 0) scheduleNotification('stretch', stretchDelay);
-    if (waterDelay > 0) scheduleNotification('water', waterDelay);
-  }
-  
-  if (event.data && event.data.type === 'CHECK_TIMERS') {
-    checkAndNotify();
-  }
-  
-  if (event.data && event.data.type === 'PING') {
-    // Manter SW ativo
-    event.ports?.[0]?.postMessage({ type: 'PONG' });
-  }
-});
-
-// Verificar timers no cache
+// Verificar timers no cache e enviar notificações
 async function checkAndNotify() {
   try {
     const cache = await caches.open('officewell-timers');
     const response = await cache.match('timer-state');
     
-    if (response) {
-      const data = await response.json();
-      const now = Date.now();
-      
-      if (data.isRunning) {
-        if (data.eyeEndTime <= now) {
-          showTimerNotification('eye');
-        } else if (data.eyeEndTime > now) {
-          scheduleNotification('eye', data.eyeEndTime - now);
-        }
-        
-        if (data.stretchEndTime <= now) {
-          showTimerNotification('stretch');
-        } else if (data.stretchEndTime > now) {
-          scheduleNotification('stretch', data.stretchEndTime - now);
-        }
-        
-        if (data.waterEndTime <= now) {
-          showTimerNotification('water');
-        } else if (data.waterEndTime > now) {
-          scheduleNotification('water', data.waterEndTime - now);
-        }
-      }
+    if (!response) {
+      console.log('SW: Nenhum estado de timer encontrado');
+      return;
+    }
+    
+    const data = await response.json();
+    const now = Date.now();
+    
+    console.log('SW: Verificando timers...', {
+      isRunning: data.isRunning,
+      eyeIn: Math.round((data.eyeEndTime - now) / 1000) + 's',
+      stretchIn: Math.round((data.stretchEndTime - now) / 1000) + 's',
+      waterIn: Math.round((data.waterEndTime - now) / 1000) + 's'
+    });
+    
+    if (!data.isRunning) {
+      console.log('SW: Timers pausados, ignorando');
+      return;
+    }
+    
+    // Verificar cada timer
+    if (data.eyeEndTime <= now) {
+      await showTimerNotification('eye');
+    }
+    
+    if (data.stretchEndTime <= now) {
+      await showTimerNotification('stretch');
+    }
+    
+    if (data.waterEndTime <= now) {
+      await showTimerNotification('water');
     }
   } catch (e) {
-    console.log('SW: Erro ao verificar timers', e);
+    console.error('SW: Erro ao verificar timers:', e);
   }
 }
 
+// Iniciar verificação contínua
+function startContinuousCheck() {
+  if (checkIntervalId) {
+    clearInterval(checkIntervalId);
+  }
+  
+  console.log('SW: Iniciando verificação contínua');
+  checkIntervalId = setInterval(checkAndNotify, CHECK_INTERVAL);
+  
+  // Verificar imediatamente também
+  checkAndNotify();
+}
+
+// Parar verificação contínua
+function stopContinuousCheck() {
+  if (checkIntervalId) {
+    clearInterval(checkIntervalId);
+    checkIntervalId = null;
+    console.log('SW: Verificação contínua parada');
+  }
+}
+
+// Receber mensagens do app
+self.addEventListener('message', async (event) => {
+  console.log('SW: Mensagem recebida:', event.data?.type);
+  
+  if (event.data && event.data.type === 'START_CHECKING') {
+    startContinuousCheck();
+  }
+  
+  if (event.data && event.data.type === 'STOP_CHECKING') {
+    stopContinuousCheck();
+  }
+  
+  if (event.data && event.data.type === 'SCHEDULE_ALL') {
+    const { isRunning } = event.data;
+    
+    if (isRunning) {
+      startContinuousCheck();
+    } else {
+      stopContinuousCheck();
+    }
+  }
+  
+  if (event.data && event.data.type === 'CHECK_TIMERS') {
+    await checkAndNotify();
+  }
+  
+  if (event.data && event.data.type === 'RESET_COOLDOWN') {
+    const { reminderType } = event.data;
+    if (reminderType && lastNotified[reminderType]) {
+      lastNotified[reminderType] = 0;
+    }
+  }
+  
+  if (event.data && event.data.type === 'PING') {
+    // Manter SW ativo e responder
+    event.ports?.[0]?.postMessage({ type: 'PONG', timestamp: Date.now() });
+  }
+});
+
 // Quando clicar na notificação
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener('notificationclick', async (event) => {
   console.log('SW: Notificação clicada:', event.action);
   event.notification.close();
   
-  if (event.action === 'snooze') {
-    // Adiar por 5 minutos
-    const type = event.notification.data?.type;
-    if (type) {
-      scheduleNotification(type, 5 * 60 * 1000);
-    }
+  const type = event.notification.data?.type;
+  
+  if (event.action === 'snooze' && type) {
+    // Adiar por 5 minutos - resetar o cooldown após 5 min
+    setTimeout(() => {
+      lastNotified[type] = 0;
+    }, 5 * 60 * 1000);
+    
+    // Notificar o app sobre o snooze
+    const allClients = await clients.matchAll({ includeUncontrolled: true });
+    allClients.forEach(client => {
+      client.postMessage({
+        type: 'SNOOZE_REQUESTED',
+        reminderType: type,
+        duration: 5 * 60 * 1000
+      });
+    });
     return;
   }
   
@@ -210,15 +254,24 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-// Manter SW ativo
+// Instalação
 self.addEventListener('install', (event) => {
-  console.log('SW Custom: Instalado');
+  console.log('SW Custom v3.0: Instalado');
   self.skipWaiting();
 });
 
+// Ativação
 self.addEventListener('activate', (event) => {
-  console.log('SW Custom: Ativado');
-  event.waitUntil(clients.claim());
-  // Verificar timers ao ativar
-  checkAndNotify();
+  console.log('SW Custom v3.0: Ativado');
+  event.waitUntil(
+    clients.claim().then(() => {
+      // Iniciar verificação ao ativar
+      startContinuousCheck();
+    })
+  );
+});
+
+// Manter vivo - fetch event
+self.addEventListener('fetch', (event) => {
+  // Não interceptar requests, apenas manter o SW ativo
 });

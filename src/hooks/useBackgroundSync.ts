@@ -9,6 +9,7 @@ interface TimerState {
 
 export const useBackgroundSync = () => {
   const keepAliveInterval = useRef<NodeJS.Timeout | null>(null);
+  const isInitialized = useRef(false);
 
   // Salvar estado no cache para o Service Worker acessar
   const syncTimerState = useCallback(async (state: TimerState) => {
@@ -16,20 +17,19 @@ export const useBackgroundSync = () => {
       // Salvar no cache
       if ('caches' in window) {
         const cache = await caches.open('officewell-timers');
-        const response = new Response(JSON.stringify(state));
+        const response = new Response(JSON.stringify({
+          ...state,
+          updatedAt: Date.now()
+        }));
         await cache.put('timer-state', response);
       }
 
-      // Enviar para o Service Worker agendar os timers
+      // Enviar para o Service Worker
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
-        const now = Date.now();
         
         registration.active?.postMessage({
           type: 'SCHEDULE_ALL',
-          eyeDelay: state.eyeEndTime - now,
-          stretchDelay: state.stretchEndTime - now,
-          waterDelay: state.waterEndTime - now,
           isRunning: state.isRunning,
         });
       }
@@ -77,6 +77,21 @@ export const useBackgroundSync = () => {
     }
   }, []);
 
+  // Resetar cooldown de notificação no SW
+  const resetNotificationCooldown = useCallback(async (type: 'eye' | 'stretch' | 'water') => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        registration.active?.postMessage({
+          type: 'RESET_COOLDOWN',
+          reminderType: type,
+        });
+      }
+    } catch (e) {
+      console.log('Erro ao resetar cooldown:', e);
+    }
+  }, []);
+
   // Manter o Service Worker ativo com pings periódicos
   const keepServiceWorkerAlive = useCallback(async () => {
     try {
@@ -85,6 +100,12 @@ export const useBackgroundSync = () => {
         
         // Criar um canal de mensagem
         const messageChannel = new MessageChannel();
+        
+        messageChannel.port1.onmessage = (event) => {
+          if (event.data?.type === 'PONG') {
+            console.log('SW respondeu ao ping');
+          }
+        };
         
         registration.active?.postMessage(
           { type: 'PING' },
@@ -113,21 +134,46 @@ export const useBackgroundSync = () => {
           await (registration as any).sync.register('check-reminders');
           console.log('Background sync registrado');
         }
+        
+        // Iniciar verificação contínua no SW
+        registration.active?.postMessage({ type: 'START_CHECKING' });
       }
     } catch (e) {
       console.log('Background sync não suportado:', e);
     }
   }, []);
 
+  // Ouvir mensagens do Service Worker
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'NOTIFICATION_SENT') {
+        console.log(`Notificação ${event.data.reminderType} enviada pelo SW`);
+      }
+      if (event.data?.type === 'SNOOZE_REQUESTED') {
+        console.log(`Snooze solicitado para ${event.data.reminderType}`);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
   // Inicializar
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     registerPeriodicSync();
     requestBackgroundSyncPermission();
     
-    // Manter SW ativo a cada 20 segundos
+    // Manter SW ativo a cada 10 segundos
     keepAliveInterval.current = setInterval(() => {
       keepServiceWorkerAlive();
-    }, 20000);
+    }, 10000);
 
     // Verificar timers ao voltar ao foco
     const handleVisibilityChange = async () => {
@@ -138,12 +184,14 @@ export const useBackgroundSync = () => {
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
 
     return () => {
       if (keepAliveInterval.current) {
         clearInterval(keepAliveInterval.current);
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
     };
   }, [registerPeriodicSync, requestBackgroundSyncPermission, keepServiceWorkerAlive]);
 
@@ -151,5 +199,6 @@ export const useBackgroundSync = () => {
     syncTimerState,
     scheduleNotification,
     requestBackgroundSyncPermission,
+    resetNotificationCooldown,
   };
 };
