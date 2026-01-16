@@ -362,6 +362,10 @@ export const useReminders = () => {
       return { eyeTimeLeft, stretchTimeLeft, waterTimeLeft, isRunning: true, workStatus };
     };
 
+    // Ref para controlar cooldown entre notificações (evita som duplicado)
+    const lastNotificationTimeRef = { current: { eye: 0, stretch: 0, water: 0 } };
+    const NOTIFICATION_COOLDOWN = 5000; // 5 segundos entre notificações do mesmo tipo
+
     const checkAndNotify = () => {
       // Não notificar fora do horário de trabalho
       if (!isRunning || !isWithinWorkHours()) return;
@@ -370,25 +374,35 @@ export const useReminders = () => {
 
       // Verificar se modal já está aberto antes de notificar novamente
       if (timestamps.eyeEndTime <= now && !notifiedRef.current.eye && !state.showEyeModal) {
-        notifiedRef.current.eye = true;
-        showNotification("eye");
-        setState(prev => ({ ...prev, showEyeModal: true }));
+        // Verificar cooldown
+        if (now - lastNotificationTimeRef.current.eye >= NOTIFICATION_COOLDOWN) {
+          notifiedRef.current.eye = true;
+          lastNotificationTimeRef.current.eye = now;
+          showNotification("eye");
+          setState(prev => ({ ...prev, showEyeModal: true }));
+        }
       } else if (timestamps.eyeEndTime > now) {
         notifiedRef.current.eye = false;
       }
 
       if (timestamps.stretchEndTime <= now && !notifiedRef.current.stretch && !state.showStretchModal) {
-        notifiedRef.current.stretch = true;
-        showNotification("stretch");
-        setState(prev => ({ ...prev, showStretchModal: true }));
+        if (now - lastNotificationTimeRef.current.stretch >= NOTIFICATION_COOLDOWN) {
+          notifiedRef.current.stretch = true;
+          lastNotificationTimeRef.current.stretch = now;
+          showNotification("stretch");
+          setState(prev => ({ ...prev, showStretchModal: true }));
+        }
       } else if (timestamps.stretchEndTime > now) {
         notifiedRef.current.stretch = false;
       }
 
       if (timestamps.waterEndTime <= now && !notifiedRef.current.water && !state.showWaterModal) {
-        notifiedRef.current.water = true;
-        showNotification("water");
-        setState(prev => ({ ...prev, showWaterModal: true }));
+        if (now - lastNotificationTimeRef.current.water >= NOTIFICATION_COOLDOWN) {
+          notifiedRef.current.water = true;
+          lastNotificationTimeRef.current.water = now;
+          showNotification("water");
+          setState(prev => ({ ...prev, showWaterModal: true }));
+        }
       } else if (timestamps.waterEndTime > now) {
         notifiedRef.current.water = false;
       }
@@ -405,7 +419,7 @@ export const useReminders = () => {
     const handleVisibility = () => {
       if (!document.hidden) {
         setState(prev => ({ ...prev, ...calculateTimeLeft() }));
-        checkAndNotify();
+        // Não chamar checkAndNotify aqui para evitar notificação duplicada
       }
     };
 
