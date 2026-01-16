@@ -76,6 +76,9 @@ const Index = () => {
       const { toast } = await import("sonner");
       toast.info("Atualizando app...", { duration: 2000 });
       
+      // Marcar que está atualizando para mostrar confirmação após reload
+      localStorage.setItem('app-just-updated', 'true');
+      
       // Limpar cache do service worker e forçar atualização
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -103,10 +106,27 @@ const Index = () => {
       window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
     } catch (e) {
       console.error('Erro ao atualizar:', e);
+      localStorage.setItem('app-just-updated', 'true');
       // Fallback: reload simples
       window.location.href = window.location.origin + '?refresh=' + Date.now();
     }
   };
+
+  // Verificar se acabou de atualizar e mostrar confirmação
+  useEffect(() => {
+    const justUpdated = localStorage.getItem('app-just-updated');
+    if (justUpdated === 'true') {
+      localStorage.removeItem('app-just-updated');
+      
+      // Importar toast dinamicamente e mostrar confirmação
+      import("sonner").then(({ toast }) => {
+        toast.success("✨ App atualizado com sucesso!", {
+          description: `Versão ${APP_VERSION} - Todos os recursos estão atualizados.`,
+          duration: 4000,
+        });
+      });
+    }
+  }, []);
 
   useEffect(() => {
     // Mostrar botão de instalar se não estiver no modo standalone
