@@ -51,6 +51,7 @@ import { Link } from 'react-router-dom';
 import { SubscriptionPlans } from '@/components/SubscriptionPlans';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { OnboardingTour } from '@/components/OnboardingTour';
 
 // Animation variants
 const fadeInUp = {
@@ -1545,6 +1546,9 @@ const Landing = () => {
         onOpenChange={setPlansOpen}
         preSelectedPlan={selectedPlan}
       />
+
+      {/* Onboarding Tour */}
+      <OnboardingTour />
     </div>
   );
 };
