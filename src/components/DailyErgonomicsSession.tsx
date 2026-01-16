@@ -15,9 +15,12 @@ import {
   CheckCircle2, 
   Trophy,
   Timer,
-  ArrowRight
+  ArrowRight,
+  Star
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGamification } from "@/hooks/useGamification";
+import { toast } from "sonner";
 
 interface DailyErgonomicsSessionProps {
   open: boolean;
@@ -76,6 +79,8 @@ export const DailyErgonomicsSession = ({ open, onOpenChange }: DailyErgonomicsSe
   const [isPaused, setIsPaused] = useState(false);
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
   const [isSessionComplete, setIsSessionComplete] = useState(false);
+  const [pointsAwarded, setPointsAwarded] = useState(false);
+  const { addPoints } = useGamification();
 
   // Reset when modal opens
   useEffect(() => {
@@ -85,6 +90,7 @@ export const DailyErgonomicsSession = ({ open, onOpenChange }: DailyErgonomicsSe
       setIsPaused(false);
       setCompletedExercises([]);
       setIsSessionComplete(false);
+      setPointsAwarded(false);
     }
   }, [open]);
 
@@ -143,8 +149,17 @@ export const DailyErgonomicsSession = ({ open, onOpenChange }: DailyErgonomicsSe
   }, [currentExerciseIndex]);
 
   const handleClose = useCallback(() => {
+    // Award points if session was completed and not already awarded
+    if (isSessionComplete && !pointsAwarded) {
+      const points = addPoints("daily_session");
+      setPointsAwarded(true);
+      toast.success(`+${points} pontos!`, {
+        description: "Sessão diária completada",
+        icon: <Star className="h-4 w-4 text-yellow-500" />,
+      });
+    }
     onOpenChange(false);
-  }, [onOpenChange]);
+  }, [onOpenChange, isSessionComplete, pointsAwarded, addPoints]);
 
   const currentExercise = currentExerciseIndex >= 0 ? exercises[currentExerciseIndex] : null;
   const progress = currentExercise ? ((currentExercise.duration - timeLeft) / currentExercise.duration) * 100 : 0;

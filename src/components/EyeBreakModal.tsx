@@ -2,12 +2,14 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Lock, Unlock } from "lucide-react";
+import { Lock, Unlock, Star } from "lucide-react";
 import eyeBreakImage1 from "@/assets/eye-break.png";
 import eyeBreakImage2 from "@/assets/eye-break-2.png";
 import eyeBreakImage3 from "@/assets/eye-break-3.png";
 import eyeBreakImage4 from "@/assets/eye-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
+import { useGamification } from "@/hooks/useGamification";
+import { toast } from "sonner";
 
 const eyeBreakImages = [eyeBreakImage1, eyeBreakImage2, eyeBreakImage3, eyeBreakImage4];
 
@@ -135,12 +137,15 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
   const [description, setDescription] = useState("");
   const [tipSet, setTipSet] = useState(tipSets[0]);
   const [currentImage, setCurrentImage] = useState(eyeBreakImages[0]);
+  const [pointsAwarded, setPointsAwarded] = useState(false);
+  const { addPoints, stats } = useGamification();
 
   // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
     if (open) {
       setStartTime(Date.now());
       setElapsed(0);
+      setPointsAwarded(false);
       // Get non-repeating random indices for today
       const descIdx = getRandomIndex("eye", "descriptions", descriptions.length);
       const tipIdx = getRandomIndex("eye", "tipSets", tipSets.length);
@@ -207,9 +212,20 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
       } catch (e) {
         console.log("Error saving compliance:", e);
       }
+      
+      // Award points if not already awarded
+      if (!pointsAwarded) {
+        const points = addPoints("eye");
+        setPointsAwarded(true);
+        toast.success(`+${points} pontos!`, {
+          description: "Descanso visual completado",
+          icon: <Star className="h-4 w-4 text-yellow-500" />,
+        });
+      }
+      
       onClose();
     }
-  }, [canClose, startTime, elapsed, onClose]);
+  }, [canClose, startTime, elapsed, onClose, pointsAwarded, addPoints]);
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
