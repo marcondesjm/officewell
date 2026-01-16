@@ -1,5 +1,8 @@
 // Service Worker customizado para notificações em segundo plano
-// Versão 3.0 - Verificação contínua com setInterval
+// Versão 4.0 - Som melhorado para app minimizado
+
+// Som de notificação em base64 (beep curto)
+const NOTIFICATION_SOUND_BASE64 = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleV9vkJ2dlH5ebGuNpZ+QdE5HX4WipJR4WlFqgpWWh3RSS2mFk5OGdVZQaIGRkIN2WFNngJCPgXhbVWZ/kI6Bd1xXZn+QjYB4XVhngJCNgHhdWGd/j42AeF1YZ3+PjYB4XVhnf4+Nf3hdWGd/j42AeF5YZ3+PjYB4Xlhnf4+NgHheWGd/j42AeF5YaH+PjYB4Xlhof4+NgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIF4XlsA';
 
 const NOTIFICATION_TYPES = {
   eye: {
@@ -48,7 +51,7 @@ let lastNotified = {
 let checkIntervalId = null;
 const CHECK_INTERVAL = 5000; // Verificar a cada 5 segundos
 
-// Mostrar notificação
+// Mostrar notificação com som
 async function showTimerNotification(type) {
   const notif = NOTIFICATION_TYPES[type];
   if (!notif) return;
@@ -64,24 +67,42 @@ async function showTimerNotification(type) {
   lastNotified[type] = now;
   
   try {
+    // Enviar mensagem para TODOS os clientes para tocar som
+    const allClients = await clients.matchAll({ 
+      includeUncontrolled: true, 
+      type: 'window' 
+    });
+    
+    // Primeiro, tentar tocar som através dos clientes
+    for (const client of allClients) {
+      client.postMessage({
+        type: 'PLAY_NOTIFICATION_SOUND',
+        reminderType: type,
+        timestamp: now,
+        soundUrl: NOTIFICATION_SOUND_BASE64
+      });
+    }
+    
+    // Mostrar notificação do sistema com vibração
     await self.registration.showNotification(notif.title, {
       body: notif.body,
       icon: '/pwa-192x192.png',
       badge: '/pwa-192x192.png',
       tag: notif.tag,
       requireInteraction: true,
-      vibrate: [200, 100, 200, 100, 200],
+      vibrate: [300, 100, 300, 100, 300, 100, 300], // Vibração mais longa e intensa
       renotify: true,
+      silent: false, // Garantir que não é silenciosa
       data: { type, timestamp: now },
       actions: [
         { action: 'open', title: 'Abrir App' },
         { action: 'snooze', title: 'Adiar 5 min' }
       ]
     });
+    
     console.log(`SW: Notificação ${type} enviada com sucesso`);
     
     // Notificar todos os clientes sobre a notificação
-    const allClients = await clients.matchAll({ includeUncontrolled: true });
     allClients.forEach(client => {
       client.postMessage({
         type: 'NOTIFICATION_SENT',
@@ -89,6 +110,7 @@ async function showTimerNotification(type) {
         timestamp: now
       });
     });
+    
   } catch (e) {
     console.error(`SW: Erro ao mostrar notificação ${type}:`, e);
   }
@@ -331,7 +353,7 @@ self.addEventListener('sync', (event) => {
 
 // Instalação
 self.addEventListener('install', (event) => {
-  console.log('SW Custom v3.0: Instalado');
+  console.log('SW Custom v4.0: Instalado com som melhorado');
   self.skipWaiting();
 });
 

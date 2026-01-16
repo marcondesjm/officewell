@@ -175,40 +175,75 @@ export const useReminders = () => {
 
     const notification = notifications[type];
 
-    // Tocar som
-    try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioContextClass) {
-        const audioContext = new AudioContextClass();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+    // Tocar som de alerta múltiplas vezes para garantir que o usuário ouça
+    const playAlertSound = () => {
+      try {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContextClass) {
+          const audioContext = new AudioContextClass();
+          
+          // Primeiro beep - mais grave
+          const osc1 = audioContext.createOscillator();
+          const gain1 = audioContext.createGain();
+          osc1.connect(gain1);
+          gain1.connect(audioContext.destination);
+          osc1.frequency.value = 880;
+          osc1.type = "sine";
+          gain1.gain.setValueAtTime(0.5, audioContext.currentTime);
+          gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          osc1.start(audioContext.currentTime);
+          osc1.stop(audioContext.currentTime + 0.3);
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+          // Segundo beep - mais agudo (após 300ms)
+          setTimeout(() => {
+            try {
+              const osc2 = audioContext.createOscillator();
+              const gain2 = audioContext.createGain();
+              osc2.connect(gain2);
+              gain2.connect(audioContext.destination);
+              osc2.frequency.value = 1046;
+              osc2.type = "sine";
+              gain2.gain.setValueAtTime(0.5, audioContext.currentTime);
+              gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+              osc2.start(audioContext.currentTime);
+              osc2.stop(audioContext.currentTime + 0.3);
+            } catch {}
+          }, 300);
 
-        oscillator.frequency.value = 800;
-        oscillator.type = "sine";
-
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
+          // Terceiro beep - mais agudo ainda (após 600ms)
+          setTimeout(() => {
+            try {
+              const osc3 = audioContext.createOscillator();
+              const gain3 = audioContext.createGain();
+              osc3.connect(gain3);
+              gain3.connect(audioContext.destination);
+              osc3.frequency.value = 1320;
+              osc3.type = "sine";
+              gain3.gain.setValueAtTime(0.6, audioContext.currentTime);
+              gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+              osc3.start(audioContext.currentTime);
+              osc3.stop(audioContext.currentTime + 0.4);
+            } catch {}
+          }, 600);
+        }
+      } catch (e) {
+        console.log("Som não disponível");
       }
-    } catch (e) {
-      console.log("Som não disponível");
-    }
+    };
 
-    // Vibrar no mobile
+    // Tocar som
+    playAlertSound();
+
+    // Vibrar no mobile - padrão mais longo
     try {
       if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200]);
+        navigator.vibrate([300, 100, 300, 100, 300, 100, 300]);
       }
     } catch (e) {}
 
     toast.success(notification.title, {
       description: notification.description,
-      duration: 5000,
+      duration: 8000,
     });
 
     // Notificação do navegador (funciona em segundo plano no celular)
@@ -225,12 +260,12 @@ export const useReminders = () => {
         
         // Propriedades extras para mobile (podem não existir em todos os navegadores)
         (notifOptions as any).renotify = true;
-        (notifOptions as any).vibrate = [200, 100, 200, 100, 200];
+        (notifOptions as any).vibrate = [300, 100, 300, 100, 300, 100, 300];
         
         const notif = new Notification(notification.title, notifOptions);
         
-        // Fechar automaticamente após 10 segundos
-        setTimeout(() => notif.close(), 10000);
+        // Fechar automaticamente após 15 segundos
+        setTimeout(() => notif.close(), 15000);
         
         // Abrir o app ao clicar na notificação
         notif.onclick = () => {
