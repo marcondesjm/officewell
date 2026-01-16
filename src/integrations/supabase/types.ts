@@ -134,6 +134,69 @@ export type Database = {
         }
         Relationships: []
       }
+      partners: {
+        Row: {
+          badge: string | null
+          border_color: string
+          button_gradient: string
+          clicks: number
+          created_at: string
+          description: string
+          display_order: number
+          gradient: string
+          icon: string
+          icon_bg: string
+          id: string
+          impressions: number
+          is_active: boolean
+          name: string
+          shadow_color: string
+          text_gradient: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          badge?: string | null
+          border_color?: string
+          button_gradient?: string
+          clicks?: number
+          created_at?: string
+          description: string
+          display_order?: number
+          gradient?: string
+          icon?: string
+          icon_bg?: string
+          id?: string
+          impressions?: number
+          is_active?: boolean
+          name: string
+          shadow_color?: string
+          text_gradient?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          badge?: string | null
+          border_color?: string
+          button_gradient?: string
+          clicks?: number
+          created_at?: string
+          description?: string
+          display_order?: number
+          gradient?: string
+          icon?: string
+          icon_bg?: string
+          id?: string
+          impressions?: number
+          is_active?: boolean
+          name?: string
+          shadow_color?: string
+          text_gradient?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

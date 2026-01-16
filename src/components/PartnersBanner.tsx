@@ -1,129 +1,118 @@
-import { X, ExternalLink, Building2, Sparkles, ShoppingBag, Utensils, Car, Briefcase, Heart, Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ExternalLink, Sparkles, ChevronLeft, ChevronRight, Zap, Building2, ShoppingBag, Utensils, Car, Briefcase, Heart, Star, Rocket, Gift, Coffee, Music, Camera, Gamepad2, Palette, GraduationCap, Plane } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+
+// Icon mapping for dynamic icons
+const iconMap: Record<string, React.ElementType> = {
+  "building-2": Building2,
+  "shopping-bag": ShoppingBag,
+  "utensils": Utensils,
+  "car": Car,
+  "briefcase": Briefcase,
+  "heart": Heart,
+  "zap": Zap,
+  "star": Star,
+  "rocket": Rocket,
+  "gift": Gift,
+  "coffee": Coffee,
+  "music": Music,
+  "camera": Camera,
+  "gamepad-2": Gamepad2,
+  "palette": Palette,
+  "graduation-cap": GraduationCap,
+  "plane": Plane,
+};
 
 interface Partner {
   id: string;
   name: string;
   description: string;
   url: string;
-  icon: React.ElementType;
+  icon: string;
   gradient: string;
-  borderColor: string;
-  iconBg: string;
-  buttonGradient: string;
-  shadowColor: string;
-  textGradient: string;
-  badge?: string;
+  border_color: string;
+  icon_bg: string;
+  button_gradient: string;
+  shadow_color: string;
+  text_gradient: string;
+  badge: string | null;
 }
-
-const partners: Partner[] = [
-  {
-    id: "doorvii",
-    name: "DoorVII",
-    description: "Gestão inteligente de condomínios e portarias digitais",
-    url: "https://doorvii.lovable.app",
-    icon: Building2,
-    gradient: "from-indigo-600/20 via-violet-600/20 to-purple-600/20",
-    borderColor: "border-indigo-500/30",
-    iconBg: "from-indigo-500 to-violet-600",
-    buttonGradient: "from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500",
-    shadowColor: "shadow-violet-500/25",
-    textGradient: "from-indigo-400 to-violet-400",
-    badge: "Novo",
-  },
-  {
-    id: "marketplace",
-    name: "ShopFlow",
-    description: "Marketplace completo para pequenos negócios locais",
-    url: "https://shopflow.lovable.app",
-    icon: ShoppingBag,
-    gradient: "from-emerald-600/20 via-green-600/20 to-teal-600/20",
-    borderColor: "border-emerald-500/30",
-    iconBg: "from-emerald-500 to-green-600",
-    buttonGradient: "from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500",
-    shadowColor: "shadow-emerald-500/25",
-    textGradient: "from-emerald-400 to-green-400",
-    badge: "Popular",
-  },
-  {
-    id: "fooddelivery",
-    name: "FoodExpress",
-    description: "Delivery de comida saudável direto no seu escritório",
-    url: "https://foodexpress.lovable.app",
-    icon: Utensils,
-    gradient: "from-orange-600/20 via-amber-600/20 to-yellow-600/20",
-    borderColor: "border-orange-500/30",
-    iconBg: "from-orange-500 to-amber-600",
-    buttonGradient: "from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500",
-    shadowColor: "shadow-orange-500/25",
-    textGradient: "from-orange-400 to-amber-400",
-  },
-  {
-    id: "carpool",
-    name: "RideShare",
-    description: "Compartilhe caronas com colegas de trabalho",
-    url: "https://rideshare.lovable.app",
-    icon: Car,
-    gradient: "from-blue-600/20 via-cyan-600/20 to-sky-600/20",
-    borderColor: "border-blue-500/30",
-    iconBg: "from-blue-500 to-cyan-600",
-    buttonGradient: "from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500",
-    shadowColor: "shadow-blue-500/25",
-    textGradient: "from-blue-400 to-cyan-400",
-    badge: "Eco",
-  },
-  {
-    id: "taskmanager",
-    name: "TaskPro",
-    description: "Organize suas tarefas e aumente sua produtividade",
-    url: "https://taskpro.lovable.app",
-    icon: Briefcase,
-    gradient: "from-rose-600/20 via-pink-600/20 to-fuchsia-600/20",
-    borderColor: "border-rose-500/30",
-    iconBg: "from-rose-500 to-pink-600",
-    buttonGradient: "from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500",
-    shadowColor: "shadow-rose-500/25",
-    textGradient: "from-rose-400 to-pink-400",
-  },
-  {
-    id: "wellness",
-    name: "MindfulMe",
-    description: "Meditação e bem-estar mental para profissionais",
-    url: "https://mindfulme.lovable.app",
-    icon: Heart,
-    gradient: "from-purple-600/20 via-violet-600/20 to-indigo-600/20",
-    borderColor: "border-purple-500/30",
-    iconBg: "from-purple-500 to-violet-600",
-    buttonGradient: "from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500",
-    shadowColor: "shadow-purple-500/25",
-    textGradient: "from-purple-400 to-violet-400",
-  },
-];
 
 export const PartnersBanner = () => {
   const [dismissed, setDismissed] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch active partners from database
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("partners")
+          .select("id, name, description, url, icon, gradient, border_color, icon_bg, button_gradient, shadow_color, text_gradient, badge")
+          .eq("is_active", true)
+          .order("display_order", { ascending: true });
+
+        if (error) throw error;
+        setPartners(data || []);
+      } catch (error) {
+        console.error("Error fetching partners:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPartners();
+  }, []);
+
+  // Track impression when partner is shown
+  useEffect(() => {
+    if (partners.length === 0 || dismissed) return;
+    
+    const partner = partners[currentIndex];
+    if (!partner) return;
+
+    // Track impression
+    const trackImpression = async () => {
+      try {
+        await supabase.rpc("increment_partner_impressions", { partner_id: partner.id });
+      } catch (error) {
+        // Silently fail - tracking is not critical
+        console.log("Could not track impression");
+      }
+    };
+
+    trackImpression();
+  }, [currentIndex, partners, dismissed]);
 
   // Auto-rotate every 8 seconds
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || partners.length <= 1) return;
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % partners.length);
     }, 8000);
     
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, partners.length]);
 
-  if (dismissed) return null;
+  if (dismissed || loading || partners.length === 0) return null;
 
   const partner = partners[currentIndex];
-  const Icon = partner.icon;
+  const Icon = iconMap[partner.icon] || Building2;
 
-  const handleClick = () => {
+  const handleClick = async () => {
+    // Track click
+    try {
+      await supabase.rpc("increment_partner_clicks", { partner_id: partner.id });
+    } catch (error) {
+      console.log("Could not track click");
+    }
+    
     window.open(partner.url, "_blank", "noopener,noreferrer");
   };
 
@@ -148,7 +137,7 @@ export const PartnersBanner = () => {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
-          className={`relative bg-gradient-to-r ${partner.gradient} border ${partner.borderColor} p-4`}
+          className={`relative bg-gradient-to-r ${partner.gradient} border ${partner.border_color} p-4`}
         >
           {/* Decorative elements */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl" />
@@ -164,29 +153,33 @@ export const PartnersBanner = () => {
           </button>
           
           {/* Navigation arrows */}
-          <button
-            onClick={goToPrevious}
-            className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/50 hover:bg-background/80 transition-colors z-10"
-            aria-label="Anterior"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={goToNext}
-            className="absolute right-10 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/50 hover:bg-background/80 transition-colors z-10"
-            aria-label="Próximo"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+          {partners.length > 1 && (
+            <>
+              <button
+                onClick={goToPrevious}
+                className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/50 hover:bg-background/80 transition-colors z-10"
+                aria-label="Anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={goToNext}
+                className="absolute right-10 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-background/50 hover:bg-background/80 transition-colors z-10"
+                aria-label="Próximo"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </>
+          )}
           
           <div className="flex items-center justify-between gap-4 px-8 relative">
             <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${partner.iconBg} flex items-center justify-center shadow-lg ${partner.shadowColor}`}>
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${partner.icon_bg} flex items-center justify-center shadow-lg ${partner.shadow_color}`}>
                 <Icon className="h-6 w-6 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className={`font-bold text-lg bg-gradient-to-r ${partner.textGradient} bg-clip-text text-transparent`}>
+                  <p className={`font-bold text-lg bg-gradient-to-r ${partner.text_gradient} bg-clip-text text-transparent`}>
                     {partner.name}
                   </p>
                   {partner.badge && (
@@ -204,7 +197,7 @@ export const PartnersBanner = () => {
             <Button 
               onClick={handleClick} 
               size="sm" 
-              className={`gap-1.5 shrink-0 bg-gradient-to-r ${partner.buttonGradient} text-white border-0 shadow-lg ${partner.shadowColor}`}
+              className={`gap-1.5 shrink-0 bg-gradient-to-r ${partner.button_gradient} text-white border-0 shadow-lg ${partner.shadow_color}`}
             >
               Conhecer
               <ExternalLink className="h-4 w-4" />
@@ -212,20 +205,22 @@ export const PartnersBanner = () => {
           </div>
           
           {/* Pagination dots */}
-          <div className="flex items-center justify-center gap-1.5 mt-3">
-            {partners.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentIndex 
-                    ? "w-6 bg-foreground/60" 
-                    : "bg-foreground/20 hover:bg-foreground/30"
-                }`}
-                aria-label={`Ir para parceiro ${index + 1}`}
-              />
-            ))}
-          </div>
+          {partners.length > 1 && (
+            <div className="flex items-center justify-center gap-1.5 mt-3">
+              {partners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === currentIndex 
+                      ? "w-6 bg-foreground/60" 
+                      : "bg-foreground/20 hover:bg-foreground/30"
+                  }`}
+                  aria-label={`Ir para parceiro ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
           
           {/* Sponsor label */}
           <div className="absolute bottom-2 right-2 flex items-center gap-1 text-[9px] text-muted-foreground/50">

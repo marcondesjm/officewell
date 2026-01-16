@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Install from "./pages/Install";
 import HRAdmin from "./pages/HRAdmin";
+import PartnersAdmin from "./pages/PartnersAdmin";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/landing" element={<Landing />} />
             <Route path="/install" element={<Install />} />
             <Route path="/rh" element={<HRAdmin />} />
+            <Route path="/parceiros" element={<PartnersAdmin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
