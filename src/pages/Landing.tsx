@@ -46,6 +46,7 @@ import testimonialWoman1 from '@/assets/testimonial-woman-1.jpg';
 import testimonialMan1 from '@/assets/testimonial-man-1.jpg';
 import testimonialWoman2 from '@/assets/testimonial-woman-2.jpg';
 import officeWellness from '@/assets/office-wellness.jpg';
+import logoOfficeWell from '@/assets/logo-officewell.png';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { SubscriptionPlans } from '@/components/SubscriptionPlans';
@@ -332,14 +333,15 @@ const Landing = () => {
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo */}
           <motion.div 
-            className="flex items-center gap-2"
-            whileHover={{ scale: 1.05 }}
+            className="flex items-center"
+            whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400 }}
           >
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-              <Heart className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold">OfficeWell</span>
+            <img 
+              src={logoOfficeWell} 
+              alt="OfficeWell - Bem-Estar Home Office" 
+              className="h-10 sm:h-12 w-auto object-contain"
+            />
           </motion.div>
 
           {/* Desktop Navigation */}
