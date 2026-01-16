@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -11,6 +11,7 @@ import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { BirthdayCelebration } from "@/components/BirthdayCelebration";
+import { PostureCheckModal } from "@/components/PostureCheckModal";
 
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
@@ -58,6 +59,7 @@ const Index = () => {
   const [demoPlanId, setDemoPlanId] = useState<string | null>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [workScheduleOpen, setWorkScheduleOpen] = useState(false);
+  const [postureCheckOpen, setPostureCheckOpen] = useState(false);
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -234,6 +236,30 @@ const Index = () => {
           />
         </div>
 
+        {/* Botão de Verificação de Postura */}
+        <Card className="p-4 glass-card">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20">
+                <ScanFace className="h-6 w-6 text-violet-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Verificação de Postura</h3>
+                <p className="text-sm text-muted-foreground">
+                  Analise sua postura usando a câmera
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setPostureCheckOpen(true)}
+              className="gradient-primary"
+            >
+              <ScanFace className="h-4 w-4 mr-2" />
+              Verificar
+            </Button>
+          </div>
+        </Card>
+
         {/* Contador de Água */}
         <WaterTracker />
 
@@ -341,6 +367,12 @@ const Index = () => {
 
         {/* Celebração de Aniversário */}
         <BirthdayCelebration />
+
+        {/* Modal de Verificação de Postura */}
+        <PostureCheckModal
+          open={postureCheckOpen}
+          onOpenChange={setPostureCheckOpen}
+        />
 
         {/* Work Schedule Setup */}
         <WorkScheduleSetup
