@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Play, 
   Pause, 
@@ -324,21 +325,25 @@ export const DailyErgonomicsSession = ({ open, onOpenChange }: DailyErgonomicsSe
                 {/* Exercise Preview */}
                 <div className="bg-muted/30 rounded-lg p-4 space-y-3">
                   <h4 className="font-semibold text-center">Exercícios desta sessão:</h4>
-                  {exercises.map((exercise, index) => (
-                    <div
-                      key={exercise.id}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border"
-                    >
-                      <span className="text-2xl">{exercise.icon}</span>
-                      <div className="flex-1">
-                        <p className="font-medium">{exercise.name}</p>
-                        <p className="text-xs text-muted-foreground">{exercise.description}</p>
-                      </div>
-                      <span className="text-sm font-mono text-muted-foreground">
-                        {exercise.duration}s
-                      </span>
+                  <ScrollArea className="h-[280px] pr-3">
+                    <div className="space-y-3">
+                      {exercises.map((exercise, index) => (
+                        <div
+                          key={exercise.id}
+                          className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border"
+                        >
+                          <span className="text-2xl">{exercise.icon}</span>
+                          <div className="flex-1">
+                            <p className="font-medium">{exercise.name}</p>
+                            <p className="text-xs text-muted-foreground">{exercise.description}</p>
+                          </div>
+                          <span className="text-sm font-mono text-muted-foreground">
+                            {exercise.duration}s
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </ScrollArea>
                 </div>
 
                 {/* Total Time */}
