@@ -20,8 +20,11 @@ import { PlansHighlight } from "@/components/PlansHighlight";
 import { PlanDemoModal } from "@/components/PlanDemoModal";
 import { TrialBanner } from "@/components/TrialBanner";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
+import { AdBanner } from "@/components/AdBanner";
+import { LockedFeature } from "@/components/LockedFeature";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
+import { usePlanFeatures } from "@/hooks/usePlanFeatures";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -57,7 +60,9 @@ const Index = () => {
   const [workScheduleOpen, setWorkScheduleOpen] = useState(false);
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
-
+  
+  // Plan features
+  const { currentPlan, features, isFeatureLocked, getRequiredPlan } = usePlanFeatures();
   // Show work schedule setup on first load
   useEffect(() => {
     if (needsWorkScheduleConfig) {
@@ -232,12 +237,34 @@ const Index = () => {
         {/* Contador de Água */}
         <WaterTracker />
 
+        {/* Anúncio para plano básico */}
+        {!features.noAds && (
+          <AdBanner onUpgrade={() => setPlansOpen(true)} variant="banner" />
+        )}
 
-        {/* Relatório de Conformidade */}
-        <ComplianceReport />
+        {/* Relatório de Conformidade - Bloqueado para plano básico */}
+        {features.complianceReports ? (
+          <ComplianceReport />
+        ) : (
+          <LockedFeature
+            featureName="Relatórios de Compliance"
+            requiredPlan={getRequiredPlan("complianceReports")}
+            description="Acompanhe a conformidade da equipe com relatórios detalhados e métricas de adesão."
+            onUpgrade={() => setPlansOpen(true)}
+          />
+        )}
 
-        {/* Painel RH */}
-        <HRPanel />
+        {/* Painel RH - Bloqueado para planos básico e pro */}
+        {features.hrPanel ? (
+          <HRPanel />
+        ) : (
+          <LockedFeature
+            featureName="Painel Administrativo RH"
+            requiredPlan={getRequiredPlan("hrPanel")}
+            description="Gerencie funcionários, aniversários e comunicados internos para toda a empresa."
+            onUpgrade={() => setPlansOpen(true)}
+          />
+        )}
 
         {/* Planos em Destaque */}
         <PlansHighlight 
@@ -261,6 +288,11 @@ const Index = () => {
             setPlansOpen(true);
           }}
         />
+
+        {/* Anúncio adicional para plano básico */}
+        {!features.noAds && (
+          <AdBanner onUpgrade={() => setPlansOpen(true)} variant="inline" />
+        )}
 
         {/* Dicas de Saúde */}
         <HealthTips />
