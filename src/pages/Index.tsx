@@ -24,6 +24,7 @@ import { PlanDemoModal } from "@/components/PlanDemoModal";
 import { TrialBanner } from "@/components/TrialBanner";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { AdBanner } from "@/components/AdBanner";
+import { DoorVIIBanner } from "@/components/DoorVIIBanner";
 import { LockedFeature } from "@/components/LockedFeature";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
@@ -296,7 +297,10 @@ const Index = () => {
 
         {/* Anúncio para plano básico */}
         {!features.noAds && (
-          <AdBanner onUpgrade={() => setPlansOpen(true)} variant="banner" />
+          <>
+            <DoorVIIBanner />
+            <AdBanner onUpgrade={() => setPlansOpen(true)} variant="banner" />
+          </>
         )}
 
         {/* Relatório de Conformidade - Bloqueado para plano básico */}
