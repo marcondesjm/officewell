@@ -357,15 +357,17 @@ const Landing = () => {
           {/* Right Side Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <Link to="/" className="hidden sm:block">
+            <Link to="/demo" className="hidden sm:block">
               <Button variant="ghost" size="sm">
                 Acessar App
               </Button>
             </Link>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="hidden sm:block">
-              <Button onClick={() => setPlansOpen(true)} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
-                Começar Agora
-              </Button>
+              <Link to="/demo">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
+                  Começar Agora
+                </Button>
+              </Link>
             </motion.div>
             
             {/* Mobile Menu Button */}
@@ -401,15 +403,16 @@ const Landing = () => {
                   </button>
                 ))}
                 <div className="border-t my-2" />
-                <Link to="/" className="py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
+                <Link to="/demo" className="py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors block">
                   Acessar App
                 </Link>
-                <Button 
-                  onClick={() => { setPlansOpen(true); setMobileMenuOpen(false); }} 
-                  className="mt-2 bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  Começar Agora
-                </Button>
+                <Link to="/demo">
+                  <Button 
+                    className="mt-2 w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    Começar Agora
+                  </Button>
+                </Link>
               </nav>
             </motion.div>
           )}
@@ -502,7 +505,7 @@ const Landing = () => {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </motion.div>
-              <Link to="/">
+              <Link to="/demo">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button size="lg" variant="outline" className="px-6">
                     <Smartphone className="mr-2 h-4 w-4" />
