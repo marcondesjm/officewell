@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   Megaphone, 
   AlertTriangle,
@@ -320,8 +321,8 @@ export const HRAnnouncementHeader = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
-      {/* HR Demo Button */}
-      <div className="flex justify-center">
+      {/* HR Demo Button with Theme Toggle */}
+      <div className="flex justify-center items-center gap-3">
         <Button
           onClick={() => navigate("/rh")}
           variant="outline"
@@ -330,6 +331,7 @@ export const HRAnnouncementHeader = () => {
           <UserCog size={18} />
           Conta Demo RH
         </Button>
+        <ThemeToggle />
       </div>
 
       {/* Birthdays */}
