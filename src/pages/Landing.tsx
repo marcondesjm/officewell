@@ -340,8 +340,8 @@ const Landing = () => {
             <img 
               src={logoOfficeWell} 
               alt="OfficeWell - Bem-Estar Home Office" 
-              className="h-14 sm:h-16 md:h-20 w-auto object-contain drop-shadow-lg"
-              style={{ filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15))' }}
+              className="h-32 sm:h-40 md:h-48 w-auto object-contain drop-shadow-2xl"
+              style={{ filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.25))' }}
             />
           </motion.div>
 
