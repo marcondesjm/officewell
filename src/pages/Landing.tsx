@@ -20,7 +20,9 @@ import {
   Star,
   MessageCircle,
   Loader2,
-  X
+  X,
+  Crown,
+  Play
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -190,52 +192,50 @@ const Landing = () => {
     {
       id: 'basic',
       name: 'Básico',
+      subtitle: 'Para uso pessoal',
       price: 'Grátis',
       period: '',
-      description: 'Para experimentar o app',
+      trial: null,
       features: [
-        'Lembretes de água, alongamento e visão',
-        'Estatísticas básicas',
-        'Até 3 funcionários',
-        'Com anúncios'
+        'Lembretes de água',
+        'Alongamento',
+        'Descanso visual'
       ],
       popular: false,
-      cta: 'Começar Grátis'
+      cta: 'Atual',
+      ctaVariant: 'default' as const
     },
     {
       id: 'pro',
-      name: 'Profissional',
-      price: 'R$ 29,90',
+      name: 'Pro',
+      subtitle: 'Para profissionais',
+      price: 'R$ 9,90',
       period: '/mês',
-      description: 'Para pequenas equipes',
+      trial: '7 dias grátis',
       features: [
-        'Tudo do plano Básico',
-        'Sem anúncios',
         'Relatórios detalhados',
         'Metas personalizadas',
-        'Funcionários ilimitados',
-        'Suporte por email'
+        'Sem anúncios'
       ],
       popular: true,
-      cta: 'Testar 7 dias grátis'
+      cta: 'Testar Grátis',
+      ctaVariant: 'default' as const
     },
     {
       id: 'enterprise',
       name: 'Empresarial',
-      price: 'R$ 99,90',
+      subtitle: 'Para equipes',
+      price: 'R$ 49,90',
       period: '/mês',
-      description: 'Para grandes empresas',
+      trial: '7 dias grátis',
       features: [
-        'Tudo do plano Pro',
         'Painel RH completo',
-        'Relatórios de compliance',
-        'Gestão de aniversários',
-        'Comunicados internos',
-        'Suporte dedicado',
-        'API de integração'
+        'Relatórios compliance',
+        'Suporte dedicado'
       ],
       popular: false,
-      cta: 'Testar 7 dias grátis'
+      cta: 'Testar Grátis',
+      ctaVariant: 'default' as const
     }
   ];
 
@@ -593,7 +593,7 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section className="py-20 px-4 bg-slate-900 dark:bg-slate-950">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             initial="hidden"
@@ -603,12 +603,11 @@ const Landing = () => {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Planos para todos os tamanhos
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white flex items-center justify-center gap-2">
+              <Crown className="h-8 w-8 text-yellow-400" />
+              Escolha seu Plano
+              <Sparkles className="h-6 w-6 text-yellow-400" />
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Comece grátis e faça upgrade quando precisar de mais recursos
-            </p>
           </motion.div>
           
           <motion.div 
@@ -618,7 +617,7 @@ const Landing = () => {
             variants={staggerContainer}
             className="grid md:grid-cols-3 gap-6"
           >
-            {plans.map((plan, index) => (
+            {plans.map((plan) => (
               <motion.div
                 key={plan.id}
                 variants={scaleIn}
@@ -629,30 +628,48 @@ const Landing = () => {
                 }}
               >
                 <Card 
-                  className={`relative border-2 transition-all h-full ${
+                  className={`relative border transition-all h-full bg-slate-800/50 dark:bg-slate-900/50 backdrop-blur ${
                     plan.popular 
-                      ? 'border-primary shadow-lg scale-105' 
-                      : 'border-border hover:border-primary/50'
+                      ? 'border-primary/50 shadow-lg shadow-primary/20' 
+                      : 'border-slate-700 hover:border-slate-600'
                   }`}
                 >
                   {plan.popular && (
                     <motion.div 
-                      className="absolute -top-4 left-1/2 -translate-x-1/2"
+                      className="absolute -top-3 left-1/2 -translate-x-1/2"
                       initial={{ y: -20, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.5, type: "spring" }}
                     >
-                      <Badge className="bg-primary text-primary-foreground px-4 py-1">
-                        Mais Popular
+                      <Badge className="bg-orange-500 text-white px-4 py-1 text-xs">
+                        Popular
                       </Badge>
                     </motion.div>
                   )}
-                  <CardHeader className="text-center pb-2">
-                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                    <p className="text-muted-foreground text-sm">{plan.description}</p>
-                    <div className="py-4">
-                      <span className="text-4xl font-bold">{plan.price}</span>
-                      <span className="text-muted-foreground">{plan.period}</span>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                        plan.id === 'basic' ? 'bg-green-500/20' :
+                        plan.id === 'pro' ? 'bg-blue-500/20' : 'bg-purple-500/20'
+                      }`}>
+                        {plan.id === 'basic' && <Check className="h-5 w-5 text-green-400" />}
+                        {plan.id === 'pro' && <Sparkles className="h-5 w-5 text-blue-400" />}
+                        {plan.id === 'enterprise' && <Crown className="h-5 w-5 text-purple-400" />}
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl text-white">{plan.name}</CardTitle>
+                        <p className="text-slate-400 text-sm">{plan.subtitle}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-baseline gap-2 mt-4">
+                      <span className="text-4xl font-bold text-white">{plan.price}</span>
+                      {plan.period && <span className="text-slate-400">{plan.period}</span>}
+                      {plan.trial && (
+                        <Badge variant="outline" className="ml-2 border-green-500/50 text-green-400 text-xs">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {plan.trial}
+                        </Badge>
+                      )}
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -666,24 +683,55 @@ const Landing = () => {
                           viewport={{ once: true }}
                           transition={{ delay: 0.1 * featureIndex }}
                         >
-                          <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                          <span className="text-sm">{feature}</span>
+                          <Check className="h-4 w-4 text-green-400 flex-shrink-0" />
+                          <span className="text-sm text-slate-300">{feature}</span>
                         </motion.li>
                       ))}
                     </ul>
-                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <div className="flex gap-2">
                       <Button 
-                        className="w-full" 
-                        variant={plan.popular ? 'default' : 'outline'}
+                        variant="outline" 
+                        className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
                         onClick={() => handleSelectPlan(plan.id)}
                       >
-                        {plan.cta}
+                        <Play className="h-4 w-4 mr-1" />
+                        Demo
                       </Button>
-                    </motion.div>
+                      <motion.div className="flex-1" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <Button 
+                          className={`w-full ${
+                            plan.id === 'basic' ? 'bg-green-600 hover:bg-green-700' :
+                            plan.id === 'pro' ? 'bg-primary hover:bg-primary/90' : 
+                            'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
+                          }`}
+                          onClick={() => handleSelectPlan(plan.id)}
+                        >
+                          {plan.cta}
+                        </Button>
+                      </motion.div>
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>
             ))}
+          </motion.div>
+          
+          <motion.div 
+            className="text-center mt-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-slate-600 text-slate-300 hover:bg-slate-800"
+              onClick={() => setPlansOpen(true)}
+            >
+              <Crown className="h-5 w-5 mr-2 text-yellow-400" />
+              Ver Todos os Planos
+            </Button>
           </motion.div>
         </div>
       </section>
