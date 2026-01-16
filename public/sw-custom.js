@@ -16,6 +16,21 @@ const NOTIFICATION_TYPES = {
     title: "💧 Hidrate-se",
     body: "Beba um copo de água agora. Mantenha-se saudável!",
     tag: "officewell-water"
+  },
+  trial_warning: {
+    title: "⏰ Seu Teste Grátis Expira em Breve!",
+    body: "Restam poucos dias do seu período de teste. Não perca os recursos premium!",
+    tag: "officewell-trial-warning"
+  },
+  trial_last_day: {
+    title: "🚨 Último Dia do Teste Grátis!",
+    body: "Seu período de teste expira hoje. Assine agora para continuar!",
+    tag: "officewell-trial-lastday"
+  },
+  trial_expired: {
+    title: "❌ Seu Teste Grátis Expirou",
+    body: "Seu período de teste acabou. Assine para continuar usando os recursos premium.",
+    tag: "officewell-trial-expired"
   }
 };
 
@@ -23,7 +38,10 @@ const NOTIFICATION_TYPES = {
 let lastNotified = {
   eye: 0,
   stretch: 0,
-  water: 0
+  water: 0,
+  trial_warning: 0,
+  trial_last_day: 0,
+  trial_expired: 0
 };
 
 // Intervalo de verificação ativo
@@ -178,7 +196,64 @@ self.addEventListener('message', async (event) => {
     // Manter SW ativo e responder
     event.ports?.[0]?.postMessage({ type: 'PONG', timestamp: Date.now() });
   }
+  
+  // Notificação de trial expirando
+  if (event.data && event.data.type === 'TRIAL_NOTIFICATION') {
+    const { notificationType, planName, daysRemaining } = event.data;
+    await showTrialNotification(notificationType, planName, daysRemaining);
+  }
 });
+
+// Mostrar notificação de trial
+async function showTrialNotification(type, planName, daysRemaining) {
+  const notif = NOTIFICATION_TYPES[type];
+  if (!notif) return;
+  
+  const now = Date.now();
+  
+  // Cooldown de 6 horas para notificações de trial (para não irritar o usuário)
+  if (now - lastNotified[type] < 6 * 60 * 60 * 1000) {
+    console.log(`SW: Notificação trial ${type} ignorada (cooldown 6h)`);
+    return;
+  }
+  
+  lastNotified[type] = now;
+  
+  let body = notif.body;
+  if (daysRemaining && daysRemaining > 0) {
+    body = `Restam ${daysRemaining} ${daysRemaining === 1 ? 'dia' : 'dias'} do seu teste grátis do plano ${planName}. Não perca os recursos premium!`;
+  }
+  
+  try {
+    await self.registration.showNotification(notif.title, {
+      body,
+      icon: '/pwa-192x192.png',
+      badge: '/pwa-192x192.png',
+      tag: notif.tag,
+      requireInteraction: true,
+      vibrate: [200, 100, 200, 100, 200],
+      renotify: true,
+      data: { type: 'trial', notificationType: type, timestamp: now },
+      actions: [
+        { action: 'upgrade', title: 'Ver Planos' },
+        { action: 'dismiss', title: 'Depois' }
+      ]
+    });
+    console.log(`SW: Notificação trial ${type} enviada com sucesso`);
+    
+    // Notificar todos os clientes
+    const allClients = await clients.matchAll({ includeUncontrolled: true });
+    allClients.forEach(client => {
+      client.postMessage({
+        type: 'TRIAL_NOTIFICATION_SENT',
+        notificationType: type,
+        timestamp: now
+      });
+    });
+  } catch (e) {
+    console.error(`SW: Erro ao mostrar notificação trial ${type}:`, e);
+  }
+}
 
 // Quando clicar na notificação
 self.addEventListener('notificationclick', async (event) => {
