@@ -9,6 +9,7 @@ import eyeBreakImage3 from "@/assets/eye-break-3.png";
 import eyeBreakImage4 from "@/assets/eye-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
 import { useGamification } from "@/hooks/useGamification";
+import { useGoals } from "@/hooks/useGoals";
 import { toast } from "sonner";
 
 const eyeBreakImages = [eyeBreakImage1, eyeBreakImage2, eyeBreakImage3, eyeBreakImage4];
@@ -139,6 +140,7 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
   const [currentImage, setCurrentImage] = useState(eyeBreakImages[0]);
   const [pointsAwarded, setPointsAwarded] = useState(false);
   const { addPoints, stats } = useGamification();
+  const { incrementProgress } = useGoals();
 
   // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
@@ -221,11 +223,14 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
           description: "Descanso visual completado",
           icon: <Star className="h-4 w-4 text-yellow-500" />,
         });
+        
+        // Update goals progress
+        incrementProgress("eye_exercises", 1);
       }
       
       onClose();
     }
-  }, [canClose, startTime, elapsed, onClose, pointsAwarded, addPoints]);
+  }, [canClose, startTime, elapsed, onClose, pointsAwarded, addPoints, incrementProgress]);
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
