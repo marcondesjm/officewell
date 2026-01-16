@@ -5,6 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { 
   Droplets, 
   Eye, 
@@ -1035,6 +1041,110 @@ const Landing = () => {
                 </Card>
               </motion.div>
             ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-4xl">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <Badge variant="secondary" className="mb-4 px-4 py-2">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Dúvidas Frequentes
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Perguntas Frequentes
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Tudo que você precisa saber sobre o OfficeWell
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <Accordion type="single" collapsible className="space-y-4">
+              {[
+                {
+                  question: "O OfficeWell é gratuito?",
+                  answer: "Sim! Oferecemos um plano Básico gratuito com lembretes de água, alongamento e descanso visual. Para recursos avançados como relatórios detalhados e painel de RH, temos planos Pro e Empresarial com 7 dias de teste grátis."
+                },
+                {
+                  question: "Como funciona o sistema de lembretes?",
+                  answer: "O OfficeWell envia notificações personalizadas no intervalo que você configurar. Você pode definir lembretes para beber água, fazer pausas para alongamento e descansar os olhos. O sistema funciona mesmo quando o navegador está minimizado."
+                },
+                {
+                  question: "Posso usar no celular?",
+                  answer: "Sim! O OfficeWell é um PWA (Progressive Web App) que pode ser instalado no seu celular como um aplicativo nativo. Funciona offline e envia notificações push. Basta acessar pelo navegador e clicar em 'Instalar App'."
+                },
+                {
+                  question: "O que é a técnica 20-20-20 para os olhos?",
+                  answer: "A técnica 20-20-20 é recomendada por oftalmologistas: a cada 20 minutos, olhe para algo a 20 pés (6 metros) de distância por 20 segundos. Isso ajuda a reduzir a fadiga ocular causada pelo uso prolongado de telas."
+                },
+                {
+                  question: "Como funciona o Painel de RH?",
+                  answer: "O Painel de RH (disponível no plano Empresarial) permite gerenciar funcionários, aniversários e comunicados internos. Você pode configurar celebrações automáticas de aniversário com mensagens e imagens personalizadas que aparecem para toda a equipe."
+                },
+                {
+                  question: "Os dados são seguros?",
+                  answer: "Sim! Utilizamos criptografia de ponta a ponta e seguimos as melhores práticas de segurança. Seus dados são armazenados de forma segura e nunca são compartilhados com terceiros. Estamos em conformidade com a LGPD."
+                },
+                {
+                  question: "Posso cancelar a qualquer momento?",
+                  answer: "Claro! Você pode cancelar sua assinatura a qualquer momento, sem taxas de cancelamento. Seu acesso continua até o final do período já pago."
+                },
+                {
+                  question: "Como o OfficeWell ajuda na conformidade com NR-17?",
+                  answer: "O OfficeWell ajuda empresas a cumprirem requisitos ergonômicos da NR-17 através de pausas regulares, exercícios de alongamento guiados e relatórios de compliance que documentam a adesão da equipe às práticas de saúde ocupacional."
+                }
+              ].map((faq, index) => (
+                <AccordionItem 
+                  key={index} 
+                  value={`item-${index}`}
+                  className="bg-background rounded-xl border-none shadow-md px-6"
+                >
+                  <AccordionTrigger className="text-left font-medium hover:no-underline py-5">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground pb-5">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
+
+          <motion.div
+            className="text-center mt-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
+            <p className="text-muted-foreground mb-4">
+              Ainda tem dúvidas?
+            </p>
+            <Button 
+              variant="outline"
+              size="lg"
+              className="gap-2"
+              onClick={() => window.open('https://wa.me/5511999999999?text=Olá! Tenho uma dúvida sobre o OfficeWell', '_blank')}
+            >
+              <MessageCircle className="h-5 w-5" />
+              Fale Conosco
+            </Button>
           </motion.div>
         </div>
       </section>
