@@ -1,7 +1,8 @@
-import { Play, Pause, RotateCcw, Settings, Bell, BellRing, BellOff } from "lucide-react";
+import { Play, Pause, RotateCcw, Settings, Bell, BellRing, BellOff, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 interface ControlPanelProps {
   isRunning: boolean;
@@ -19,6 +20,7 @@ export const ControlPanel = ({
   onNotifications,
 }: ControlPanelProps) => {
   const [notificationStatus, setNotificationStatus] = useState<'granted' | 'denied' | 'default'>('default');
+  const [isTesting, setIsTesting] = useState(false);
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -32,6 +34,90 @@ export const ControlPanel = ({
       return () => clearInterval(checkStatus);
     }
   }, []);
+
+  const testNotification = async () => {
+    setIsTesting(true);
+    
+    try {
+      // Primeiro verificar/solicitar permissão
+      if ("Notification" in window) {
+        if (Notification.permission === "default") {
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") {
+            toast.error("❌ Permissão de notificação negada");
+            setIsTesting(false);
+            return;
+          }
+        }
+        
+        if (Notification.permission === "denied") {
+          toast.error("⚠️ Notificações bloqueadas. Ative nas configurações do navegador.");
+          setIsTesting(false);
+          return;
+        }
+
+        // Tocar som de teste
+        try {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContextClass) {
+            const audioContext = new AudioContextClass();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = "sine";
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+          }
+        } catch {}
+
+        // Vibrar no mobile
+        try {
+          if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+          }
+        } catch {}
+
+        // Mostrar toast
+        toast.success("🔔 Teste de Notificação", {
+          description: "Esta é uma notificação de teste. Se você vir isso, está funcionando!",
+          duration: 5000,
+        });
+
+        // Enviar notificação do navegador
+        const notif = new Notification("🔔 Teste de Notificação - OfficeWell", {
+          body: "✅ As notificações estão funcionando corretamente! Você receberá alertas mesmo com o app minimizado.",
+          icon: "/pwa-192x192.png",
+          badge: "/pwa-192x192.png",
+          tag: "officewell-test",
+          requireInteraction: true,
+        });
+
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
+
+        setTimeout(() => notif.close(), 10000);
+        
+        toast.success("✅ Notificação enviada com sucesso!");
+      } else {
+        toast.error("Notificações não suportadas neste navegador");
+      }
+    } catch (e) {
+      toast.error("Erro ao enviar notificação de teste");
+      console.error(e);
+    }
+    
+    setIsTesting(false);
+  };
 
   const getNotificationIcon = () => {
     switch (notificationStatus) {
@@ -114,6 +200,16 @@ export const ControlPanel = ({
           <span>{getNotificationLabel()}</span>
         </Button>
 
+        <Button 
+          onClick={testNotification}
+          disabled={isTesting}
+          variant="outline" 
+          size="lg"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 border-purple-500/50 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-400 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
+        >
+          <Send size={20} className={isTesting ? "animate-pulse" : ""} />
+          <span>{isTesting ? "Enviando..." : "Testar"}</span>
+        </Button>
         <Button 
           onClick={onSettings} 
           variant="outline" 
