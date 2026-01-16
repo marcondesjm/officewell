@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ import {
   MessageCircle,
   Loader2,
   X,
+  Menu,
   Crown,
   Play,
   Cake,
@@ -298,6 +299,25 @@ const Landing = () => {
     { value: '+200', label: 'Empresas' }
   ];
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { label: 'Funcionalidades', href: '#funcionalidades' },
+    { label: 'Como Funciona', href: '#como-funciona' },
+    { label: 'Benefícios', href: '#beneficios' },
+    { label: 'Depoimentos', href: '#depoimentos' },
+    { label: 'Planos', href: '#planos' },
+    { label: 'FAQ', href: '#faq' },
+  ];
+
+  const scrollToSection = (href: string) => {
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
@@ -305,9 +325,10 @@ const Landing = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b"
+        className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b"
       >
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Logo */}
           <motion.div 
             className="flex items-center gap-2"
             whileHover={{ scale: 1.05 }}
@@ -318,21 +339,80 @@ const Landing = () => {
             </div>
             <span className="text-xl font-bold">OfficeWell</span>
           </motion.div>
-          <div className="flex items-center gap-2 sm:gap-4">
+
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center gap-6">
+            {navLinks.map((link) => (
+              <button
+                key={link.href}
+                onClick={() => scrollToSection(link.href)}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Acessar App</Button>
-              <Button variant="ghost" size="icon" className="sm:hidden">
-                <Smartphone className="h-5 w-5" />
+            <Link to="/" className="hidden sm:block">
+              <Button variant="ghost" size="sm">
+                Acessar App
               </Button>
             </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="hidden sm:block">
               <Button onClick={() => setPlansOpen(true)} size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white shadow-md shadow-green-500/20">
                 Começar Agora
               </Button>
             </motion.div>
+            
+            {/* Mobile Menu Button */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden bg-background border-t overflow-hidden"
+            >
+              <nav className="container mx-auto px-4 py-4 flex flex-col gap-2">
+                {navLinks.map((link) => (
+                  <button
+                    key={link.href}
+                    onClick={() => scrollToSection(link.href)}
+                    className="text-left py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  >
+                    {link.label}
+                  </button>
+                ))}
+                <div className="border-t my-2" />
+                <Link to="/" className="py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
+                  Acessar App
+                </Link>
+                <Button 
+                  onClick={() => { setPlansOpen(true); setMobileMenuOpen(false); }} 
+                  className="mt-2 bg-[#25D366] hover:bg-[#128C7E] text-white"
+                >
+                  Começar Agora
+                </Button>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       {/* Hero Section */}
@@ -418,7 +498,7 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="funcionalidades" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             initial="hidden"
@@ -472,7 +552,7 @@ const Landing = () => {
       </section>
 
       {/* Pain Points & Benefits Section */}
-      <section className="py-20 px-4">
+      <section id="beneficios" className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -620,7 +700,7 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 px-4 bg-slate-900 dark:bg-slate-950">
+      <section id="planos" className="py-20 px-4 bg-slate-900 dark:bg-slate-950">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             initial="hidden"
@@ -764,7 +844,7 @@ const Landing = () => {
       </section>
 
       {/* HR Panel Demo Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="como-funciona" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             initial="hidden"
@@ -970,7 +1050,7 @@ const Landing = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 px-4">
+      <section id="depoimentos" className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             initial="hidden"
@@ -1046,7 +1126,7 @@ const Landing = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="faq" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-4xl">
           <motion.div 
             initial="hidden"
