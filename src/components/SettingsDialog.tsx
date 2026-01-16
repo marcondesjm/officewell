@@ -207,15 +207,16 @@ export const SettingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Configurações de Lembretes</DialogTitle>
           <DialogDescription>
             Personalize os intervalos e notificações
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6 max-h-[60vh]">
+        <div className="flex-1 min-h-0 overflow-hidden -mx-6">
+          <ScrollArea className="h-full max-h-[55vh] px-6">
           <div className="space-y-6 py-4">
             {/* Configuração de Som */}
             <div className="space-y-4 p-4 rounded-lg bg-muted/50 border">
@@ -441,7 +442,8 @@ export const SettingsDialog = ({
               </p>
             </div>
           </div>
-        </ScrollArea>
+          </ScrollArea>
+        </div>
 
         <div className="flex gap-3 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
