@@ -206,14 +206,14 @@ export const useBackgroundSync = () => {
     }
   }, []);
 
-  // Ouvir mensagens do Service Worker
+  // Ouvir mensagens do Service Worker - SOM APENAS QUANDO TIMER ACABA
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
 
     const handleMessage = async (event: MessageEvent) => {
-      // Tocar som quando o SW solicitar
+      // Tocar som APENAS quando o SW solicitar (timer chegou a zero)
       if (event.data?.type === 'PLAY_NOTIFICATION_SOUND') {
-        console.log(`SW solicitou som para ${event.data.reminderType}`);
+        console.log(`Timer ${event.data.reminderType} acabou - tocando som`);
         await playNotificationSound(0.9);
         
         // Vibrar também
@@ -222,10 +222,9 @@ export const useBackgroundSync = () => {
         }
       }
       
+      // NÃO tocar som novamente em NOTIFICATION_SENT para evitar duplicação
       if (event.data?.type === 'NOTIFICATION_SENT') {
         console.log(`Notificação ${event.data.reminderType} enviada pelo SW`);
-        // Tocar som adicional quando a notificação é enviada
-        await playNotificationSound(0.7);
       }
       
       if (event.data?.type === 'SNOOZE_REQUESTED') {
