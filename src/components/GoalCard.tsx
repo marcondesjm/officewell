@@ -32,12 +32,15 @@ interface GoalCardProps {
   progressPercent: number;
 }
 
+import { Droplet } from "lucide-react";
+
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   'eye': Eye,
   'dumbbell': Dumbbell,
   'activity': Activity,
   'scan-face': ScanFace,
   'brain': Brain,
+  'droplet': Droplet,
 };
 
 const getMotivationalMessage = (percent: number): string => {

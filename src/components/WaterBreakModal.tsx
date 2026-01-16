@@ -9,6 +9,7 @@ import waterBreakImage3 from "@/assets/water-break-3.png";
 import waterBreakImage4 from "@/assets/water-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
 import { useGamification } from "@/hooks/useGamification";
+import { useGoals } from "@/hooks/useGoals";
 import { toast } from "sonner";
 
 const waterBreakImages = [waterBreakImage1, waterBreakImage2, waterBreakImage3, waterBreakImage4];
@@ -139,6 +140,7 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
   const [currentImage, setCurrentImage] = useState(waterBreakImages[0]);
   const [pointsAwarded, setPointsAwarded] = useState(false);
   const { addPoints } = useGamification();
+  const { incrementProgress } = useGoals();
 
   // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
@@ -221,11 +223,14 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
           description: "Hidratação completada",
           icon: <Star className="h-4 w-4 text-yellow-500" />,
         });
+        
+        // Update goals progress
+        incrementProgress("water", 1);
       }
       
       onClose();
     }
-  }, [canClose, startTime, elapsed, onClose, pointsAwarded, addPoints]);
+  }, [canClose, startTime, elapsed, onClose, pointsAwarded, addPoints, incrementProgress]);
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>

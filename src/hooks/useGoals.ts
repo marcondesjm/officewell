@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 export interface Goal {
   id: string;
-  type: 'posture' | 'breaks' | 'ergonomics_session' | 'eye_exercises' | 'focus';
+  type: 'posture' | 'breaks' | 'water' | 'ergonomics_session' | 'eye_exercises' | 'focus';
   name: string;
   description: string;
   icon: string;
@@ -41,6 +41,19 @@ const defaultGoals: Goal[] = [
     name: 'Pausas Ergonômicas',
     description: 'Faça pausas regulares para alongamento',
     icon: 'dumbbell',
+    target: 8,
+    unit: 'times',
+    frequency: 'daily',
+    enabled: true,
+    progress: 0,
+    lastUpdated: new Date().toISOString().split('T')[0],
+  },
+  {
+    id: 'water',
+    type: 'water',
+    name: 'Hidratação',
+    description: 'Beba água regularmente durante o dia',
+    icon: 'droplet',
     target: 8,
     unit: 'times',
     frequency: 'daily',
