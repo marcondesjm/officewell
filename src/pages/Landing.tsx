@@ -1496,11 +1496,13 @@ const Landing = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
-                  <Heart className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <span className="font-bold">OfficeWell</span>
+              <div className="mb-4">
+                <img 
+                  src={logoOfficeWell} 
+                  alt="OfficeWell - Bem-Estar Home Office" 
+                  className="h-12 w-auto object-contain drop-shadow-lg"
+                  style={{ filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2))' }}
+                />
               </div>
               <p className="text-sm text-muted-foreground">
                 Cuidando da saúde no ambiente de trabalho.
