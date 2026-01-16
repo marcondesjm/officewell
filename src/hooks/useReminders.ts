@@ -4,6 +4,8 @@ import { useBackgroundSync } from "./useBackgroundSync";
 import { useReminderStats } from "./useReminderStats";
 import { useWorkSchedule } from "./useWorkSchedule";
 
+export type NotificationTone = 'soft-beep' | 'chime' | 'bell' | 'digital' | 'gentle' | 'alert';
+
 export interface ReminderConfig {
   eyeInterval: number;
   stretchInterval: number;
@@ -13,6 +15,7 @@ export interface ReminderConfig {
   soundForEye: boolean;
   soundForStretch: boolean;
   soundForWater: boolean;
+  notificationTone: NotificationTone;
 }
 
 export interface ReminderState {
@@ -45,6 +48,47 @@ const DEFAULT_CONFIG: ReminderConfig = {
   soundForEye: true,    // Tocar som para descanso visual
   soundForStretch: true, // Tocar som para alongamento
   soundForWater: true,  // Tocar som para hidratação
+  notificationTone: 'soft-beep', // Tom padrão
+};
+
+// Configurações de tons de notificação
+const NOTIFICATION_TONES: Record<NotificationTone, { frequencies: number[]; durations: number[]; type: OscillatorType; pattern: 'sequential' | 'chord' }> = {
+  'soft-beep': {
+    frequencies: [880, 1046, 1320],
+    durations: [0.3, 0.3, 0.4],
+    type: 'sine',
+    pattern: 'sequential'
+  },
+  'chime': {
+    frequencies: [523, 659, 784, 1047],
+    durations: [0.4, 0.3, 0.3, 0.5],
+    type: 'sine',
+    pattern: 'sequential'
+  },
+  'bell': {
+    frequencies: [440, 880, 1320],
+    durations: [0.5, 0.4, 0.6],
+    type: 'triangle',
+    pattern: 'sequential'
+  },
+  'digital': {
+    frequencies: [800, 1000, 800, 1200],
+    durations: [0.15, 0.15, 0.15, 0.3],
+    type: 'square',
+    pattern: 'sequential'
+  },
+  'gentle': {
+    frequencies: [392, 523, 659],
+    durations: [0.6, 0.5, 0.7],
+    type: 'sine',
+    pattern: 'sequential'
+  },
+  'alert': {
+    frequencies: [1000, 1200, 1000, 1400],
+    durations: [0.2, 0.2, 0.2, 0.4],
+    type: 'sawtooth',
+    pattern: 'sequential'
+  }
 };
 
 const loadConfig = (): ReminderConfig => {
@@ -195,60 +239,39 @@ export const useReminders = () => {
       return true;
     };
 
-    // Tocar som de alerta com volume configurável
+    // Tocar som de alerta com volume e tom configurável
     const playAlertSound = () => {
       if (!shouldPlaySound()) return;
       
-      const volume = (config.soundVolume ?? 70) / 100; // Converter para 0-1
+      const volume = (config.soundVolume ?? 70) / 100;
+      const tone = NOTIFICATION_TONES[config.notificationTone ?? 'soft-beep'];
       
       try {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         if (AudioContextClass) {
           const audioContext = new AudioContextClass();
           
-          // Primeiro beep - mais grave
-          const osc1 = audioContext.createOscillator();
-          const gain1 = audioContext.createGain();
-          osc1.connect(gain1);
-          gain1.connect(audioContext.destination);
-          osc1.frequency.value = 880;
-          osc1.type = "sine";
-          gain1.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
-          gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-          osc1.start(audioContext.currentTime);
-          osc1.stop(audioContext.currentTime + 0.3);
-
-          // Segundo beep - mais agudo (após 300ms)
-          setTimeout(() => {
-            try {
-              const osc2 = audioContext.createOscillator();
-              const gain2 = audioContext.createGain();
-              osc2.connect(gain2);
-              gain2.connect(audioContext.destination);
-              osc2.frequency.value = 1046;
-              osc2.type = "sine";
-              gain2.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
-              gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-              osc2.start(audioContext.currentTime);
-              osc2.stop(audioContext.currentTime + 0.3);
-            } catch {}
-          }, 300);
-
-          // Terceiro beep - mais agudo ainda (após 600ms)
-          setTimeout(() => {
-            try {
-              const osc3 = audioContext.createOscillator();
-              const gain3 = audioContext.createGain();
-              osc3.connect(gain3);
-              gain3.connect(audioContext.destination);
-              osc3.frequency.value = 1320;
-              osc3.type = "sine";
-              gain3.gain.setValueAtTime(volume * 0.6, audioContext.currentTime);
-              gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-              osc3.start(audioContext.currentTime);
-              osc3.stop(audioContext.currentTime + 0.4);
-            } catch {}
-          }, 600);
+          let delay = 0;
+          tone.frequencies.forEach((freq, index) => {
+            const duration = tone.durations[index] || 0.3;
+            
+            setTimeout(() => {
+              try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = freq;
+                osc.type = tone.type;
+                gain.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + duration);
+              } catch {}
+            }, delay);
+            
+            delay += duration * 1000;
+          });
         }
       } catch (e) {
         console.log("Som não disponível");
@@ -300,7 +323,7 @@ export const useReminders = () => {
     } catch (e) {
       console.log("Notificação não disponível:", e);
     }
-  }, [config.soundEnabled, config.soundVolume, config.soundForEye, config.soundForStretch, config.soundForWater]);
+  }, [config.soundEnabled, config.soundVolume, config.soundForEye, config.soundForStretch, config.soundForWater, config.notificationTone]);
 
   // Timer principal - agora respeita horário de trabalho
   useEffect(() => {
