@@ -18,11 +18,13 @@ import {
   Heart,
   Sparkles,
   Star,
-  MessageCircle
+  MessageCircle,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { SubscriptionPlans } from '@/components/SubscriptionPlans';
+import { supabase } from '@/integrations/supabase/client';
 
 // Animation variants
 const fadeInUp = {
@@ -76,25 +78,54 @@ const Landing = () => {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Por favor, insira um email válido');
+      return;
+    }
+
     setLoading(true);
     
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const message = encodeURIComponent(
-      `🎯 *Novo Lead - OfficeWell*\n\n` +
-      `📧 Nome: ${name}\n` +
-      `📧 Email: ${email}\n` +
-      `🏢 Empresa: ${company || 'Não informada'}\n\n` +
-      `Tenho interesse em conhecer mais sobre o OfficeWell!`
-    );
-    
-    window.open(`https://wa.me/5511999999999?text=${message}`, '_blank');
-    
-    toast.success('Obrigado pelo interesse! Entraremos em contato em breve.');
-    setEmail('');
-    setName('');
-    setCompany('');
-    setLoading(false);
+    try {
+      // Save lead to database
+      const { error } = await supabase
+        .from('leads')
+        .insert({
+          name: name.trim().slice(0, 100),
+          email: email.trim().toLowerCase().slice(0, 255),
+          company: company?.trim().slice(0, 100) || null,
+          source: 'landing'
+        });
+
+      if (error) {
+        console.error('Error saving lead:', error);
+        toast.error('Erro ao enviar. Tente novamente.');
+        setLoading(false);
+        return;
+      }
+
+      // Open WhatsApp with the lead info
+      const message = encodeURIComponent(
+        `🎯 *Novo Lead - OfficeWell*\n\n` +
+        `📧 Nome: ${name}\n` +
+        `📧 Email: ${email}\n` +
+        `🏢 Empresa: ${company || 'Não informada'}\n\n` +
+        `Tenho interesse em conhecer mais sobre o OfficeWell!`
+      );
+      
+      window.open(`https://wa.me/5511999999999?text=${message}`, '_blank');
+      
+      toast.success('Obrigado pelo interesse! Entraremos em contato em breve.');
+      setEmail('');
+      setName('');
+      setCompany('');
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('Erro ao enviar. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const features = [
@@ -730,8 +761,17 @@ const Landing = () => {
                   />
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                     <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                      {loading ? 'Enviando...' : 'Quero Testar Grátis'}
-                      <ArrowRight className="ml-2 h-5 w-5" />
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          Quero Testar Grátis
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </>
+                      )}
                     </Button>
                   </motion.div>
                 </form>
