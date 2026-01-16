@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target, Sparkles } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -15,7 +15,7 @@ import { PostureCheckModal } from "@/components/PostureCheckModal";
 import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
 import { GamificationCard } from "@/components/GamificationCard";
 import { InactivityWarning } from "@/components/InactivityWarning";
-import { OnboardingTour } from "@/components/OnboardingTour";
+import { OnboardingTour, useTour } from "@/components/OnboardingTour";
 import { useGamification } from "@/hooks/useGamification";
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
@@ -79,6 +79,10 @@ const Index = () => {
   
   // Gamification with inactivity tracking
   const { inactivityInfo, dismissInactivityWarning } = useGamification();
+  
+  // Tour hook
+  const { resetTour } = useTour();
+  
   // Show work schedule setup on first load (but not during tour)
   useEffect(() => {
     const isTourActive = sessionStorage.getItem('officewell_new_demo') === 'true' && 
@@ -513,6 +517,14 @@ const Index = () => {
             >
               <Crown size={18} className="mr-2" />
               Ver Planos
+            </Button>
+            <Button
+              onClick={resetTour}
+              variant="outline"
+              className="rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
+            >
+              <Sparkles size={18} className="mr-2" />
+              Ver Tour
             </Button>
           </div>
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
