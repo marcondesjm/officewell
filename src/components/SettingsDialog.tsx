@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,41 @@ const TONE_OPTIONS: { value: NotificationTone; label: string; description: strin
   { value: 'alert', label: '⚡ Alerta', description: 'Tom mais chamativo' },
 ];
 
+// Componente de ondas sonoras animadas
+const SoundWaves = ({ volume, isAnimating }: { volume: number; isAnimating: boolean }) => {
+  const bars = 5;
+  const normalizedVolume = volume / 100;
+  
+  return (
+    <div className="flex items-center justify-center gap-0.5 h-8 w-16">
+      {Array.from({ length: bars }).map((_, i) => {
+        const baseHeight = 0.3 + (i === Math.floor(bars / 2) ? 0.4 : (Math.abs(i - Math.floor(bars / 2)) < 2 ? 0.2 : 0));
+        const maxHeight = baseHeight + normalizedVolume * (1 - baseHeight);
+        
+        return (
+          <motion.div
+            key={i}
+            className="w-1 rounded-full bg-primary"
+            initial={{ height: 4 }}
+            animate={{
+              height: isAnimating 
+                ? [4, maxHeight * 32, 8, maxHeight * 28, 4]
+                : Math.max(4, normalizedVolume * 24),
+              opacity: volume === 0 ? 0.3 : 1,
+            }}
+            transition={{
+              duration: isAnimating ? 0.8 : 0.2,
+              repeat: isAnimating ? Infinity : 0,
+              delay: i * 0.1,
+              ease: "easeInOut",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
 interface SettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -55,6 +91,9 @@ export const SettingsDialog = ({
   const [soundForStretch, setSoundForStretch] = useState(config.soundForStretch ?? true);
   const [soundForWater, setSoundForWater] = useState(config.soundForWater ?? true);
   const [notificationTone, setNotificationTone] = useState<NotificationTone>(config.notificationTone ?? 'soft-beep');
+  const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
+  const volumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sync state when config changes
   useEffect(() => {
@@ -99,6 +138,8 @@ export const SettingsDialog = ({
     const toneKey = toneToTest || notificationTone;
     const tone = NOTIFICATION_TONES_CONFIG[toneKey];
     
+    setIsPlayingSound(true);
+    
     try {
       const volume = soundVolume / 100;
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -106,8 +147,10 @@ export const SettingsDialog = ({
         const audioContext = new AudioContextClass();
         
         let delay = 0;
+        let totalDuration = 0;
         tone.frequencies.forEach((freq, index) => {
           const duration = tone.durations[index] || 0.3;
+          totalDuration += duration * 1000;
           
           setTimeout(() => {
             try {
@@ -127,12 +170,33 @@ export const SettingsDialog = ({
           delay += duration * 1000;
         });
         
+        // Parar animação após o som terminar
+        setTimeout(() => {
+          setIsPlayingSound(false);
+        }, totalDuration + 200);
+        
         const toneName = TONE_OPTIONS.find(t => t.value === toneKey)?.label || 'Som';
         toast.info(`🔊 ${toneName} (${soundVolume}%)`);
       }
     } catch {
+      setIsPlayingSound(false);
       toast.error("Som não disponível neste dispositivo");
     }
+  };
+
+  const handleVolumeChange = (value: number[]) => {
+    setSoundVolume(value[0]);
+    setIsAdjustingVolume(true);
+    
+    // Limpar timeout anterior
+    if (volumeTimeoutRef.current) {
+      clearTimeout(volumeTimeoutRef.current);
+    }
+    
+    // Parar animação após 500ms sem ajuste
+    volumeTimeoutRef.current = setTimeout(() => {
+      setIsAdjustingVolume(false);
+    }, 500);
   };
 
   const getVolumeIcon = () => {
@@ -225,16 +289,59 @@ export const SettingsDialog = ({
                 <div className="space-y-3 pt-2 border-t">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm">Volume</Label>
-                    <span className="text-sm font-medium text-primary">{soundVolume}%</span>
+                    <div className="flex items-center gap-3">
+                      <AnimatePresence>
+                        {(isAdjustingVolume || isPlayingSound) && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <SoundWaves 
+                              volume={soundVolume} 
+                              isAnimating={isPlayingSound} 
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      <motion.span 
+                        className="text-sm font-medium text-primary min-w-[3rem] text-right"
+                        animate={{ 
+                          scale: isAdjustingVolume ? 1.1 : 1,
+                          color: isAdjustingVolume ? 'hsl(var(--primary))' : 'hsl(var(--primary))'
+                        }}
+                        transition={{ duration: 0.15 }}
+                      >
+                        {soundVolume}%
+                      </motion.span>
+                    </div>
                   </div>
-                  <Slider
-                    value={[soundVolume]}
-                    onValueChange={(value) => setSoundVolume(value[0])}
-                    max={100}
-                    min={0}
-                    step={5}
-                    className="w-full"
-                  />
+                  
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      animate={{ 
+                        scale: soundVolume === 0 ? 0.9 : 1,
+                        opacity: soundVolume === 0 ? 0.5 : 1 
+                      }}
+                    >
+                      {soundVolume === 0 ? (
+                        <VolumeX className="h-4 w-4 text-muted-foreground" />
+                      ) : soundVolume < 50 ? (
+                        <Volume1 className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Volume2 className="h-4 w-4 text-primary" />
+                      )}
+                    </motion.div>
+                    <Slider
+                      value={[soundVolume]}
+                      onValueChange={handleVolumeChange}
+                      max={100}
+                      min={0}
+                      step={5}
+                      className="flex-1"
+                    />
+                  </div>
 
                   {/* Seleção de onde tocar o som */}
                   <div className="space-y-3 pt-3 border-t">
