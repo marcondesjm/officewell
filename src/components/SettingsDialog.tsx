@@ -13,9 +13,25 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { ReminderConfig } from "@/hooks/useReminders";
-import { Volume2, VolumeX, Volume1, Eye, Dumbbell, Droplet } from "lucide-react";
+import { ReminderConfig, NotificationTone } from "@/hooks/useReminders";
+import { Volume2, VolumeX, Volume1, Eye, Dumbbell, Droplet, Music } from "lucide-react";
+
+const TONE_OPTIONS: { value: NotificationTone; label: string; description: string }[] = [
+  { value: 'soft-beep', label: '🔔 Beep Suave', description: 'Som suave e discreto' },
+  { value: 'chime', label: '🎵 Sino', description: 'Melodia de sino harmoniosa' },
+  { value: 'bell', label: '🛎️ Campainha', description: 'Som de campainha tradicional' },
+  { value: 'digital', label: '📱 Digital', description: 'Tom eletrônico moderno' },
+  { value: 'gentle', label: '🌸 Gentil', description: 'Som calmo e relaxante' },
+  { value: 'alert', label: '⚡ Alerta', description: 'Tom mais chamativo' },
+];
 
 interface SettingsDialogProps {
   open: boolean;
@@ -38,6 +54,7 @@ export const SettingsDialog = ({
   const [soundForEye, setSoundForEye] = useState(config.soundForEye ?? true);
   const [soundForStretch, setSoundForStretch] = useState(config.soundForStretch ?? true);
   const [soundForWater, setSoundForWater] = useState(config.soundForWater ?? true);
+  const [notificationTone, setNotificationTone] = useState<NotificationTone>(config.notificationTone ?? 'soft-beep');
 
   // Sync state when config changes
   useEffect(() => {
@@ -49,6 +66,7 @@ export const SettingsDialog = ({
     setSoundForEye(config.soundForEye ?? true);
     setSoundForStretch(config.soundForStretch ?? true);
     setSoundForWater(config.soundForWater ?? true);
+    setNotificationTone(config.notificationTone ?? 'soft-beep');
   }, [config]);
 
   const handleSave = () => {
@@ -61,28 +79,56 @@ export const SettingsDialog = ({
       soundForEye,
       soundForStretch,
       soundForWater,
+      notificationTone,
     });
     toast.success("Configurações salvas com sucesso!");
     onOpenChange(false);
   };
 
-  const testSound = () => {
+  // Configurações de tons para teste
+  const NOTIFICATION_TONES_CONFIG: Record<NotificationTone, { frequencies: number[]; durations: number[]; type: OscillatorType }> = {
+    'soft-beep': { frequencies: [880, 1046, 1320], durations: [0.3, 0.3, 0.4], type: 'sine' },
+    'chime': { frequencies: [523, 659, 784, 1047], durations: [0.4, 0.3, 0.3, 0.5], type: 'sine' },
+    'bell': { frequencies: [440, 880, 1320], durations: [0.5, 0.4, 0.6], type: 'triangle' },
+    'digital': { frequencies: [800, 1000, 800, 1200], durations: [0.15, 0.15, 0.15, 0.3], type: 'square' },
+    'gentle': { frequencies: [392, 523, 659], durations: [0.6, 0.5, 0.7], type: 'sine' },
+    'alert': { frequencies: [1000, 1200, 1000, 1400], durations: [0.2, 0.2, 0.2, 0.4], type: 'sawtooth' }
+  };
+
+  const testSound = (toneToTest?: NotificationTone) => {
+    const toneKey = toneToTest || notificationTone;
+    const tone = NOTIFICATION_TONES_CONFIG[toneKey];
+    
     try {
       const volume = soundVolume / 100;
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioContextClass) {
         const audioContext = new AudioContextClass();
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        osc.connect(gain);
-        gain.connect(audioContext.destination);
-        osc.frequency.value = 880;
-        osc.type = "sine";
-        gain.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        osc.start(audioContext.currentTime);
-        osc.stop(audioContext.currentTime + 0.3);
-        toast.info(`🔊 Teste de som (${soundVolume}%)`);
+        
+        let delay = 0;
+        tone.frequencies.forEach((freq, index) => {
+          const duration = tone.durations[index] || 0.3;
+          
+          setTimeout(() => {
+            try {
+              const osc = audioContext.createOscillator();
+              const gain = audioContext.createGain();
+              osc.connect(gain);
+              gain.connect(audioContext.destination);
+              osc.frequency.value = freq;
+              osc.type = tone.type;
+              gain.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+              osc.start(audioContext.currentTime);
+              osc.stop(audioContext.currentTime + duration);
+            } catch {}
+          }, delay);
+          
+          delay += duration * 1000;
+        });
+        
+        const toneName = TONE_OPTIONS.find(t => t.value === toneKey)?.label || 'Som';
+        toast.info(`🔊 ${toneName} (${soundVolume}%)`);
       }
     } catch {
       toast.error("Som não disponível neste dispositivo");
@@ -121,7 +167,7 @@ export const SettingsDialog = ({
                 </div>
                 <div className="flex items-center gap-2">
                   {soundEnabled && (
-                    <Button variant="ghost" size="sm" onClick={testSound}>
+                    <Button variant="ghost" size="sm" onClick={() => testSound()}>
                       Testar
                     </Button>
                   )}
@@ -132,6 +178,47 @@ export const SettingsDialog = ({
                   />
                 </div>
               </div>
+
+              {/* Seleção de Tom */}
+              {soundEnabled && (
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="flex items-center gap-2">
+                    <Music className="h-4 w-4 text-primary" />
+                    <Label className="text-sm">Tom de Notificação</Label>
+                  </div>
+                  <Select value={notificationTone} onValueChange={(value: NotificationTone) => setNotificationTone(value)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione um tom" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TONE_OPTIONS.map((tone) => (
+                        <SelectItem key={tone.value} value={tone.value}>
+                          <div className="flex flex-col">
+                            <span>{tone.label}</span>
+                            <span className="text-xs text-muted-foreground">{tone.description}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {TONE_OPTIONS.map((tone) => (
+                      <Button
+                        key={tone.value}
+                        variant={notificationTone === tone.value ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => {
+                          setNotificationTone(tone.value);
+                          testSound(tone.value);
+                        }}
+                      >
+                        {tone.label.split(' ')[0]}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Controle de Volume */}
               {soundEnabled && (
