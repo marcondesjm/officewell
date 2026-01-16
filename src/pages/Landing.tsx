@@ -456,22 +456,38 @@ const Landing = () => {
             animate="visible"
             variants={fadeInUp}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" className="text-lg px-8 bg-[#25D366] hover:bg-[#128C7E] text-white shadow-lg shadow-green-500/25" onClick={() => setPlansOpen(true)}>
-                Começar Grátis
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
-            <Link to="/">
+            {/* Main CTA - Consultoria Gratuita */}
+            <motion.a
+              href="https://wa.me/5548996029392?text=Olá! Gostaria de agendar uma consultoria gratuita sobre o OfficeWell"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold text-white rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-xl shadow-orange-500/30 transition-all duration-300 animate-pulse hover:animate-none"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Quero Consultoria Gratuita
+              <ArrowRight className="h-5 w-5" />
+            </motion.a>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" variant="outline" className="text-lg px-8 border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10">
-                  <Smartphone className="mr-2 h-5 w-5" />
-                  Ver Demo
+                <Button size="lg" className="text-lg px-8 bg-[#25D366] hover:bg-[#128C7E] text-white shadow-lg shadow-green-500/25" onClick={() => setPlansOpen(true)}>
+                  Começar Grátis
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </motion.div>
-            </Link>
+              <Link to="/">
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button size="lg" variant="outline" className="text-lg px-8 border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10">
+                    <Smartphone className="mr-2 h-5 w-5" />
+                    Ver Demo
+                  </Button>
+                </motion.div>
+              </Link>
+            </div>
           </motion.div>
 
           {/* Stats */}
