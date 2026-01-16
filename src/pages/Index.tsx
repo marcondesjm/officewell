@@ -79,9 +79,13 @@ const Index = () => {
   
   // Gamification with inactivity tracking
   const { inactivityInfo, dismissInactivityWarning } = useGamification();
-  // Show work schedule setup on first load
+  // Show work schedule setup on first load (but not during tour)
   useEffect(() => {
-    if (needsWorkScheduleConfig) {
+    const isTourActive = sessionStorage.getItem('officewell_new_demo') === 'true' && 
+                         localStorage.getItem('officewell_tour_completed') !== 'true';
+    
+    // Não abrir WorkScheduleSetup se o Tour estiver ativo
+    if (needsWorkScheduleConfig && !isTourActive) {
       setWorkScheduleOpen(true);
     }
   }, [needsWorkScheduleConfig]);
