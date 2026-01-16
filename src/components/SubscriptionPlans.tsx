@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Check, Crown, Rocket, Building2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
 
 const plans = [
   {
@@ -76,6 +77,7 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [step, setStep] = useState<"plans" | "form">("plans");
+  const { startTrial, isOnTrial, planId: currentTrialPlanId } = useTrialStatus();
 
   // Auto-select plan when dialog opens with preSelectedPlan
   useEffect(() => {
@@ -123,7 +125,15 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
     const whatsappUrl = `https://wa.me/5548996029392?text=${message}`;
     window.open(whatsappUrl, "_blank");
 
-    toast.success("Redirecionando para WhatsApp...");
+    // Start trial if plan has trial
+    if (plan.trial && plan.trialDays) {
+      startTrial(plan.id, plan.name, plan.trialDays);
+      toast.success(`🎉 Teste grátis de ${plan.trialDays} dias iniciado!`, {
+        description: `Aproveite todos os recursos do plano ${plan.name}`,
+      });
+    } else {
+      toast.success("Redirecionando para WhatsApp...");
+    }
     
     // Reset form
     setName("");
@@ -205,8 +215,15 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                       className="w-full" 
                       variant={plan.popular ? "default" : "outline"}
                       onClick={() => handleSelectPlan(plan.id)}
+                      disabled={isOnTrial && currentTrialPlanId === plan.id}
                     >
-                      {plan.id === "basic" ? "Plano Atual" : plan.trial ? "Testar Grátis" : "Escolher Plano"}
+                      {plan.id === "basic" 
+                        ? "Plano Atual" 
+                        : isOnTrial && currentTrialPlanId === plan.id 
+                          ? "✓ Em Teste" 
+                          : plan.trial 
+                            ? "Testar Grátis" 
+                            : "Escolher Plano"}
                     </Button>
                   </CardFooter>
                 </Card>

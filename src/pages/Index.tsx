@@ -18,6 +18,7 @@ import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { PlansHighlight } from "@/components/PlansHighlight";
 import { PlanDemoModal } from "@/components/PlanDemoModal";
+import { TrialBanner } from "@/components/TrialBanner";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
@@ -154,6 +155,9 @@ const Index = () => {
             </div>
           )}
         </header>
+
+        {/* Trial Banner */}
+        <TrialBanner onUpgrade={() => setPlansOpen(true)} />
 
         {/* Dica do Dia */}
         <TipOfTheDay />
