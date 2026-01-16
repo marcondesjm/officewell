@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Clock, Coffee, Briefcase, Moon } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
+import { Clock, Coffee, Briefcase, Moon, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { WorkSchedule } from "@/hooks/useWorkSchedule";
 
@@ -15,11 +16,30 @@ interface WorkScheduleSetupProps {
   currentSchedule: WorkSchedule;
 }
 
+const WEEKDAYS = [
+  { value: 1, label: "Seg", fullLabel: "Segunda" },
+  { value: 2, label: "Ter", fullLabel: "Terça" },
+  { value: 3, label: "Qua", fullLabel: "Quarta" },
+  { value: 4, label: "Qui", fullLabel: "Quinta" },
+  { value: 5, label: "Sex", fullLabel: "Sexta" },
+  { value: 6, label: "Sáb", fullLabel: "Sábado" },
+  { value: 0, label: "Dom", fullLabel: "Domingo" },
+];
+
 export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule }: WorkScheduleSetupProps) => {
   const [startTime, setStartTime] = useState(currentSchedule.startTime);
   const [lunchStart, setLunchStart] = useState(currentSchedule.lunchStart);
   const [lunchDuration, setLunchDuration] = useState<string>(String(currentSchedule.lunchDuration));
   const [endTime, setEndTime] = useState(currentSchedule.endTime);
+  const [workDays, setWorkDays] = useState<number[]>(currentSchedule.workDays || [1, 2, 3, 4, 5]);
+
+  const toggleWorkDay = (day: number) => {
+    setWorkDays(prev => 
+      prev.includes(day) 
+        ? prev.filter(d => d !== day)
+        : [...prev, day]
+    );
+  };
 
   const handleSave = () => {
     // Validate times
@@ -38,11 +58,17 @@ export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule 
       return;
     }
 
+    if (workDays.length === 0) {
+      toast.error("Selecione pelo menos um dia de trabalho");
+      return;
+    }
+
     onSave({
       startTime,
       lunchStart,
       lunchDuration: Number(lunchDuration),
       endTime,
+      workDays,
       isConfigured: true,
     });
 
@@ -107,7 +133,32 @@ export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule 
                 <RadioGroupItem value="120" id="lunch-120" />
                 <Label htmlFor="lunch-120" className="cursor-pointer">2 horas</Label>
               </div>
-            </RadioGroup>
+          </RadioGroup>
+          </div>
+
+          {/* Work Days Selection */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2 text-base font-medium">
+              <Calendar className="h-4 w-4 text-primary" />
+              Dias de Trabalho
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {WEEKDAYS.map((day) => (
+                <Toggle
+                  key={day.value}
+                  pressed={workDays.includes(day.value)}
+                  onPressedChange={() => toggleWorkDay(day.value)}
+                  variant="outline"
+                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground px-3 py-2 min-w-[48px]"
+                  aria-label={day.fullLabel}
+                >
+                  {day.label}
+                </Toggle>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Alertas funcionarão apenas nos dias selecionados
+            </p>
           </div>
 
           {/* End Time */}
@@ -130,6 +181,7 @@ export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule 
             <p>• Trabalho: {startTime} às {lunchStart}</p>
             <p>• Almoço: {lunchDuration === "60" ? "1 hora" : "2 horas"}</p>
             <p>• Retorno e saída: até {endTime}</p>
+            <p>• Dias: {WEEKDAYS.filter(d => workDays.includes(d.value)).map(d => d.label).join(", ") || "Nenhum"}</p>
           </div>
         </div>
 
