@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,8 +9,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { ReminderConfig } from "@/hooks/useReminders";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface SettingsDialogProps {
   open: boolean;
@@ -28,15 +30,47 @@ export const SettingsDialog = ({
   const [eyeInterval, setEyeInterval] = useState(config.eyeInterval);
   const [stretchInterval, setStretchInterval] = useState(config.stretchInterval);
   const [waterInterval, setWaterInterval] = useState(config.waterInterval);
+  const [soundEnabled, setSoundEnabled] = useState(config.soundEnabled ?? true);
+
+  // Sync state when config changes
+  useEffect(() => {
+    setEyeInterval(config.eyeInterval);
+    setStretchInterval(config.stretchInterval);
+    setWaterInterval(config.waterInterval);
+    setSoundEnabled(config.soundEnabled ?? true);
+  }, [config]);
 
   const handleSave = () => {
     onSave({
       eyeInterval,
       stretchInterval,
       waterInterval,
+      soundEnabled,
     });
     toast.success("Configurações salvas com sucesso!");
     onOpenChange(false);
+  };
+
+  const testSound = () => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        const audioContext = new AudioContextClass();
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = 880;
+        osc.type = "sine";
+        gain.gain.setValueAtTime(0.5, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        osc.start(audioContext.currentTime);
+        osc.stop(audioContext.currentTime + 0.3);
+        toast.info("🔊 Teste de som reproduzido");
+      }
+    } catch {
+      toast.error("Som não disponível neste dispositivo");
+    }
   };
 
   return (
@@ -45,11 +79,40 @@ export const SettingsDialog = ({
         <DialogHeader>
           <DialogTitle>Configurações de Lembretes</DialogTitle>
           <DialogDescription>
-            Personalize os intervalos dos seus lembretes em minutos
+            Personalize os intervalos e notificações
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Configuração de Som */}
+          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border">
+            <div className="flex items-center gap-3">
+              {soundEnabled ? (
+                <Volume2 className="h-5 w-5 text-primary" />
+              ) : (
+                <VolumeX className="h-5 w-5 text-muted-foreground" />
+              )}
+              <div>
+                <Label htmlFor="sound" className="text-base font-medium">Som de Notificação</Label>
+                <p className="text-xs text-muted-foreground">
+                  Tocar som quando o timer acabar
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {soundEnabled && (
+                <Button variant="ghost" size="sm" onClick={testSound}>
+                  Testar
+                </Button>
+              )}
+              <Switch
+                id="sound"
+                checked={soundEnabled}
+                onCheckedChange={setSoundEnabled}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="eye">👁️ Descanso Visual (minutos)</Label>
             <Input
