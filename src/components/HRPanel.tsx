@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Cake, 
@@ -23,6 +23,7 @@ interface Employee {
   department: string | null;
   birthday: string | null;
   email: string | null;
+  avatar_url: string | null;
 }
 
 interface Announcement {
@@ -181,6 +182,7 @@ export const HRPanel = () => {
                       }`}
                     >
                       <Avatar className="h-10 w-10">
+                        {emp.avatar_url && <AvatarImage src={emp.avatar_url} alt={emp.name} />}
                         <AvatarFallback className={isToday ? "bg-primary text-primary-foreground" : ""}>
                           {getInitials(emp.name)}
                         </AvatarFallback>

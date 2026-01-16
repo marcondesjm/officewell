@@ -59,6 +59,7 @@ interface Employee {
   department: string | null;
   birthday: string | null;
   email: string | null;
+  avatar_url: string | null;
 }
 
 interface Announcement {
@@ -145,6 +146,10 @@ const HRAdmin = () => {
   const [employeeDepartment, setEmployeeDepartment] = useState("");
   const [employeeBirthday, setEmployeeBirthday] = useState("");
   const [employeeEmail, setEmployeeEmail] = useState("");
+  const [employeeAvatarUrl, setEmployeeAvatarUrl] = useState("");
+  const [uploadingEmployeeAvatar, setUploadingEmployeeAvatar] = useState(false);
+  const [generatingAvatar, setGeneratingAvatar] = useState(false);
+  const employeeFileInputRef = useRef<HTMLInputElement>(null);
 
   // Announcement form state
   const [announcementDialogOpen, setAnnouncementDialogOpen] = useState(false);
@@ -222,14 +227,78 @@ const HRAdmin = () => {
       setEmployeeDepartment(employee.department || "");
       setEmployeeBirthday(employee.birthday || "");
       setEmployeeEmail(employee.email || "");
+      setEmployeeAvatarUrl(employee.avatar_url || "");
     } else {
       setEditingEmployee(null);
       setEmployeeName("");
       setEmployeeDepartment("");
       setEmployeeBirthday("");
       setEmployeeEmail("");
+      setEmployeeAvatarUrl("");
     }
     setEmployeeDialogOpen(true);
+  };
+
+  // Upload employee avatar
+  const handleEmployeeAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 5MB");
+      return;
+    }
+
+    setUploadingEmployeeAvatar(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `employee-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("employee-avatars")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("employee-avatars")
+        .getPublicUrl(fileName);
+
+      setEmployeeAvatarUrl(urlData.publicUrl);
+      toast.success("Foto carregada com sucesso!");
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast.error("Erro ao carregar foto");
+    } finally {
+      setUploadingEmployeeAvatar(false);
+    }
+  };
+
+  // Generate avatar from name
+  const generateAvatarFromName = async () => {
+    if (!employeeName.trim()) {
+      toast.error("Digite o nome primeiro para gerar o avatar");
+      return;
+    }
+
+    setGeneratingAvatar(true);
+    try {
+      // Use DiceBear API to generate avatar based on name
+      const seed = encodeURIComponent(employeeName.trim());
+      const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${seed}&backgroundColor=3b82f6,8b5cf6,ec4899,f97316,10b981&backgroundType=gradientLinear`;
+      setEmployeeAvatarUrl(avatarUrl);
+      toast.success("Avatar gerado com sucesso!");
+    } catch (error) {
+      console.error("Error generating avatar:", error);
+      toast.error("Erro ao gerar avatar");
+    } finally {
+      setGeneratingAvatar(false);
+    }
   };
 
   const saveEmployee = async () => {
@@ -254,6 +323,7 @@ const HRAdmin = () => {
             department: employeeDepartment.trim() || null,
             birthday: employeeBirthday || null,
             email: employeeEmail.trim() || null,
+            avatar_url: employeeAvatarUrl || null,
           })
           .eq("id", editingEmployee.id);
 
@@ -265,6 +335,7 @@ const HRAdmin = () => {
           department: employeeDepartment.trim() || null,
           birthday: employeeBirthday || null,
           email: employeeEmail.trim() || null,
+          avatar_url: employeeAvatarUrl || null,
         });
 
         if (error) throw error;
@@ -648,6 +719,69 @@ const HRAdmin = () => {
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
+                    {/* Avatar Section */}
+                    <div className="space-y-2">
+                      <Label>Foto / Avatar</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          {employeeAvatarUrl ? (
+                            <img 
+                              src={employeeAvatarUrl} 
+                              alt="Avatar" 
+                              className="h-20 w-20 rounded-full object-cover border-2 border-primary/20"
+                            />
+                          ) : (
+                            <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center border-2 border-dashed border-muted-foreground/30">
+                              <Users className="h-8 w-8 text-muted-foreground/50" />
+                            </div>
+                          )}
+                          {employeeAvatarUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setEmployeeAvatarUrl("")}
+                              className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs hover:bg-destructive/80"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <input
+                            ref={employeeFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleEmployeeAvatarUpload}
+                            className="hidden"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => employeeFileInputRef.current?.click()}
+                            disabled={uploadingEmployeeAvatar}
+                            className="gap-2"
+                          >
+                            <Upload className="h-4 w-4" />
+                            {uploadingEmployeeAvatar ? "Carregando..." : "Enviar Foto"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={generateAvatarFromName}
+                            disabled={generatingAvatar || !employeeName.trim()}
+                            className="gap-2"
+                          >
+                            <Image className="h-4 w-4" />
+                            {generatingAvatar ? "Gerando..." : "Criar Avatar"}
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Envie uma foto ou gere um avatar a partir do nome
+                      </p>
+                    </div>
+                    
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome *</Label>
                       <Input
@@ -702,9 +836,17 @@ const HRAdmin = () => {
                     {employees.map((emp) => (
                       <div key={emp.id} className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Users className="h-5 w-5 text-primary" />
-                          </div>
+                          {emp.avatar_url ? (
+                            <img 
+                              src={emp.avatar_url} 
+                              alt={emp.name} 
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Users className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
                           <div>
                             <p className="font-medium">{emp.name}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
