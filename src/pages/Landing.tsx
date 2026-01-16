@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { SubscriptionPlans } from '@/components/SubscriptionPlans';
 import { supabase } from '@/integrations/supabase/client';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 // Animation variants
 const fadeInUp = {
@@ -278,12 +279,16 @@ const Landing = () => {
             </div>
             <span className="text-xl font-bold">OfficeWell</span>
           </motion.div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <ThemeToggle />
             <Link to="/">
-              <Button variant="ghost">Acessar App</Button>
+              <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Acessar App</Button>
+              <Button variant="ghost" size="icon" className="sm:hidden">
+                <Smartphone className="h-5 w-5" />
+              </Button>
             </Link>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button onClick={() => setPlansOpen(true)}>
+              <Button onClick={() => setPlansOpen(true)} size="sm">
                 Começar Agora
               </Button>
             </motion.div>
