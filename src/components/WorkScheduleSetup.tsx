@@ -50,7 +50,7 @@ export const WorkScheduleSetup = ({ open, onSave, currentSchedule }: WorkSchedul
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Briefcase className="h-5 w-5 text-primary" />
