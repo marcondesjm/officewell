@@ -557,12 +557,13 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Scroll Indicator */}
+      {/* Scroll Indicator - After Social Proof */}
       <motion.div 
-        className="flex flex-col items-center justify-center pb-8"
+        className="flex flex-col items-center justify-center py-8"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.5 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
       >
         <motion.button
           onClick={() => scrollToSection('#funcionalidades')}
@@ -583,6 +584,8 @@ const Landing = () => {
           </motion.div>
         </motion.button>
       </motion.div>
+
+      {/* Features Section */}
       <section id="funcionalidades" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
