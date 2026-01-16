@@ -14,6 +14,8 @@ const Demo = () => {
     // If not on enterprise trial, start one
     if (!isOnTrial || planId !== 'enterprise') {
       startTrial('enterprise', 'Empresarial', 7);
+      // Set flag for onboarding tour
+      sessionStorage.setItem('officewell_new_demo', 'true');
       toast.success('🎉 Conta Demo ativada! Todas as funcionalidades liberadas por 7 dias.', {
         duration: 5000,
       });
