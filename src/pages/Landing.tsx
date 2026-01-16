@@ -415,16 +415,37 @@ const Landing = () => {
         </AnimatePresence>
       </motion.header>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="container mx-auto text-center max-w-4xl">
+      {/* Hero Section - Compact & Impact-focused */}
+      <section className="pt-24 pb-8 px-4">
+        <div className="container mx-auto text-center max-w-5xl">
+          {/* Stats Banner - Above the fold highlight */}
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={staggerContainer}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 p-4 rounded-2xl bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20"
+          >
+            {stats.map((stat, index) => (
+              <motion.div 
+                key={index}
+                variants={scaleIn}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                className="p-3"
+                whileHover={{ scale: 1.05 }}
+              >
+                <div className="text-2xl md:text-3xl font-bold text-primary">{stat.value}</div>
+                <div className="text-xs md:text-sm text-muted-foreground">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
+
           <motion.div
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
           >
-            <Badge variant="outline" className="mb-6 px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
+            <Badge variant="outline" className="mb-4 px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
               <Sparkles className="h-3.5 w-3.5 mr-2" />
               Teste grátis por 7 dias
             </Badge>
@@ -434,8 +455,8 @@ const Landing = () => {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent leading-tight"
           >
             Cuide da saúde da sua equipe no trabalho
           </motion.h1>
@@ -444,32 +465,33 @@ const Landing = () => {
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
           >
             Lembretes inteligentes de hidratação, alongamento e descanso visual. 
             Reduza afastamentos e aumente a produtividade.
           </motion.p>
           
+          {/* CTAs - Prominent and accessible */}
           <motion.div 
             initial="hidden"
             animate="visible"
             variants={fadeInUp}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-col gap-4 justify-center items-center"
           >
-            {/* Main CTA - Consultoria Gratuita */}
+            {/* Primary CTA - Consultoria Gratuita */}
             <motion.a
               href="https://wa.me/5548996029392?text=Olá! Gostaria de agendar uma consultoria gratuita sobre o OfficeWell"
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white rounded-lg bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-200"
+              className="inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-bold text-white rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl shadow-primary/30 transition-all duration-200"
             >
-              <MessageCircle className="h-4 w-4" />
-              Consultoria Gratuita
-              <ArrowRight className="h-4 w-4" />
+              <MessageCircle className="h-5 w-5" />
+              Quero Consultoria Gratuita
+              <ArrowRight className="h-5 w-5" />
             </motion.a>
             
             <div className="flex flex-col sm:flex-row gap-3">
@@ -489,26 +511,44 @@ const Landing = () => {
               </Link>
             </div>
           </motion.div>
+        </div>
+      </section>
 
-          {/* Stats */}
-          <motion.div 
+      {/* Social Proof - Quick testimonials preview */}
+      <section className="py-6 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <motion.div
             initial="hidden"
             animate="visible"
-            variants={staggerContainer}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6"
+            variants={fadeIn}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-col md:flex-row items-center justify-center gap-6 p-4 rounded-xl bg-muted/30"
           >
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={index}
-                variants={scaleIn}
-                transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                className="p-4"
-                whileHover={{ scale: 1.1 }}
-              >
-                <div className="text-3xl font-bold text-primary">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </motion.div>
-            ))}
+            <div className="flex -space-x-3">
+              {testimonials.slice(0, 3).map((t, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.4 + i * 0.1, type: "spring" }}
+                >
+                  <Avatar className="border-2 border-background h-10 w-10">
+                    <img src={t.image} alt={t.name} className="object-cover" />
+                    <AvatarFallback>{t.name[0]}</AvatarFallback>
+                  </Avatar>
+                </motion.div>
+              ))}
+            </div>
+            <div className="text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-1 mb-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">+200 empresas</span> já cuidam de suas equipes com OfficeWell
+              </p>
+            </div>
           </motion.div>
         </div>
       </section>
