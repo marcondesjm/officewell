@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { ReminderConfig } from "@/hooks/useReminders";
 import { Volume2, VolumeX } from "lucide-react";
@@ -75,7 +76,7 @@ export const SettingsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Configurações de Lembretes</DialogTitle>
           <DialogDescription>
@@ -83,83 +84,85 @@ export const SettingsDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          {/* Configuração de Som */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border">
-            <div className="flex items-center gap-3">
-              {soundEnabled ? (
-                <Volume2 className="h-5 w-5 text-primary" />
-              ) : (
-                <VolumeX className="h-5 w-5 text-muted-foreground" />
-              )}
-              <div>
-                <Label htmlFor="sound" className="text-base font-medium">Som de Notificação</Label>
-                <p className="text-xs text-muted-foreground">
-                  Tocar som quando o timer acabar
-                </p>
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <div className="space-y-6 py-4">
+            {/* Configuração de Som */}
+            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border">
+              <div className="flex items-center gap-3">
+                {soundEnabled ? (
+                  <Volume2 className="h-5 w-5 text-primary" />
+                ) : (
+                  <VolumeX className="h-5 w-5 text-muted-foreground" />
+                )}
+                <div>
+                  <Label htmlFor="sound" className="text-base font-medium">Som de Notificação</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Tocar som quando o timer acabar
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {soundEnabled && (
+                  <Button variant="ghost" size="sm" onClick={testSound}>
+                    Testar
+                  </Button>
+                )}
+                <Switch
+                  id="sound"
+                  checked={soundEnabled}
+                  onCheckedChange={setSoundEnabled}
+                />
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {soundEnabled && (
-                <Button variant="ghost" size="sm" onClick={testSound}>
-                  Testar
-                </Button>
-              )}
-              <Switch
-                id="sound"
-                checked={soundEnabled}
-                onCheckedChange={setSoundEnabled}
+
+            <div className="space-y-2">
+              <Label htmlFor="eye">👁️ Descanso Visual (minutos)</Label>
+              <Input
+                id="eye"
+                type="number"
+                min="1"
+                max="120"
+                value={eyeInterval}
+                onChange={(e) => setEyeInterval(Number(e.target.value))}
               />
+              <p className="text-xs text-muted-foreground">
+                Recomendado: 20 minutos (regra 20-20-20)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="stretch">🤸 Alongamento (minutos)</Label>
+              <Input
+                id="stretch"
+                type="number"
+                min="1"
+                max="120"
+                value={stretchInterval}
+                onChange={(e) => setStretchInterval(Number(e.target.value))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Recomendado: 45-60 minutos
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="water">💧 Hidratação (minutos)</Label>
+              <Input
+                id="water"
+                type="number"
+                min="1"
+                max="120"
+                value={waterInterval}
+                onChange={(e) => setWaterInterval(Number(e.target.value))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Recomendado: 30 minutos
+              </p>
             </div>
           </div>
+        </ScrollArea>
 
-          <div className="space-y-2">
-            <Label htmlFor="eye">👁️ Descanso Visual (minutos)</Label>
-            <Input
-              id="eye"
-              type="number"
-              min="1"
-              max="120"
-              value={eyeInterval}
-              onChange={(e) => setEyeInterval(Number(e.target.value))}
-            />
-            <p className="text-xs text-muted-foreground">
-              Recomendado: 20 minutos (regra 20-20-20)
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="stretch">🤸 Alongamento (minutos)</Label>
-            <Input
-              id="stretch"
-              type="number"
-              min="1"
-              max="120"
-              value={stretchInterval}
-              onChange={(e) => setStretchInterval(Number(e.target.value))}
-            />
-            <p className="text-xs text-muted-foreground">
-              Recomendado: 45-60 minutos
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="water">💧 Hidratação (minutos)</Label>
-            <Input
-              id="water"
-              type="number"
-              min="1"
-              max="120"
-              value={waterInterval}
-              onChange={(e) => setWaterInterval(Number(e.target.value))}
-            />
-            <p className="text-xs text-muted-foreground">
-              Recomendado: 30 minutos
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
+        <div className="flex gap-3 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
             Cancelar
           </Button>
