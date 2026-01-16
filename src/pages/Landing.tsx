@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Droplets, 
   Eye, 
@@ -22,7 +23,12 @@ import {
   Loader2,
   X,
   Crown,
-  Play
+  Play,
+  Cake,
+  Megaphone,
+  PartyPopper,
+  AlertCircle,
+  Gift
 } from 'lucide-react';
 
 // Import real photos
@@ -746,6 +752,212 @@ const Landing = () => {
             >
               <Crown className="h-5 w-5 mr-2 text-yellow-400" />
               Ver Todos os Planos
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* HR Panel Demo Section */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="container mx-auto max-w-6xl">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUp}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <Badge variant="secondary" className="mb-4 px-4 py-2">
+              <Users className="h-4 w-4 mr-2" />
+              Exclusivo Plano Empresarial
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Painel de RH Completo
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Gerencie aniversariantes, avisos e comunicados internos para toda a empresa
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Birthday Panel Demo */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={slideInLeft}
+              transition={{ duration: 0.6 }}
+            >
+              <Card className="border-none shadow-xl h-full overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-pink-500/10 to-purple-500/10 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center">
+                      <Cake className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">Aniversariantes</CardTitle>
+                      <p className="text-sm text-muted-foreground">Janeiro 2026</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-3">
+                  {[
+                    { name: 'Maria Silva', dept: 'Marketing', day: 15, isToday: true },
+                    { name: 'João Santos', dept: 'TI', day: 18, isToday: false },
+                    { name: 'Ana Costa', dept: 'RH', day: 20, isToday: false },
+                    { name: 'Pedro Oliveira', dept: 'Financeiro', day: 25, isToday: false },
+                  ].map((emp, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                        emp.isToday 
+                          ? 'bg-primary/10 border border-primary/30' 
+                          : 'bg-muted/50 hover:bg-muted'
+                      }`}
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className={emp.isToday ? 'bg-primary text-primary-foreground' : ''}>
+                          {emp.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm truncate">{emp.name}</p>
+                          {emp.isToday && (
+                            <PartyPopper className="h-4 w-4 text-primary animate-bounce" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{emp.dept}</p>
+                      </div>
+                      <Badge variant={emp.isToday ? 'default' : 'secondary'} className="text-xs">
+                        {emp.isToday ? 'Hoje! 🎉' : `Dia ${emp.day}`}
+                      </Badge>
+                    </motion.div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Announcements Panel Demo */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={slideInRight}
+              transition={{ duration: 0.6 }}
+            >
+              <Card className="border-none shadow-xl h-full overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                      <Megaphone className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl">Comunicados</CardTitle>
+                      <p className="text-sm text-muted-foreground">Avisos da empresa</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-4 space-y-3">
+                  {[
+                    { title: 'Reunião Geral', content: 'Reunião da empresa na sexta-feira às 15h no auditório.', priority: 'high', color: 'orange' },
+                    { title: 'Novo Benefício', content: 'A partir de fevereiro, todos terão acesso ao Gympass.', priority: 'normal', color: 'blue' },
+                    { title: 'Manutenção Programada', content: 'Sistemas ficarão offline no sábado das 22h às 02h.', priority: 'normal', color: 'blue' },
+                  ].map((ann, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                      className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`p-1.5 rounded-md ${
+                          ann.priority === 'high' 
+                            ? 'bg-orange-500/10 text-orange-500' 
+                            : 'bg-blue-500/10 text-blue-500'
+                        }`}>
+                          <AlertCircle className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <h4 className="font-medium text-sm">{ann.title}</h4>
+                            <Badge variant="outline" className="text-[10px] shrink-0">
+                              {ann.priority === 'high' ? 'Alta' : 'Normal'}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {ann.content}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Birthday Celebration Preview */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={scaleIn}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-12"
+          >
+            <Card className="border-none shadow-2xl overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5">
+              <CardContent className="p-8 text-center">
+                <div className="flex justify-center items-center gap-2 mb-4">
+                  <Sparkles className="h-6 w-6 text-yellow-500 animate-pulse" />
+                  <PartyPopper className="h-10 w-10 text-primary animate-bounce" />
+                  <Sparkles className="h-6 w-6 text-yellow-500 animate-pulse" />
+                </div>
+                <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                  🎂 Celebração Automática de Aniversário 🎂
+                </h3>
+                <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+                  Modal personalizado com confetti aparece automaticamente no horário configurado para celebrar os aniversariantes do dia
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-4">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-sm">
+                    <Gift className="h-4 w-4 text-primary" />
+                    <span>Imagem personalizada</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-sm">
+                    <MessageCircle className="h-4 w-4 text-primary" />
+                    <span>Mensagem customizada</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-sm">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span>Horário agendado</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <motion.div
+            className="text-center mt-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
+            <Button 
+              size="lg"
+              className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              onClick={() => setPlansOpen(true)}
+            >
+              <Crown className="h-5 w-5" />
+              Quero o Plano Empresarial
             </Button>
           </motion.div>
         </div>
