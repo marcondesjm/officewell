@@ -22,6 +22,7 @@ const plans = [
       "Estatísticas básicas",
     ],
     popular: false,
+    trial: false,
   },
   {
     id: "pro",
@@ -39,6 +40,8 @@ const plans = [
       "Sem anúncios",
     ],
     popular: true,
+    trial: true,
+    trialDays: 7,
   },
   {
     id: "enterprise",
@@ -57,6 +60,8 @@ const plans = [
       "Suporte dedicado",
     ],
     popular: false,
+    trial: true,
+    trialDays: 7,
   },
 ];
 
@@ -104,11 +109,15 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
     const plan = plans.find(p => p.id === selectedPlan);
     if (!plan) return;
 
+    const trialText = plan.trial 
+      ? `\n\n🎁 *Período de teste:* ${plan.trialDays} dias grátis` 
+      : "";
+
     const message = encodeURIComponent(
-      `Olá! Gostaria de assinar o plano *${plan.name}* do OfficeWell.\n\n` +
+      `Olá! Gostaria de ${plan.trial ? "iniciar o teste grátis" : "assinar"} o plano *${plan.name}* do OfficeWell.\n\n` +
       `*Nome:* ${name}\n` +
       `*Telefone:* ${phone}\n` +
-      `*Plano:* ${plan.name} - ${plan.price}${plan.period || ""}`
+      `*Plano:* ${plan.name} - ${plan.price}${plan.period || ""}${trialText}`
     );
 
     const whatsappUrl = `https://wa.me/5548996029392?text=${message}`;
@@ -176,6 +185,11 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                       {plan.period && (
                         <span className="text-muted-foreground">{plan.period}</span>
                       )}
+                      {plan.trial && (
+                        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium">
+                          🎁 {plan.trialDays} dias grátis
+                        </div>
+                      )}
                     </div>
                     <ul className="space-y-2 text-sm text-left">
                       {plan.features.map((feature, index) => (
@@ -192,7 +206,7 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                       variant={plan.popular ? "default" : "outline"}
                       onClick={() => handleSelectPlan(plan.id)}
                     >
-                      {plan.id === "basic" ? "Plano Atual" : "Escolher Plano"}
+                      {plan.id === "basic" ? "Plano Atual" : plan.trial ? "Testar Grátis" : "Escolher Plano"}
                     </Button>
                   </CardFooter>
                 </Card>
