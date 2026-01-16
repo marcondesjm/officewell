@@ -28,7 +28,13 @@ const loadSchedule = (): WorkSchedule => {
   try {
     const saved = localStorage.getItem("workSchedule");
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Ensure workDays exists for backwards compatibility
+      return {
+        ...DEFAULT_SCHEDULE,
+        ...parsed,
+        workDays: parsed.workDays || DEFAULT_SCHEDULE.workDays,
+      };
     }
   } catch {}
   return DEFAULT_SCHEDULE;
@@ -49,7 +55,8 @@ export const useWorkSchedule = () => {
     if (!schedule.isConfigured) return true;
     const now = new Date();
     const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    return schedule.workDays.includes(currentDay);
+    const workDays = schedule.workDays || [1, 2, 3, 4, 5];
+    return workDays.includes(currentDay);
   }, [schedule]);
 
   const isWithinWorkHours = useCallback((): boolean => {
