@@ -2,12 +2,14 @@ import { useMemo, useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Lock, Unlock } from "lucide-react";
+import { Lock, Unlock, Star } from "lucide-react";
 import waterBreakImage1 from "@/assets/water-break.png";
 import waterBreakImage2 from "@/assets/water-break-2.png";
 import waterBreakImage3 from "@/assets/water-break-3.png";
 import waterBreakImage4 from "@/assets/water-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
+import { useGamification } from "@/hooks/useGamification";
+import { toast } from "sonner";
 
 const waterBreakImages = [waterBreakImage1, waterBreakImage2, waterBreakImage3, waterBreakImage4];
 
@@ -135,12 +137,15 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
   const [description, setDescription] = useState("");
   const [tipSet, setTipSet] = useState(tipSets[0]);
   const [currentImage, setCurrentImage] = useState(waterBreakImages[0]);
+  const [pointsAwarded, setPointsAwarded] = useState(false);
+  const { addPoints } = useGamification();
 
   // Reset timer and randomize tips when modal opens (no repetition during day)
   useEffect(() => {
     if (open) {
       setStartTime(Date.now());
       setElapsed(0);
+      setPointsAwarded(false);
       // Get non-repeating random indices for today
       const descIdx = getRandomIndex("water", "descriptions", descriptions.length);
       const tipIdx = getRandomIndex("water", "tipSets", tipSets.length);
@@ -207,9 +212,20 @@ export const WaterBreakModal = ({ open, onClose }: WaterBreakModalProps) => {
       } catch (e) {
         console.log("Error saving compliance:", e);
       }
+      
+      // Award points if not already awarded
+      if (!pointsAwarded) {
+        const points = addPoints("water");
+        setPointsAwarded(true);
+        toast.success(`+${points} pontos!`, {
+          description: "Hidratação completada",
+          icon: <Star className="h-4 w-4 text-yellow-500" />,
+        });
+      }
+      
       onClose();
     }
-  }, [canClose, startTime, elapsed, onClose]);
+  }, [canClose, startTime, elapsed, onClose, pointsAwarded, addPoints]);
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>

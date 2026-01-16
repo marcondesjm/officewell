@@ -13,6 +13,7 @@ import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { BirthdayCelebration } from "@/components/BirthdayCelebration";
 import { PostureCheckModal } from "@/components/PostureCheckModal";
 import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
+import { GamificationCard } from "@/components/GamificationCard";
 
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
@@ -203,6 +204,9 @@ const Index = () => {
 
         {/* Dica do Dia */}
         <TipOfTheDay />
+
+        {/* Ranking e Pontuação */}
+        <GamificationCard />
 
         {/* Painel de Controle */}
         <ControlPanel

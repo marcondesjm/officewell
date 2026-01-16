@@ -2,13 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Lock, Unlock, Play, Pause, SkipForward, Timer, CheckCircle2 } from "lucide-react";
+import { Lock, Unlock, Play, Pause, SkipForward, Timer, CheckCircle2, Star } from "lucide-react";
 import stretchingImage1 from "@/assets/stretching-break.png";
 import stretchingImage2 from "@/assets/stretching-break-2.png";
 import stretchingImage3 from "@/assets/stretching-break-3.png";
 import stretchingImage4 from "@/assets/stretching-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGamification } from "@/hooks/useGamification";
+import { toast } from "sonner";
 
 const stretchingImages = [stretchingImage1, stretchingImage2, stretchingImage3, stretchingImage4];
 
@@ -170,6 +172,8 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
   const [isExercisePaused, setIsExercisePaused] = useState(false);
   const [completedExercises, setCompletedExercises] = useState<number[]>([]);
   const [mainTimerPaused, setMainTimerPaused] = useState(false);
+  const [pointsAwarded, setPointsAwarded] = useState(false);
+  const { addPoints } = useGamification();
 
   // Calculate minimum duration based on exercise times
   const totalExerciseTime = tipSet.tips.reduce((acc, tip) => acc + tip.duration, 0);
@@ -186,6 +190,7 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
       setIsExercisePaused(false);
       setCompletedExercises([]);
       setMainTimerPaused(false);
+      setPointsAwarded(false);
       
       const descIdx = getRandomIndex("stretch", "descriptions", descriptions.length);
       const tipIdx = getRandomIndex("stretch", "tipSets", tipSets.length);
@@ -293,9 +298,20 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
       } catch (e) {
         console.log("Error saving compliance:", e);
       }
+      
+      // Award points if not already awarded
+      if (!pointsAwarded) {
+        const points = addPoints("stretch");
+        setPointsAwarded(true);
+        toast.success(`+${points} pontos!`, {
+          description: "Alongamento completado",
+          icon: <Star className="h-4 w-4 text-yellow-500" />,
+        });
+      }
+      
       onClose();
     }
-  }, [canClose, startTime, elapsed, completedExercises, onClose]);
+  }, [canClose, startTime, elapsed, completedExercises, onClose, pointsAwarded, addPoints]);
 
   const currentExercise = tipSet.tips[currentExerciseIndex];
   const exerciseProgress = currentExercise ? ((currentExercise.duration - exerciseTimeLeft) / currentExercise.duration) * 100 : 0;
