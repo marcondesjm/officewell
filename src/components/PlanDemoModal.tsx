@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Rocket, Building2, Eye, Dumbbell, Droplets, BarChart3, Target, BellOff, Users, FileText, Headphones, Play } from "lucide-react";
+import { Check, Crown, Rocket, Building2, Eye, Dumbbell, Droplets, BarChart3, Target, BellOff, Users, FileText, Headphones, Play, Gift } from "lucide-react";
 
 interface PlanDemoModalProps {
   open: boolean;
@@ -46,6 +46,8 @@ const planDemos = {
     color: "text-primary",
     bgColor: "bg-primary/10",
     description: "Para profissionais que querem maximizar sua produtividade",
+    trial: true,
+    trialDays: 7,
     features: [
       {
         icon: BarChart3,
@@ -66,7 +68,7 @@ const planDemos = {
         demo: "✨ Foco total na sua saúde e produtividade"
       },
     ],
-    cta: "Assinar Pro - R$ 9,90/mês",
+    cta: "Iniciar 7 Dias Grátis",
     ctaDisabled: false,
   },
   enterprise: {
@@ -75,6 +77,8 @@ const planDemos = {
     color: "text-purple-500",
     bgColor: "bg-purple-500/10",
     description: "Solução completa para equipes e departamentos de RH",
+    trial: true,
+    trialDays: 7,
     features: [
       {
         icon: Users,
@@ -95,7 +99,7 @@ const planDemos = {
         demo: "🎧 Resposta em até 2h em horário comercial"
       },
     ],
-    cta: "Assinar Empresarial - R$ 49,90/mês",
+    cta: "Iniciar 7 Dias Grátis",
     ctaDisabled: false,
   },
 };
@@ -127,6 +131,25 @@ export const PlanDemoModal = ({ open, onOpenChange, planId, onSelectPlan }: Plan
             </div>
           </div>
         </DialogHeader>
+
+        {/* Trial Banner */}
+        {'trial' in demo && demo.trial && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                <Gift className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-green-600 dark:text-green-400">
+                  {'trialDays' in demo ? demo.trialDays : 7} dias de teste grátis!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Experimente todas as funcionalidades sem compromisso
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mt-6 space-y-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">

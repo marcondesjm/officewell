@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Crown, Rocket, Building2, Sparkles, Play } from "lucide-react";
+import { Check, Crown, Rocket, Building2, Sparkles, Play, Gift } from "lucide-react";
 
 const plans = [
   {
@@ -11,6 +11,7 @@ const plans = [
     icon: Check,
     features: ["Lembretes de água", "Alongamento", "Descanso visual"],
     popular: false,
+    trial: false,
     bgColor: "bg-emerald-900/80",
     borderColor: "border-emerald-700/50",
     iconBg: "bg-emerald-500/20",
@@ -26,6 +27,8 @@ const plans = [
     icon: Rocket,
     features: ["Relatórios detalhados", "Metas personalizadas", "Sem anúncios"],
     popular: true,
+    trial: true,
+    trialDays: 7,
     bgColor: "bg-slate-800/90",
     borderColor: "border-primary/50",
     iconBg: "bg-primary/20",
@@ -41,6 +44,8 @@ const plans = [
     icon: Building2,
     features: ["Painel RH completo", "Relatórios compliance", "Suporte dedicado"],
     popular: false,
+    trial: true,
+    trialDays: 7,
     bgColor: "bg-slate-800/90",
     borderColor: "border-purple-500/50",
     iconBg: "bg-purple-500/20",
@@ -98,6 +103,12 @@ export const PlansHighlight = ({ onSelectPlan, onShowDemo }: PlansHighlightProps
                   {plan.period && (
                     <span className="text-sm text-slate-400">{plan.period}</span>
                   )}
+                  {plan.trial && (
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-medium">
+                      <Gift className="h-3 w-3" />
+                      {plan.trialDays} dias grátis
+                    </div>
+                  )}
                 </div>
 
                 <ul className="space-y-2 mb-4">
@@ -130,7 +141,7 @@ export const PlansHighlight = ({ onSelectPlan, onShowDemo }: PlansHighlightProps
                       onSelectPlan(plan.id);
                     }}
                   >
-                    {plan.id === "basic" ? "Atual" : "Assinar"}
+                    {plan.id === "basic" ? "Atual" : plan.trial ? "Testar Grátis" : "Assinar"}
                   </Button>
                 </div>
               </div>
