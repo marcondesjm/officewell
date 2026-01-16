@@ -19,7 +19,8 @@ import {
   Sparkles,
   Star,
   MessageCircle,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
@@ -160,6 +161,14 @@ const Landing = () => {
       title: 'Segurança de Dados',
       description: 'Seus dados protegidos com criptografia de ponta a ponta'
     }
+  ];
+
+  const painPoints = [
+    'Fadiga visual e dores de cabeça constantes',
+    'Problemas posturais e dores lombares',
+    'Baixa energia e desidratação',
+    'Queda na produtividade ao longo do dia',
+    'Afastamentos frequentes por problemas de saúde'
   ];
 
   const benefits = [
@@ -432,7 +441,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Pain Points & Benefits Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -443,40 +452,73 @@ const Landing = () => {
               variants={slideInLeft}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Por que escolher o OfficeWell?
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8">
-                Empresas que investem em bem-estar têm colaboradores mais engajados, 
-                produtivos e saudáveis.
-              </p>
-              <motion.ul 
-                className="space-y-4"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={staggerContainer}
-              >
-                {benefits.map((benefit, index) => (
-                  <motion.li 
-                    key={index} 
-                    className="flex items-start gap-3"
-                    variants={fadeInUp}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <motion.div 
-                      className="h-6 w-6 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0 mt-0.5"
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1, type: "spring", stiffness: 500 }}
+              {/* Pain Points */}
+              <div className="mb-10">
+                <h3 className="text-xl font-semibold mb-4 text-muted-foreground">
+                  Sem cuidados adequados, sua equipe enfrenta:
+                </h3>
+                <motion.ul 
+                  className="space-y-3"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={staggerContainer}
+                >
+                  {painPoints.map((point, index) => (
+                    <motion.li 
+                      key={index} 
+                      className="flex items-start gap-3"
+                      variants={fadeInUp}
+                      transition={{ duration: 0.4 }}
                     >
-                      <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    </motion.div>
-                    <span>{benefit}</span>
-                  </motion.li>
-                ))}
-              </motion.ul>
+                      <motion.div 
+                        className="h-6 w-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0 mt-0.5"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.1, type: "spring", stiffness: 500 }}
+                      >
+                        <X className="h-4 w-4 text-red-500 dark:text-red-400" />
+                      </motion.div>
+                      <span className="text-muted-foreground">{point}</span>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+              </div>
+
+              {/* Benefits */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-primary">
+                  Com o OfficeWell, você conquista:
+                </h3>
+                <motion.ul 
+                  className="space-y-3"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  variants={staggerContainer}
+                >
+                  {benefits.map((benefit, index) => (
+                    <motion.li 
+                      key={index} 
+                      className="flex items-start gap-3"
+                      variants={fadeInUp}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <motion.div 
+                        className="h-6 w-6 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center flex-shrink-0 mt-0.5"
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.1, type: "spring", stiffness: 500 }}
+                      >
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      </motion.div>
+                      <span>{benefit}</span>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+              </div>
             </motion.div>
             <motion.div 
               className="relative"
