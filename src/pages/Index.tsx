@@ -6,6 +6,7 @@ import { ActiveTimerCard } from "@/components/ActiveTimerCard";
 import { DonationDialog } from "@/components/DonationDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { HealthTips } from "@/components/HealthTips";
+import { TipOfTheDay } from "@/components/TipOfTheDay";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
@@ -149,6 +150,9 @@ const Index = () => {
             </div>
           )}
         </header>
+
+        {/* Dica do Dia */}
+        <TipOfTheDay />
 
         {/* Painel de Controle */}
         <ControlPanel
