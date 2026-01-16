@@ -17,6 +17,7 @@ import { HRPanel } from "@/components/HRPanel";
 import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
 import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { PlansHighlight } from "@/components/PlansHighlight";
+import { PlanDemoModal } from "@/components/PlanDemoModal";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
@@ -49,6 +50,8 @@ const Index = () => {
   const [donationOpen, setDonationOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [demoOpen, setDemoOpen] = useState(false);
+  const [demoPlanId, setDemoPlanId] = useState<string | null>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [workScheduleOpen, setWorkScheduleOpen] = useState(false);
   const navigate = useNavigate();
@@ -200,10 +203,27 @@ const Index = () => {
         <HRPanel />
 
         {/* Planos em Destaque */}
-        <PlansHighlight onSelectPlan={(planId) => {
-          setSelectedPlanId(planId || null);
-          setPlansOpen(true);
-        }} />
+        <PlansHighlight 
+          onSelectPlan={(planId) => {
+            setSelectedPlanId(planId || null);
+            setPlansOpen(true);
+          }} 
+          onShowDemo={(planId) => {
+            setDemoPlanId(planId);
+            setDemoOpen(true);
+          }}
+        />
+
+        {/* Demo Modal */}
+        <PlanDemoModal
+          open={demoOpen}
+          onOpenChange={setDemoOpen}
+          planId={demoPlanId}
+          onSelectPlan={(planId) => {
+            setSelectedPlanId(planId);
+            setPlansOpen(true);
+          }}
+        />
 
         {/* Dicas de Saúde */}
         <HealthTips />

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Crown, Rocket, Building2, Sparkles } from "lucide-react";
+import { Check, Crown, Rocket, Building2, Sparkles, Play } from "lucide-react";
 
 const plans = [
   {
@@ -51,9 +51,10 @@ const plans = [
 
 interface PlansHighlightProps {
   onSelectPlan: (planId?: string) => void;
+  onShowDemo: (planId: string) => void;
 }
 
-export const PlansHighlight = ({ onSelectPlan }: PlansHighlightProps) => {
+export const PlansHighlight = ({ onSelectPlan, onShowDemo }: PlansHighlightProps) => {
   return (
     <Card className="bg-slate-900/95 border-slate-700/50 overflow-hidden">
       <CardContent className="p-6">
@@ -64,15 +65,15 @@ export const PlansHighlight = ({ onSelectPlan }: PlansHighlightProps) => {
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
-          {plans.map((plan) => {
+          {plans.map((plan, index) => {
             const Icon = plan.icon;
             return (
               <div
                 key={plan.id}
                 className={`relative rounded-xl p-5 ${plan.bgColor} border ${plan.borderColor} ${
                   plan.popular ? "ring-2 ring-primary/30" : ""
-                } transition-all hover:scale-[1.02] cursor-pointer`}
-                onClick={() => onSelectPlan(plan.id)}
+                } transition-all hover:scale-[1.02] animate-fade-in`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 {plan.popular && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
@@ -99,14 +100,39 @@ export const PlansHighlight = ({ onSelectPlan }: PlansHighlightProps) => {
                   )}
                 </div>
 
-                <ul className="space-y-2">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-sm">
+                <ul className="space-y-2 mb-4">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-emerald-400 flex-shrink-0" />
                       <span className="text-slate-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 bg-white/5 border-white/20 text-white hover:bg-white/10 hover:text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShowDemo(plan.id);
+                    }}
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    Demo
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={`flex-1 ${plan.id === "basic" ? "bg-emerald-600 hover:bg-emerald-700" : plan.id === "pro" ? "bg-primary hover:bg-primary/90" : "bg-purple-600 hover:bg-purple-700"}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectPlan(plan.id);
+                    }}
+                  >
+                    {plan.id === "basic" ? "Atual" : "Assinar"}
+                  </Button>
+                </div>
               </div>
             );
           })}
