@@ -5,6 +5,7 @@ export interface WorkSchedule {
   lunchStart: string;
   lunchDuration: number; // in minutes (60 or 120)
   endTime: string;
+  workDays: number[]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
   isConfigured: boolean;
 }
 
@@ -19,6 +20,7 @@ const DEFAULT_SCHEDULE: WorkSchedule = {
   lunchStart: "12:00",
   lunchDuration: 60,
   endTime: "17:00",
+  workDays: [1, 2, 3, 4, 5], // Monday to Friday
   isConfigured: false,
 };
 
@@ -43,8 +45,18 @@ export const useWorkSchedule = () => {
     setSchedule(prev => ({ ...prev, ...newSchedule }));
   }, []);
 
+  const isWorkDay = useCallback((): boolean => {
+    if (!schedule.isConfigured) return true;
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    return schedule.workDays.includes(currentDay);
+  }, [schedule]);
+
   const isWithinWorkHours = useCallback((): boolean => {
     if (!schedule.isConfigured) return true; // If not configured, always allow
+
+    // Check if today is a work day
+    if (!isWorkDay()) return false;
 
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -64,10 +76,13 @@ export const useWorkSchedule = () => {
     const afterLunch = currentMinutes >= lunchEndMinutes && currentMinutes < endMinutes;
 
     return beforeLunch || afterLunch;
-  }, [schedule]);
+  }, [schedule, isWorkDay]);
 
-  const getWorkStatus = useCallback((): 'before_work' | 'working' | 'lunch' | 'after_work' => {
+  const getWorkStatus = useCallback((): 'before_work' | 'working' | 'lunch' | 'after_work' | 'day_off' => {
     if (!schedule.isConfigured) return 'working';
+
+    // Check if today is a work day
+    if (!isWorkDay()) return 'day_off';
 
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -86,7 +101,7 @@ export const useWorkSchedule = () => {
     if (currentMinutes >= lunchStartMinutes && currentMinutes < lunchEndMinutes) return 'lunch';
     if (currentMinutes >= lunchEndMinutes && currentMinutes < endMinutes) return 'working';
     return 'after_work';
-  }, [schedule]);
+  }, [schedule, isWorkDay]);
 
   const getTimeUntilNextWork = useCallback((): number => {
     if (!schedule.isConfigured) return 0;
@@ -188,6 +203,7 @@ export const useWorkSchedule = () => {
     schedule,
     updateSchedule,
     isWithinWorkHours,
+    isWorkDay,
     getWorkStatus,
     getTimeUntilNextWork,
     getWorkMinutes,
