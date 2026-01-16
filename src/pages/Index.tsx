@@ -199,7 +199,13 @@ const Index = () => {
         <HRPanel />
 
         {/* Planos em Destaque */}
-        <PlansHighlight onSelectPlan={() => setPlansOpen(true)} />
+        <PlansHighlight onSelectPlan={(planId) => {
+          setPlansOpen(true);
+          // Se um plano específico foi selecionado, podemos pré-selecioná-lo
+          if (planId) {
+            console.log('Plano selecionado:', planId);
+          }
+        }} />
 
         {/* Dicas de Saúde */}
         <HealthTips />
