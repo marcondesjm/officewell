@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -12,6 +12,7 @@ import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { BirthdayCelebration } from "@/components/BirthdayCelebration";
 import { PostureCheckModal } from "@/components/PostureCheckModal";
+import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
 
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
@@ -60,6 +61,7 @@ const Index = () => {
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [workScheduleOpen, setWorkScheduleOpen] = useState(false);
   const [postureCheckOpen, setPostureCheckOpen] = useState(false);
+  const [dailySessionOpen, setDailySessionOpen] = useState(false);
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   
@@ -236,29 +238,54 @@ const Index = () => {
           />
         </div>
 
-        {/* Botão de Verificação de Postura */}
-        <Card className="p-4 glass-card">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20">
-                <ScanFace className="h-6 w-6 text-violet-500" />
+        {/* Botões de Postura e Sessão Diária */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <Card className="p-4 glass-card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20">
+                  <ScanFace className="h-6 w-6 text-violet-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Monitoramento de Postura</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Analise sua postura usando a câmera
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">Verificação de Postura</h3>
-                <p className="text-sm text-muted-foreground">
-                  Analise sua postura usando a câmera
-                </p>
-              </div>
+              <Button 
+                onClick={() => setPostureCheckOpen(true)}
+                className="gradient-primary"
+              >
+                <ScanFace className="h-4 w-4 mr-2" />
+                Verificar
+              </Button>
             </div>
-            <Button 
-              onClick={() => setPostureCheckOpen(true)}
-              className="gradient-primary"
-            >
-              <ScanFace className="h-4 w-4 mr-2" />
-              Verificar
-            </Button>
-          </div>
-        </Card>
+          </Card>
+
+          <Card className="p-4 glass-card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20">
+                  <Activity className="h-6 w-6 text-emerald-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Sessão Diária de Ergonomia</h3>
+                  <p className="text-sm text-muted-foreground">
+                    5 exercícios rápidos para sua saúde
+                  </p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setDailySessionOpen(true)}
+                variant="secondary"
+              >
+                <Activity className="h-4 w-4 mr-2" />
+                Iniciar
+              </Button>
+            </div>
+          </Card>
+        </div>
 
         {/* Contador de Água */}
         <WaterTracker />
@@ -374,6 +401,12 @@ const Index = () => {
           onOpenChange={setPostureCheckOpen}
         />
 
+        {/* Modal de Sessão Diária */}
+        <DailyErgonomicsSession
+          open={dailySessionOpen}
+          onOpenChange={setDailySessionOpen}
+        />
+
         {/* Work Schedule Setup */}
         <WorkScheduleSetup
           open={workScheduleOpen}
@@ -431,6 +464,10 @@ const Index = () => {
           </p>
           <p className="text-xs text-muted-foreground/60">
             Versão {APP_VERSION}
+          </p>
+          {/* Legal Disclaimer */}
+          <p className="text-[10px] text-muted-foreground/50 max-w-md mx-auto leading-tight pt-2">
+            ⚖️ As orientações do OfficeWell têm caráter educativo e não substituem avaliação médica ou fisioterapêutica.
           </p>
         </footer>
       </div>
