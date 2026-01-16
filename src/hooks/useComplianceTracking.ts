@@ -111,7 +111,7 @@ export const useComplianceTracking = () => {
     return {
       date: today,
       records: todayRecords,
-      complianceRate: total > 0 ? Math.round((completed / total) * 100) : 100,
+      complianceRate: total > 0 ? Math.round((completed / total) * 100) : 0,
     };
   }, [records]);
 
@@ -133,7 +133,7 @@ export const useComplianceTracking = () => {
       days.push({
         date: dateStr,
         records: dayRecords,
-        complianceRate: total > 0 ? Math.round((completed / total) * 100) : 100,
+        complianceRate: total > 0 ? Math.round((completed / total) * 100) : 0,
       });
     }
 
