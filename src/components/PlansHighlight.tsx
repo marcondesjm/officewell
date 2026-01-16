@@ -11,8 +11,11 @@ const plans = [
     icon: Check,
     features: ["Lembretes de água", "Alongamento", "Descanso visual"],
     popular: false,
-    color: "from-emerald-500/20 to-green-500/20",
-    iconColor: "text-emerald-500",
+    bgColor: "bg-emerald-900/80",
+    borderColor: "border-emerald-700/50",
+    iconBg: "bg-emerald-500/20",
+    iconColor: "text-emerald-400",
+    textColor: "text-emerald-50",
   },
   {
     id: "pro",
@@ -23,8 +26,11 @@ const plans = [
     icon: Rocket,
     features: ["Relatórios detalhados", "Metas personalizadas", "Sem anúncios"],
     popular: true,
-    color: "from-primary/20 to-blue-500/20",
+    bgColor: "bg-slate-800/90",
+    borderColor: "border-primary/50",
+    iconBg: "bg-primary/20",
     iconColor: "text-primary",
+    textColor: "text-slate-50",
   },
   {
     id: "enterprise",
@@ -35,22 +41,25 @@ const plans = [
     icon: Building2,
     features: ["Painel RH completo", "Relatórios compliance", "Suporte dedicado"],
     popular: false,
-    color: "from-purple-500/20 to-violet-500/20",
-    iconColor: "text-purple-500",
+    bgColor: "bg-slate-800/90",
+    borderColor: "border-purple-500/50",
+    iconBg: "bg-purple-500/20",
+    iconColor: "text-purple-400",
+    textColor: "text-slate-50",
   },
 ];
 
 interface PlansHighlightProps {
-  onSelectPlan: () => void;
+  onSelectPlan: (planId?: string) => void;
 }
 
 export const PlansHighlight = ({ onSelectPlan }: PlansHighlightProps) => {
   return (
-    <Card className="glass overflow-hidden">
+    <Card className="bg-slate-900/95 border-slate-700/50 overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-center justify-center gap-2 mb-6">
           <Crown className="h-6 w-6 text-yellow-500" />
-          <h2 className="text-xl font-bold">Escolha seu Plano</h2>
+          <h2 className="text-xl font-bold text-white">Escolha seu Plano</h2>
           <Sparkles className="h-5 w-5 text-yellow-500" />
         </div>
 
@@ -60,41 +69,41 @@ export const PlansHighlight = ({ onSelectPlan }: PlansHighlightProps) => {
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-xl p-4 bg-gradient-to-br ${plan.color} border ${
-                  plan.popular ? "border-primary ring-2 ring-primary/20" : "border-border/50"
+                className={`relative rounded-xl p-5 ${plan.bgColor} border ${plan.borderColor} ${
+                  plan.popular ? "ring-2 ring-primary/30" : ""
                 } transition-all hover:scale-[1.02] cursor-pointer`}
-                onClick={onSelectPlan}
+                onClick={() => onSelectPlan(plan.id)}
               >
                 {plan.popular && (
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary text-primary-foreground text-xs font-semibold px-2 py-0.5 rounded-full">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                    <span className="bg-amber-500 text-amber-950 text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                       Popular
                     </span>
                   </div>
                 )}
                 
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-full bg-background/80 flex items-center justify-center ${plan.iconColor}`}>
-                    <Icon className="h-5 w-5" />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-10 h-10 rounded-full ${plan.iconBg} flex items-center justify-center`}>
+                    <Icon className={`h-5 w-5 ${plan.iconColor}`} />
                   </div>
                   <div>
-                    <h3 className="font-semibold">{plan.name}</h3>
-                    <p className="text-xs text-muted-foreground">{plan.description}</p>
+                    <h3 className={`font-semibold ${plan.textColor}`}>{plan.name}</h3>
+                    <p className="text-xs text-slate-400">{plan.description}</p>
                   </div>
                 </div>
 
-                <div className="mb-3">
-                  <span className="text-2xl font-bold">{plan.price}</span>
+                <div className="mb-4">
+                  <span className={`text-2xl font-bold ${plan.textColor}`}>{plan.price}</span>
                   {plan.period && (
-                    <span className="text-sm text-muted-foreground">{plan.period}</span>
+                    <span className="text-sm text-slate-400">{plan.period}</span>
                   )}
                 </div>
 
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2 text-sm">
-                      <Check className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
-                      <span>{feature}</span>
+                      <Check className="h-4 w-4 text-emerald-400 flex-shrink-0" />
+                      <span className="text-slate-300">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -104,7 +113,11 @@ export const PlansHighlight = ({ onSelectPlan }: PlansHighlightProps) => {
         </div>
 
         <div className="mt-6 text-center">
-          <Button onClick={onSelectPlan} size="lg" className="gap-2">
+          <Button 
+            onClick={() => onSelectPlan()} 
+            size="lg" 
+            className="gap-2 bg-primary hover:bg-primary/90"
+          >
             <Crown className="h-4 w-4" />
             Ver Todos os Planos
           </Button>
