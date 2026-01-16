@@ -24,6 +24,14 @@ import {
   Crown,
   Play
 } from 'lucide-react';
+
+// Import real photos
+import heroOfficeTeam from '@/assets/hero-office-team.jpg';
+import teamStretching from '@/assets/team-stretching.jpg';
+import testimonialWoman1 from '@/assets/testimonial-woman-1.jpg';
+import testimonialMan1 from '@/assets/testimonial-man-1.jpg';
+import testimonialWoman2 from '@/assets/testimonial-woman-2.jpg';
+import officeWellness from '@/assets/office-wellness.jpg';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { SubscriptionPlans } from '@/components/SubscriptionPlans';
@@ -245,21 +253,24 @@ const Landing = () => {
       role: 'Gerente de RH',
       company: 'TechCorp',
       text: 'Reduzimos em 35% os afastamentos por problemas de saúde após implementar o OfficeWell.',
-      rating: 5
+      rating: 5,
+      image: testimonialWoman1
     },
     {
       name: 'Carlos Santos',
       role: 'CEO',
       company: 'StartupXYZ',
       text: 'A equipe está mais saudável e produtiva. O investimento se pagou em 2 meses!',
-      rating: 5
+      rating: 5,
+      image: testimonialMan1
     },
     {
       name: 'Ana Oliveira',
       role: 'Coordenadora de Bem-estar',
       company: 'BigCompany',
       text: 'Os relatórios de compliance nos ajudam a demonstrar valor para a diretoria.',
-      rating: 5
+      rating: 5,
+      image: testimonialWoman2
     }
   ];
 
@@ -547,46 +558,50 @@ const Landing = () => {
                   ease: "easeInOut"
                 }}
               />
-              <Card className="relative border-none shadow-2xl">
-                <CardContent className="p-8">
-                  <div className="flex items-center gap-4 mb-6">
-                    <motion.div 
-                      className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center"
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <Clock className="h-6 w-6 text-primary" />
-                    </motion.div>
-                    <div>
-                      <div className="font-semibold">Próximo lembrete</div>
-                      <div className="text-sm text-muted-foreground">em 15 minutos</div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    {[
-                      { icon: Droplets, label: 'Beber Água', time: '30 min', color: 'blue' },
-                      { icon: Activity, label: 'Alongamento', time: '1h', color: 'green' },
-                      { icon: Eye, label: 'Descanso Visual', time: '20 min', color: 'purple' }
-                    ].map((item, index) => (
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                <img 
+                  src={teamStretching} 
+                  alt="Equipe praticando alongamento no escritório"
+                  className="w-full h-80 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                <Card className="absolute bottom-4 left-4 right-4 border-none shadow-xl bg-background/95 backdrop-blur">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4 mb-3">
                       <motion.div 
-                        key={index}
-                        className={`flex items-center justify-between p-3 bg-${item.color}-50 dark:bg-${item.color}-950 rounded-lg`}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3 + index * 0.15 }}
-                        whileHover={{ x: 5 }}
+                        className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center"
+                        animate={{ rotate: [0, 5, -5, 0] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                       >
-                        <div className="flex items-center gap-3">
-                          <item.icon className={`h-5 w-5 text-${item.color}-500`} />
-                          <span className="font-medium">{item.label}</span>
-                        </div>
-                        <Badge variant="secondary">{item.time}</Badge>
+                        <Clock className="h-5 w-5 text-primary" />
                       </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      <div>
+                        <div className="font-semibold text-sm">Próximo lembrete</div>
+                        <div className="text-xs text-muted-foreground">em 15 minutos</div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { icon: Droplets, label: 'Água', color: 'text-blue-500' },
+                        { icon: Activity, label: 'Alongar', color: 'text-green-500' },
+                        { icon: Eye, label: 'Visão', color: 'text-purple-500' }
+                      ].map((item, index) => (
+                        <motion.div 
+                          key={index}
+                          className="flex flex-col items-center p-2 bg-muted/50 rounded-lg"
+                          initial={{ opacity: 0, y: 10 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.3 + index * 0.1 }}
+                        >
+                          <item.icon className={`h-5 w-5 ${item.color}`} />
+                          <span className="text-xs font-medium mt-1">{item.label}</span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -788,12 +803,14 @@ const Landing = () => {
                     <p className="text-muted-foreground mb-4">"{testimonial.text}"</p>
                     <div className="flex items-center gap-3">
                       <motion.div 
-                        className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center"
+                        className="h-12 w-12 rounded-full overflow-hidden"
                         whileHover={{ scale: 1.1 }}
                       >
-                        <span className="font-bold text-primary">
-                          {testimonial.name.split(' ').map(n => n[0]).join('')}
-                        </span>
+                        <img 
+                          src={testimonial.image} 
+                          alt={testimonial.name}
+                          className="h-full w-full object-cover"
+                        />
                       </motion.div>
                       <div>
                         <div className="font-semibold text-sm">{testimonial.name}</div>
