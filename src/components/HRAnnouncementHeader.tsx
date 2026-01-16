@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   Popover,
@@ -27,12 +28,16 @@ import {
   Cake,
   Camera,
   User,
-  Wand2
+  Wand2,
+  Trophy,
+  Star,
+  Target
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { useGamification } from "@/hooks/useGamification";
 
 import waterBreakImg from "@/assets/water-break.png";
 import stretchingBreakImg from "@/assets/stretching-break.png";
@@ -131,8 +136,12 @@ export const HRAnnouncementHeader = () => {
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
-
-  // Save profile to localStorage when it changes
+  
+  // Gamification stats
+  const { stats, getCurrentRank, getNextRank, getProgressToNextRank } = useGamification();
+  const currentRank = getCurrentRank();
+  const nextRank = getNextRank();
+  const progressToNextRank = getProgressToNextRank();
   useEffect(() => {
     localStorage.setItem('hr-demo-profile', JSON.stringify(userProfile));
   }, [userProfile]);
@@ -417,38 +426,74 @@ export const HRAnnouncementHeader = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
-      {/* HR Demo Button with Theme Toggle */}
+      {/* Profile with Level and Points */}
       <div className="flex justify-center items-center gap-3">
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="rounded-full border-2 border-primary/50 hover:bg-primary/10 hover:border-primary gap-2 pr-4"
+              className="rounded-full border-2 border-primary/50 hover:bg-primary/10 hover:border-primary gap-2 pr-4 h-auto py-2"
             >
-              <Avatar className="h-6 w-6 -ml-1">
+              <Avatar className="h-8 w-8 -ml-1 border-2 border-primary/30">
                 <AvatarImage src={userProfile.avatarUrl || undefined} alt={userProfile.name} />
-                <AvatarFallback className="text-xs bg-primary/20 text-primary">
+                <AvatarFallback className="text-xs bg-primary/20 text-primary font-bold">
                   {getInitials(userProfile.name)}
                 </AvatarFallback>
               </Avatar>
-              {userProfile.name}
+              <div className="flex flex-col items-start gap-0.5">
+                <span className="text-sm font-medium leading-none">{userProfile.name}</span>
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-base leading-none">{currentRank.icon}</span>
+                  <span className={`font-medium ${currentRank.color}`}>{currentRank.name}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-primary font-bold">{stats.totalPoints}</span>
+                  <Star className="h-3 w-3 text-primary fill-primary" />
+                </div>
+              </div>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72" align="center">
+          <PopoverContent className="w-80" align="center">
             <div className="space-y-4">
               <div className="text-center">
-                <h4 className="font-medium mb-3">Personalizar Conta</h4>
+                <h4 className="font-medium mb-3">Personalizar Perfil</h4>
                 
                 {/* Avatar Preview */}
                 <div className="flex justify-center mb-4">
                   <div className="relative">
-                    <Avatar className="h-20 w-20 border-2 border-primary/30">
+                    <Avatar className="h-24 w-24 border-4 border-primary/30 shadow-lg">
                       <AvatarImage src={userProfile.avatarUrl || undefined} alt={userProfile.name} />
-                      <AvatarFallback className="text-xl bg-primary/20 text-primary">
+                      <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/30 to-primary/10 text-primary font-bold">
                         {getInitials(userProfile.name)}
                       </AvatarFallback>
                     </Avatar>
+                    <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full bg-background border-2 border-primary flex items-center justify-center text-lg shadow-md">
+                      {currentRank.icon}
+                    </div>
                   </div>
+                </div>
+
+                {/* Level & Points Display */}
+                <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-xl p-3 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="h-4 w-4 text-primary" />
+                      <span className={`font-bold ${currentRank.color}`}>{currentRank.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-lg font-bold text-primary">{stats.totalPoints}</span>
+                      <Star className="h-4 w-4 text-primary fill-primary" />
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{currentRank.description}</p>
+                  {nextRank && (
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Próximo: {nextRank.name} {nextRank.icon}</span>
+                        <span className="text-primary font-medium">{Math.round(progressToNextRank)}%</span>
+                      </div>
+                      <Progress value={progressToNextRank} className="h-2" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Photo Upload & Generate */}
@@ -468,7 +513,7 @@ export const HRAnnouncementHeader = () => {
                     className="gap-1"
                   >
                     <Camera size={14} />
-                    Foto
+                    Enviar Foto
                   </Button>
                   <Button
                     type="button"
@@ -505,18 +550,47 @@ export const HRAnnouncementHeader = () => {
                 </div>
               </div>
 
-              {/* Go to RH Admin */}
-              <Button
-                onClick={() => {
-                  setPopoverOpen(false);
-                  navigate("/rh");
-                }}
-                variant="default"
-                className="w-full gap-2"
-              >
-                <UserCog size={16} />
-                Acessar Painel RH
-              </Button>
+              {/* Quick Stats */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t">
+                <div className="text-center p-2 rounded-lg bg-muted/50">
+                  <div className="text-lg font-bold text-primary">{stats.currentStreak}</div>
+                  <div className="text-[10px] text-muted-foreground">Dias seguidos</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-muted/50">
+                  <div className="text-lg font-bold text-green-500">{stats.activitiesCompleted}</div>
+                  <div className="text-[10px] text-muted-foreground">Atividades</div>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-muted/50">
+                  <div className="text-lg font-bold text-orange-500">{stats.longestStreak}</div>
+                  <div className="text-[10px] text-muted-foreground">Melhor streak</div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    setPopoverOpen(false);
+                    navigate("/metas");
+                  }}
+                  variant="outline"
+                  className="flex-1 gap-2"
+                >
+                  <Target size={16} />
+                  Metas
+                </Button>
+                <Button
+                  onClick={() => {
+                    setPopoverOpen(false);
+                    navigate("/rh");
+                  }}
+                  variant="default"
+                  className="flex-1 gap-2"
+                >
+                  <UserCog size={16} />
+                  Painel RH
+                </Button>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
