@@ -51,7 +51,7 @@ let lastNotified = {
 let checkIntervalId = null;
 const CHECK_INTERVAL = 5000; // Verificar a cada 5 segundos
 
-// Mostrar notificação com som
+// Mostrar notificação com som (3 repetições)
 async function showTimerNotification(type) {
   const notif = NOTIFICATION_TYPES[type];
   if (!notif) return;
@@ -67,30 +67,33 @@ async function showTimerNotification(type) {
   lastNotified[type] = now;
   
   try {
-    // Enviar mensagem para TODOS os clientes para tocar som
+    // Enviar mensagem para TODOS os clientes para tocar som 3x
     const allClients = await clients.matchAll({ 
       includeUncontrolled: true, 
       type: 'window' 
     });
     
-    // Primeiro, tentar tocar som através dos clientes
+    // Tocar som 3 vezes através dos clientes
     for (const client of allClients) {
       client.postMessage({
         type: 'PLAY_NOTIFICATION_SOUND',
         reminderType: type,
         timestamp: now,
-        soundUrl: NOTIFICATION_SOUND_BASE64
+        soundUrl: NOTIFICATION_SOUND_BASE64,
+        repeatCount: 3, // Repetir 3 vezes
+        repeatInterval: 1500 // Intervalo de 1.5 segundos entre repetições
       });
     }
     
-    // Mostrar notificação do sistema com vibração
+    // Mostrar notificação do sistema com vibração tripla
     await self.registration.showNotification(notif.title, {
       body: notif.body,
       icon: '/pwa-192x192.png',
       badge: '/pwa-192x192.png',
       tag: notif.tag,
       requireInteraction: true,
-      vibrate: [300, 100, 300, 100, 300, 100, 300], // Vibração mais longa e intensa
+      // Vibração tripla: 3 séries de vibrações intensas
+      vibrate: [400, 200, 400, 200, 400, 500, 400, 200, 400, 200, 400, 500, 400, 200, 400, 200, 400],
       renotify: true,
       silent: false, // Garantir que não é silenciosa
       data: { type, timestamp: now },
@@ -100,7 +103,7 @@ async function showTimerNotification(type) {
       ]
     });
     
-    console.log(`SW: Notificação ${type} enviada com sucesso`);
+    console.log(`SW: Notificação ${type} enviada com som 3x`);
     
     // Notificar todos os clientes sobre a notificação
     allClients.forEach(client => {
@@ -353,7 +356,7 @@ self.addEventListener('sync', (event) => {
 
 // Instalação
 self.addEventListener('install', (event) => {
-  console.log('SW Custom v4.0: Instalado com som melhorado');
+  console.log('SW Custom v5.0: Instalado com som 3x');
   self.skipWaiting();
 });
 

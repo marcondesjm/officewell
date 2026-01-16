@@ -10,17 +10,16 @@ interface TimerState {
 // Som de notificação base64 (beep)
 const NOTIFICATION_SOUND_BASE64 = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2televV9vkJ2dlH5ebGuNpZ+QdE5HX4WipJR4WlFqgpWWh3RSS2mFk5OGdVZQaIGRkIN2WFNngJCPgXhbVWZ/kI6Bd1xXZn+QjYB4XVhngJCNgHhdWGd/j42AeF1YZ3+PjYB4XVhnf4+Nf3hdWGd/j42AeF5YZ3+PjYB4Xlhnf4+NgHheWGd/j42AeF5YaH+PjYB4Xlhof4+NgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIB4Xlhof4+MgHheWGh/j4yAeF5YaH+PjIF4XlsA';
 
-// Função para tocar som de notificação
-const playNotificationSound = async (volume: number = 0.8): Promise<void> => {
+// Função para tocar um beep simples
+const playSingleBeep = async (volume: number = 0.8): Promise<void> => {
   try {
     // Método 1: Audio API
     const audio = new Audio(NOTIFICATION_SOUND_BASE64);
     audio.volume = volume;
     await audio.play();
-    console.log('Som tocado via Audio API');
     return;
   } catch (e) {
-    console.log('Audio API falhou, tentando AudioContext...');
+    // fallback silencioso
   }
 
   try {
@@ -48,7 +47,7 @@ const playNotificationSound = async (volume: number = 0.8): Promise<void> => {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
       
-      // Segundo beep
+      // Segundo beep (parte da mesma série)
       setTimeout(() => {
         const osc2 = audioContext.createOscillator();
         const gain2 = audioContext.createGain();
@@ -62,11 +61,27 @@ const playNotificationSound = async (volume: number = 0.8): Promise<void> => {
         osc2.start(audioContext.currentTime);
         osc2.stop(audioContext.currentTime + 0.4);
       }, 200);
-      
-      console.log('Som tocado via AudioContext');
     }
   } catch (e) {
-    console.log('AudioContext também falhou:', e);
+    console.log('AudioContext falhou:', e);
+  }
+};
+
+// Função para tocar som de notificação N vezes
+const playNotificationSound = async (
+  volume: number = 0.8, 
+  repeatCount: number = 1, 
+  repeatInterval: number = 1500
+): Promise<void> => {
+  console.log(`Tocando som ${repeatCount}x com intervalo de ${repeatInterval}ms`);
+  
+  for (let i = 0; i < repeatCount; i++) {
+    await playSingleBeep(volume);
+    
+    // Esperar antes de tocar novamente (exceto na última repetição)
+    if (i < repeatCount - 1) {
+      await new Promise(resolve => setTimeout(resolve, repeatInterval));
+    }
   }
 };
 
@@ -226,12 +241,15 @@ export const useBackgroundSync = () => {
       // Tocar som APENAS quando o SW solicitar (timer chegou a zero) E som estiver habilitado
       if (event.data?.type === 'PLAY_NOTIFICATION_SOUND') {
         if (checkSoundEnabled()) {
-          console.log(`Timer ${event.data.reminderType} acabou - tocando som`);
-          await playNotificationSound(0.9);
+          const repeatCount = event.data.repeatCount || 3; // Padrão 3 vezes
+          const repeatInterval = event.data.repeatInterval || 1500; // 1.5 segundos
           
-          // Vibrar também
+          console.log(`Timer ${event.data.reminderType} acabou - tocando som ${repeatCount}x`);
+          await playNotificationSound(0.9, repeatCount, repeatInterval);
+          
+          // Vibrar também (padrão triplo)
           if (navigator.vibrate) {
-            navigator.vibrate([300, 100, 300, 100, 300]);
+            navigator.vibrate([400, 200, 400, 200, 400, 500, 400, 200, 400, 200, 400, 500, 400, 200, 400, 200, 400]);
           }
         } else {
           console.log(`Timer ${event.data.reminderType} acabou - som desativado`);
