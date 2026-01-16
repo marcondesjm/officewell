@@ -345,6 +345,7 @@ const Index = () => {
         {/* Work Schedule Setup */}
         <WorkScheduleSetup
           open={workScheduleOpen}
+          onOpenChange={setWorkScheduleOpen}
           onSave={(newSchedule) => {
             updateWorkSchedule(newSchedule);
             setWorkScheduleOpen(false);

@@ -10,11 +10,12 @@ import { WorkSchedule } from "@/hooks/useWorkSchedule";
 
 interface WorkScheduleSetupProps {
   open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSave: (schedule: Partial<WorkSchedule>) => void;
   currentSchedule: WorkSchedule;
 }
 
-export const WorkScheduleSetup = ({ open, onSave, currentSchedule }: WorkScheduleSetupProps) => {
+export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule }: WorkScheduleSetupProps) => {
   const [startTime, setStartTime] = useState(currentSchedule.startTime);
   const [lunchStart, setLunchStart] = useState(currentSchedule.lunchStart);
   const [lunchDuration, setLunchDuration] = useState<string>(String(currentSchedule.lunchDuration));
@@ -49,8 +50,8 @@ export const WorkScheduleSetup = ({ open, onSave, currentSchedule }: WorkSchedul
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Briefcase className="h-5 w-5 text-primary" />
