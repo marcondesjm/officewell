@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -63,13 +63,26 @@ const plans = [
 interface SubscriptionPlansProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  preSelectedPlan?: string | null;
 }
 
-export const SubscriptionPlans = ({ open, onOpenChange }: SubscriptionPlansProps) => {
+export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: SubscriptionPlansProps) => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [step, setStep] = useState<"plans" | "form">("plans");
+
+  // Auto-select plan when dialog opens with preSelectedPlan
+  useEffect(() => {
+    if (open && preSelectedPlan && preSelectedPlan !== "basic") {
+      setSelectedPlan(preSelectedPlan);
+      setStep("form");
+    } else if (!open) {
+      // Reset when dialog closes
+      setStep("plans");
+      setSelectedPlan(null);
+    }
+  }, [open, preSelectedPlan]);
 
   const handleSelectPlan = (planId: string) => {
     if (planId === "basic") {

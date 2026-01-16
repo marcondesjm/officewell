@@ -48,6 +48,7 @@ const Index = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [donationOpen, setDonationOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [workScheduleOpen, setWorkScheduleOpen] = useState(false);
   const navigate = useNavigate();
@@ -200,11 +201,8 @@ const Index = () => {
 
         {/* Planos em Destaque */}
         <PlansHighlight onSelectPlan={(planId) => {
+          setSelectedPlanId(planId || null);
           setPlansOpen(true);
-          // Se um plano específico foi selecionado, podemos pré-selecioná-lo
-          if (planId) {
-            console.log('Plano selecionado:', planId);
-          }
         }} />
 
         {/* Dicas de Saúde */}
@@ -227,7 +225,11 @@ const Index = () => {
         {/* Dialog de Planos */}
         <SubscriptionPlans
           open={plansOpen}
-          onOpenChange={setPlansOpen}
+          onOpenChange={(open) => {
+            setPlansOpen(open);
+            if (!open) setSelectedPlanId(null);
+          }}
+          preSelectedPlan={selectedPlanId}
         />
 
         {/* Modal de Alongamento */}
