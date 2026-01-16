@@ -80,14 +80,63 @@ const calculateStatus = (info: TrialInfo | null): TrialStatus => {
   };
 };
 
+// Enviar notificação push de trial
+const sendTrialNotification = async (notificationType: string, planName: string, daysRemaining: number) => {
+  try {
+    if ('serviceWorker' in navigator && 'Notification' in window && Notification.permission === 'granted') {
+      const registration = await navigator.serviceWorker.ready;
+      registration.active?.postMessage({
+        type: 'TRIAL_NOTIFICATION',
+        notificationType,
+        planName,
+        daysRemaining
+      });
+    }
+  } catch (e) {
+    console.log('Erro ao enviar notificação de trial:', e);
+  }
+};
+
+// Verificar se deve enviar notificação de trial
+const checkAndSendTrialNotification = (status: TrialStatus) => {
+  if (!status.isOnTrial && !status.isExpired) return;
+  
+  const lastNotificationKey = 'officewell_trial_last_notification';
+  const lastNotification = localStorage.getItem(lastNotificationKey);
+  const now = Date.now();
+  
+  // Verificar se já enviou notificação nas últimas 6 horas
+  if (lastNotification) {
+    const lastTime = parseInt(lastNotification, 10);
+    if (now - lastTime < 6 * 60 * 60 * 1000) {
+      return; // Não enviar novamente
+    }
+  }
+  
+  if (status.isExpired) {
+    sendTrialNotification('trial_expired', status.planName || '', 0);
+    localStorage.setItem(lastNotificationKey, now.toString());
+  } else if (status.daysRemaining === 1) {
+    sendTrialNotification('trial_last_day', status.planName || '', 1);
+    localStorage.setItem(lastNotificationKey, now.toString());
+  } else if (status.daysRemaining <= 2) {
+    sendTrialNotification('trial_warning', status.planName || '', status.daysRemaining);
+    localStorage.setItem(lastNotificationKey, now.toString());
+  }
+};
+
 export const useTrialStatus = () => {
   const [trialInfo, setTrialInfo] = useState<TrialInfo | null>(loadTrialInfo);
   const [status, setStatus] = useState<TrialStatus>(() => calculateStatus(loadTrialInfo()));
 
-  // Update status every minute
+  // Update status every minute and check for notifications
   useEffect(() => {
     const updateStatus = () => {
-      setStatus(calculateStatus(trialInfo));
+      const newStatus = calculateStatus(trialInfo);
+      setStatus(newStatus);
+      
+      // Verificar notificações de trial
+      checkAndSendTrialNotification(newStatus);
     };
 
     updateStatus();
@@ -95,6 +144,17 @@ export const useTrialStatus = () => {
 
     return () => clearInterval(interval);
   }, [trialInfo]);
+  
+  // Verificar notificações ao carregar a página
+  useEffect(() => {
+    if (status.isOnTrial || status.isExpired) {
+      // Pequeno delay para garantir que o SW está pronto
+      const timeout = setTimeout(() => {
+        checkAndSendTrialNotification(status);
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, []);
 
   const startTrial = useCallback((planId: string, planName: string, trialDays: number = 7) => {
     const info: TrialInfo = {
