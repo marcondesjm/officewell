@@ -361,8 +361,8 @@ const Landing = () => {
                 Acessar App
               </Button>
             </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="hidden sm:block">
-              <Button onClick={() => setPlansOpen(true)} size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white shadow-md shadow-green-500/20">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="hidden sm:block">
+              <Button onClick={() => setPlansOpen(true)} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
                 Começar Agora
               </Button>
             </motion.div>
@@ -405,7 +405,7 @@ const Landing = () => {
                 </Link>
                 <Button 
                   onClick={() => { setPlansOpen(true); setMobileMenuOpen(false); }} 
-                  className="mt-2 bg-[#25D366] hover:bg-[#128C7E] text-white"
+                  className="mt-2 bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Começar Agora
                 </Button>
@@ -424,8 +424,8 @@ const Landing = () => {
             variants={fadeInUp}
             transition={{ duration: 0.6 }}
           >
-            <Badge variant="secondary" className="mb-6 px-4 py-2">
-              <Sparkles className="h-4 w-4 mr-2" />
+            <Badge variant="outline" className="mb-6 px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
+              <Sparkles className="h-3.5 w-3.5 mr-2" />
               Teste grátis por 7 dias
             </Badge>
           </motion.div>
@@ -463,26 +463,26 @@ const Landing = () => {
               href="https://wa.me/5548996029392?text=Olá! Gostaria de agendar uma consultoria gratuita sobre o OfficeWell"
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold text-white rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-xl shadow-orange-500/30 transition-all duration-300 animate-pulse hover:animate-none"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-semibold text-white rounded-lg bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all duration-200"
             >
-              <MessageCircle className="h-5 w-5" />
-              Quero Consultoria Gratuita
-              <ArrowRight className="h-5 w-5" />
+              <MessageCircle className="h-4 w-4" />
+              Consultoria Gratuita
+              <ArrowRight className="h-4 w-4" />
             </motion.a>
             
-            <div className="flex flex-col sm:flex-row gap-4">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" className="text-lg px-8 bg-[#25D366] hover:bg-[#128C7E] text-white shadow-lg shadow-green-500/25" onClick={() => setPlansOpen(true)}>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button size="lg" className="px-6 bg-accent hover:bg-accent/90 text-accent-foreground shadow-md" onClick={() => setPlansOpen(true)}>
                   Começar Grátis
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </motion.div>
               <Link to="/">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button size="lg" variant="outline" className="text-lg px-8 border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10">
-                    <Smartphone className="mr-2 h-5 w-5" />
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Button size="lg" variant="outline" className="px-6">
+                    <Smartphone className="mr-2 h-4 w-4" />
                     Ver Demo
                   </Button>
                 </motion.div>
