@@ -35,7 +35,8 @@ import {
   Megaphone,
   PartyPopper,
   AlertCircle,
-  Gift
+  Gift,
+  ChevronDown
 } from 'lucide-react';
 
 // Import real photos
@@ -553,7 +554,32 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Scroll Indicator */}
+      <motion.div 
+        className="flex flex-col items-center justify-center pb-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1, duration: 0.5 }}
+      >
+        <motion.button
+          onClick={() => scrollToSection('#funcionalidades')}
+          className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors cursor-pointer group"
+          whileHover={{ scale: 1.05 }}
+        >
+          <span className="text-sm font-medium">Descubra mais</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ 
+              duration: 1.5, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+            className="p-2 rounded-full border border-muted-foreground/30 group-hover:border-primary/50 transition-colors"
+          >
+            <ChevronDown className="h-5 w-5" />
+          </motion.div>
+        </motion.button>
+      </motion.div>
       <section id="funcionalidades" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
