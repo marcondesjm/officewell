@@ -10,6 +10,7 @@ import stretchingImage4 from "@/assets/stretching-break-4.png";
 import { getRandomIndex } from "@/hooks/useDailyRandomMessage";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGamification } from "@/hooks/useGamification";
+import { useGoals } from "@/hooks/useGoals";
 import { toast } from "sonner";
 
 const stretchingImages = [stretchingImage1, stretchingImage2, stretchingImage3, stretchingImage4];
@@ -174,6 +175,7 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
   const [mainTimerPaused, setMainTimerPaused] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState(false);
   const { addPoints } = useGamification();
+  const { incrementProgress } = useGoals();
 
   // Calculate minimum duration based on exercise times
   const totalExerciseTime = tipSet.tips.reduce((acc, tip) => acc + tip.duration, 0);
@@ -307,11 +309,14 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
           description: "Alongamento completado",
           icon: <Star className="h-4 w-4 text-yellow-500" />,
         });
+        
+        // Update goals progress
+        incrementProgress("breaks", 1);
       }
       
       onClose();
     }
-  }, [canClose, startTime, elapsed, completedExercises, onClose, pointsAwarded, addPoints]);
+  }, [canClose, startTime, elapsed, completedExercises, onClose, pointsAwarded, addPoints, incrementProgress]);
 
   const currentExercise = tipSet.tips[currentExerciseIndex];
   const exerciseProgress = currentExercise ? ((currentExercise.duration - exerciseTimeLeft) / currentExercise.duration) * 100 : 0;

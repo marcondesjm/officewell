@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGamification } from "@/hooks/useGamification";
+import { useGoals } from "@/hooks/useGoals";
 import { toast } from "sonner";
 
 interface DailyErgonomicsSessionProps {
@@ -82,6 +83,7 @@ export const DailyErgonomicsSession = ({ open, onOpenChange }: DailyErgonomicsSe
   const [isSessionComplete, setIsSessionComplete] = useState(false);
   const [pointsAwarded, setPointsAwarded] = useState(false);
   const { addPoints } = useGamification();
+  const { incrementProgress } = useGoals();
 
   // Reset when modal opens
   useEffect(() => {
@@ -158,9 +160,12 @@ export const DailyErgonomicsSession = ({ open, onOpenChange }: DailyErgonomicsSe
         description: "Sessão diária completada",
         icon: <Star className="h-4 w-4 text-yellow-500" />,
       });
+      
+      // Update goals progress
+      incrementProgress("ergonomics_session", 1);
     }
     onOpenChange(false);
-  }, [onOpenChange, isSessionComplete, pointsAwarded, addPoints]);
+  }, [onOpenChange, isSessionComplete, pointsAwarded, addPoints, incrementProgress]);
 
   const currentExercise = currentExerciseIndex >= 0 ? exercises[currentExerciseIndex] : null;
   const progress = currentExercise ? ((currentExercise.duration - timeLeft) / currentExercise.duration) * 100 : 0;

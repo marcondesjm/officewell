@@ -9,6 +9,7 @@ import Install from "./pages/Install";
 import HRAdmin from "./pages/HRAdmin";
 import PartnersAdmin from "./pages/PartnersAdmin";
 import Landing from "./pages/Landing";
+import Goals from "./pages/Goals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/landing" element={<Landing />} />
             <Route path="/install" element={<Install />} />
             <Route path="/rh" element={<HRAdmin />} />
+            <Route path="/metas" element={<Goals />} />
             <Route path="/parceiros" element={<PartnersAdmin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

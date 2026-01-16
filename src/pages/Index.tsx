@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -29,6 +29,7 @@ import { LockedFeature } from "@/components/LockedFeature";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
 import { usePlanFeatures } from "@/hooks/usePlanFeatures";
+import { useGoals } from "@/hooks/useGoals";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -69,6 +70,10 @@ const Index = () => {
   
   // Plan features
   const { currentPlan, features, isFeatureLocked, getRequiredPlan } = usePlanFeatures();
+  
+  // Goals tracking
+  const { goals, incrementProgress, getTotalProgress } = useGoals();
+  const goalsProgress = getTotalProgress();
   // Show work schedule setup on first load
   useEffect(() => {
     if (needsWorkScheduleConfig) {
@@ -291,6 +296,36 @@ const Index = () => {
             </div>
           </Card>
         </div>
+
+        {/* Goals Card - Minhas Metas */}
+        <Card className="p-4 glass-card overflow-hidden">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20">
+                <Target className="h-6 w-6 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Minhas Metas</h3>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhe seu progresso diário
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-2xl font-bold text-amber-500">{goalsProgress.toFixed(0)}%</p>
+                <p className="text-xs text-muted-foreground">Progresso hoje</p>
+              </div>
+              <Button 
+                onClick={() => navigate("/metas")}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+              >
+                <Target className="h-4 w-4 mr-2" />
+                Ver Metas
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         {/* Contador de Água */}
         <WaterTracker />
