@@ -38,6 +38,8 @@ interface Partner {
   shadow_color: string;
   text_gradient: string;
   badge: string | null;
+  impressions?: number;
+  clicks?: number;
 }
 
 export const PartnersBanner = () => {
@@ -53,7 +55,7 @@ export const PartnersBanner = () => {
       try {
         const { data, error } = await supabase
           .from("partners")
-          .select("id, name, description, url, icon, gradient, border_color, icon_bg, button_gradient, shadow_color, text_gradient, badge")
+          .select("id, name, description, url, icon, gradient, border_color, icon_bg, button_gradient, shadow_color, text_gradient, badge, impressions, clicks")
           .eq("is_active", true)
           .order("display_order", { ascending: true });
 
@@ -73,20 +75,15 @@ export const PartnersBanner = () => {
   useEffect(() => {
     if (partners.length === 0 || dismissed) return;
     
-    const partner = partners[currentIndex];
-    if (!partner) return;
+    const currentPartner = partners[currentIndex];
+    if (!currentPartner) return;
 
-    // Track impression
-    const trackImpression = async () => {
-      try {
-        await supabase.rpc("increment_partner_impressions", { partner_id: partner.id });
-      } catch (error) {
-        // Silently fail - tracking is not critical
-        console.log("Could not track impression");
-      }
-    };
-
-    trackImpression();
+    // Track impression by updating the count directly
+    supabase
+      .from('partners')
+      .update({ impressions: (currentPartner.impressions || 0) + 1 })
+      .eq('id', currentPartner.id)
+      .then(() => {});
   }, [currentIndex, partners, dismissed]);
 
   // Auto-rotate every 8 seconds
@@ -106,12 +103,11 @@ export const PartnersBanner = () => {
   const Icon = iconMap[partner.icon] || Building2;
 
   const handleClick = async () => {
-    // Track click
-    try {
-      await supabase.rpc("increment_partner_clicks", { partner_id: partner.id });
-    } catch (error) {
-      console.log("Could not track click");
-    }
+    // Track click by updating the count directly
+    await supabase
+      .from('partners')
+      .update({ clicks: (partner.clicks || 0) + 1 })
+      .eq('id', partner.id);
     
     window.open(partner.url, "_blank", "noopener,noreferrer");
   };
