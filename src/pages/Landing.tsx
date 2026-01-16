@@ -499,13 +499,13 @@ const Landing = () => {
               href="https://wa.me/5548996029392?text=Olá! Gostaria de agendar uma consultoria gratuita sobre o OfficeWell"
               target="_blank"
               rel="noopener noreferrer"
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center justify-center gap-2 px-10 py-4 text-lg font-bold text-white rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-xl shadow-primary/30 transition-all duration-200"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-primary-foreground rounded-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 border border-primary/20"
             >
-              <MessageCircle className="h-5 w-5" />
-              Quero Consultoria Gratuita
-              <ArrowRight className="h-5 w-5" />
+              <MessageCircle className="h-4 w-4" />
+              Consultoria Gratuita
+              <ArrowRight className="h-4 w-4" />
             </motion.a>
             
             <div className="flex flex-col sm:flex-row gap-3">
