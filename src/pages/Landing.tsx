@@ -716,7 +716,7 @@ const Landing = () => {
       </section>
 
       {/* Pricing Section */}
-      <section id="planos" className="py-20 px-4 bg-slate-900 dark:bg-slate-950">
+      <section id="planos" className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             initial="hidden"
@@ -726,10 +726,10 @@ const Landing = () => {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white flex items-center justify-center gap-2">
-              <Crown className="h-8 w-8 text-yellow-400" />
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-2">
+              <Crown className="h-8 w-8 text-yellow-500" />
               Escolha seu Plano
-              <Sparkles className="h-6 w-6 text-yellow-400" />
+              <Sparkles className="h-6 w-6 text-yellow-500" />
             </h2>
           </motion.div>
           
@@ -751,10 +751,10 @@ const Landing = () => {
                 }}
               >
                 <Card 
-                  className={`relative border transition-all h-full bg-slate-800/50 dark:bg-slate-900/50 backdrop-blur ${
+                  className={`relative border transition-all h-full bg-card backdrop-blur ${
                     plan.popular 
                       ? 'border-primary/50 shadow-lg shadow-primary/20' 
-                      : 'border-slate-700 hover:border-slate-600'
+                      : 'border-border hover:border-primary/30'
                   }`}
                 >
                   {plan.popular && (
@@ -780,13 +780,13 @@ const Landing = () => {
                         {plan.id === 'enterprise' && <Crown className="h-5 w-5 text-purple-400" />}
                       </div>
                       <div>
-                        <CardTitle className="text-xl text-white">{plan.name}</CardTitle>
-                        <p className="text-slate-400 text-sm">{plan.subtitle}</p>
+                        <CardTitle className="text-xl">{plan.name}</CardTitle>
+                        <p className="text-muted-foreground text-sm">{plan.subtitle}</p>
                       </div>
                     </div>
                     <div className="flex items-baseline gap-2 mt-4">
-                      <span className="text-4xl font-bold text-white">{plan.price}</span>
-                      {plan.period && <span className="text-slate-400">{plan.period}</span>}
+                      <span className="text-4xl font-bold">{plan.price}</span>
+                      {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
                       {plan.trial && (
                         <Badge variant="outline" className="ml-2 border-green-500/50 text-green-400 text-xs">
                           <Clock className="h-3 w-3 mr-1" />
@@ -806,15 +806,15 @@ const Landing = () => {
                           viewport={{ once: true }}
                           transition={{ delay: 0.1 * featureIndex }}
                         >
-                          <Check className="h-4 w-4 text-green-400 flex-shrink-0" />
-                          <span className="text-sm text-slate-300">{feature}</span>
+                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span className="text-sm text-muted-foreground">{feature}</span>
                         </motion.li>
                       ))}
                     </ul>
                     <div className="flex gap-2">
                       <Button 
                         variant="outline" 
-                        className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
+                        className="flex-1"
                         onClick={() => handleSelectPlan(plan.id)}
                       >
                         <Play className="h-4 w-4 mr-1" />
@@ -849,10 +849,9 @@ const Landing = () => {
             <Button 
               variant="outline" 
               size="lg"
-              className="border-slate-600 text-slate-300 hover:bg-slate-800"
               onClick={() => setPlansOpen(true)}
             >
-              <Crown className="h-5 w-5 mr-2 text-yellow-400" />
+              <Crown className="h-5 w-5 mr-2 text-yellow-500" />
               Ver Todos os Planos
             </Button>
           </motion.div>
