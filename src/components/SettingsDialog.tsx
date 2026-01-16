@@ -215,7 +215,7 @@ export const SettingsDialog = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
+        <ScrollArea className="flex-1 -mx-6 px-6 max-h-[60vh]">
           <div className="space-y-6 py-4">
             {/* Configuração de Som */}
             <div className="space-y-4 p-4 rounded-lg bg-muted/50 border">
