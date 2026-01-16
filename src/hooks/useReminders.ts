@@ -9,6 +9,10 @@ export interface ReminderConfig {
   stretchInterval: number;
   waterInterval: number;
   soundEnabled: boolean;
+  soundVolume: number; // 0-100
+  soundForEye: boolean;
+  soundForStretch: boolean;
+  soundForWater: boolean;
 }
 
 export interface ReminderState {
@@ -37,6 +41,10 @@ const DEFAULT_CONFIG: ReminderConfig = {
   stretchInterval: 50,  // NR-17: pausas ergonômicas a cada 50 min
   waterInterval: 60,    // Hidratação regular a cada hora
   soundEnabled: true,   // Som de notificação ativado por padrão
+  soundVolume: 70,      // Volume padrão 70%
+  soundForEye: true,    // Tocar som para descanso visual
+  soundForStretch: true, // Tocar som para alongamento
+  soundForWater: true,  // Tocar som para hidratação
 };
 
 const loadConfig = (): ReminderConfig => {
@@ -178,9 +186,20 @@ export const useReminders = () => {
 
     const notification = notifications[type];
 
-    // Tocar som de alerta APENAS se som estiver habilitado
+    // Verificar se deve tocar som para este tipo de lembrete
+    const shouldPlaySound = () => {
+      if (!config.soundEnabled) return false;
+      if (type === "eye" && !config.soundForEye) return false;
+      if (type === "stretch" && !config.soundForStretch) return false;
+      if (type === "water" && !config.soundForWater) return false;
+      return true;
+    };
+
+    // Tocar som de alerta com volume configurável
     const playAlertSound = () => {
-      if (!config.soundEnabled) return; // NÃO tocar se som desativado
+      if (!shouldPlaySound()) return;
+      
+      const volume = (config.soundVolume ?? 70) / 100; // Converter para 0-1
       
       try {
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
@@ -194,7 +213,7 @@ export const useReminders = () => {
           gain1.connect(audioContext.destination);
           osc1.frequency.value = 880;
           osc1.type = "sine";
-          gain1.gain.setValueAtTime(0.5, audioContext.currentTime);
+          gain1.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
           gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
           osc1.start(audioContext.currentTime);
           osc1.stop(audioContext.currentTime + 0.3);
@@ -208,7 +227,7 @@ export const useReminders = () => {
               gain2.connect(audioContext.destination);
               osc2.frequency.value = 1046;
               osc2.type = "sine";
-              gain2.gain.setValueAtTime(0.5, audioContext.currentTime);
+              gain2.gain.setValueAtTime(volume * 0.5, audioContext.currentTime);
               gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
               osc2.start(audioContext.currentTime);
               osc2.stop(audioContext.currentTime + 0.3);
@@ -224,7 +243,7 @@ export const useReminders = () => {
               gain3.connect(audioContext.destination);
               osc3.frequency.value = 1320;
               osc3.type = "sine";
-              gain3.gain.setValueAtTime(0.6, audioContext.currentTime);
+              gain3.gain.setValueAtTime(volume * 0.6, audioContext.currentTime);
               gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
               osc3.start(audioContext.currentTime);
               osc3.stop(audioContext.currentTime + 0.4);
@@ -236,7 +255,7 @@ export const useReminders = () => {
       }
     };
 
-    // Tocar som apenas se habilitado
+    // Tocar som apenas se habilitado para este tipo
     playAlertSound();
 
     // Vibrar no mobile - padrão mais longo
@@ -281,7 +300,7 @@ export const useReminders = () => {
     } catch (e) {
       console.log("Notificação não disponível:", e);
     }
-  }, [config.soundEnabled]);
+  }, [config.soundEnabled, config.soundVolume, config.soundForEye, config.soundForStretch, config.soundForWater]);
 
   // Timer principal - agora respeita horário de trabalho
   useEffect(() => {
