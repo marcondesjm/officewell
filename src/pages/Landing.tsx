@@ -357,6 +357,12 @@ const Landing = () => {
           {/* Right Side Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
+            <Link to="/demo?tour=true" className="hidden sm:block">
+              <Button variant="ghost" size="sm">
+                <Sparkles className="h-4 w-4 mr-1" />
+                Ver Tour
+              </Button>
+            </Link>
             <Link to="/demo" className="hidden sm:block">
               <Button variant="ghost" size="sm">
                 Acessar App
@@ -403,6 +409,10 @@ const Landing = () => {
                   </button>
                 ))}
                 <div className="border-t my-2" />
+                <Link to="/demo?tour=true" className="py-3 px-4 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Ver Tour Guiado
+                </Link>
                 <Link to="/demo" className="py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors block">
                   Acessar App
                 </Link>
