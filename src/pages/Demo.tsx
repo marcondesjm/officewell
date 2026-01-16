@@ -10,6 +10,13 @@ const Demo = () => {
   
   useEffect(() => {
     const redirectTo = searchParams.get('redirect') || '/';
+    const showTour = searchParams.get('tour') === 'true';
+    
+    // If tour is requested, always reset tour state
+    if (showTour) {
+      localStorage.removeItem('officewell_tour_completed');
+      sessionStorage.setItem('officewell_new_demo', 'true');
+    }
     
     // If not on enterprise trial, start one
     if (!isOnTrial || planId !== 'enterprise') {
