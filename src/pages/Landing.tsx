@@ -327,7 +327,7 @@ const Landing = () => {
               </Button>
             </Link>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button onClick={() => setPlansOpen(true)} size="sm">
+              <Button onClick={() => setPlansOpen(true)} size="sm" className="bg-[#25D366] hover:bg-[#128C7E] text-white shadow-md shadow-green-500/20">
                 Começar Agora
               </Button>
             </motion.div>
@@ -379,14 +379,14 @@ const Landing = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
           >
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" className="text-lg px-8" onClick={() => setPlansOpen(true)}>
+              <Button size="lg" className="text-lg px-8 bg-[#25D366] hover:bg-[#128C7E] text-white shadow-lg shadow-green-500/25" onClick={() => setPlansOpen(true)}>
                 Começar Grátis
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>
             <Link to="/">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" variant="outline" className="text-lg px-8">
+                <Button size="lg" variant="outline" className="text-lg px-8 border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10">
                   <Smartphone className="mr-2 h-5 w-5" />
                   Ver Demo
                 </Button>
@@ -1138,7 +1138,7 @@ const Landing = () => {
             </p>
             <Button 
               size="lg"
-              className="gap-2 bg-green-500 hover:bg-green-600 text-white border-none"
+              className="gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white shadow-lg shadow-green-500/25"
               onClick={() => window.open('https://wa.me/5548999029392?text=Olá! Tenho uma dúvida sobre o OfficeWell', '_blank')}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
