@@ -1,9 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { 
   Megaphone, 
   AlertTriangle,
@@ -17,11 +24,15 @@ import {
   Coffee,
   Smile,
   Sun,
-  Cake
+  Cake,
+  Camera,
+  User,
+  Wand2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 import waterBreakImg from "@/assets/water-break.png";
 import stretchingBreakImg from "@/assets/stretching-break.png";
@@ -83,6 +94,23 @@ const motivationalMessages = [
   },
 ];
 
+interface UserProfile {
+  name: string;
+  avatarUrl: string | null;
+}
+
+const getStoredProfile = (): UserProfile => {
+  try {
+    const stored = localStorage.getItem('hr-demo-profile');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Error reading profile from localStorage:', e);
+  }
+  return { name: 'Conta Demo RH', avatarUrl: null };
+};
+
 export const HRAnnouncementHeader = () => {
   const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -96,6 +124,74 @@ export const HRAnnouncementHeader = () => {
     type: 'today' | 'week' | 'month';
   }>({ employees: [], type: 'today' });
   const [birthdayIndex, setBirthdayIndex] = useState(0);
+  
+  // User profile state
+  const [userProfile, setUserProfile] = useState<UserProfile>(getStoredProfile);
+  const [editName, setEditName] = useState(userProfile.name);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+
+  // Save profile to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('hr-demo-profile', JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  const handleSaveName = () => {
+    if (editName.trim()) {
+      setUserProfile(prev => ({ ...prev, name: editName.trim() }));
+      toast.success("Nome atualizado!");
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem');
+      return;
+    }
+
+    // Convert to base64 for localStorage
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setUserProfile(prev => ({ ...prev, avatarUrl: base64 }));
+      toast.success("Foto atualizada!");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleGenerateAvatar = async () => {
+    setIsGeneratingAvatar(true);
+    try {
+      const initials = userProfile.name
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+      
+      // Generate a simple avatar using UI Avatars
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.name)}&size=128&background=random&color=fff&bold=true`;
+      setUserProfile(prev => ({ ...prev, avatarUrl }));
+      toast.success("Avatar gerado!");
+    } catch (error) {
+      toast.error("Erro ao gerar avatar");
+    } finally {
+      setIsGeneratingAvatar(false);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  };
 
   const fetchAnnouncements = async () => {
     try {
@@ -323,14 +419,107 @@ export const HRAnnouncementHeader = () => {
     <div className="w-full max-w-2xl mx-auto space-y-4">
       {/* HR Demo Button with Theme Toggle */}
       <div className="flex justify-center items-center gap-3">
-        <Button
-          onClick={() => navigate("/rh")}
-          variant="outline"
-          className="rounded-full border-2 border-primary/50 hover:bg-primary/10 hover:border-primary gap-2"
-        >
-          <UserCog size={18} />
-          Conta Demo RH
-        </Button>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="rounded-full border-2 border-primary/50 hover:bg-primary/10 hover:border-primary gap-2 pr-4"
+            >
+              <Avatar className="h-6 w-6 -ml-1">
+                <AvatarImage src={userProfile.avatarUrl || undefined} alt={userProfile.name} />
+                <AvatarFallback className="text-xs bg-primary/20 text-primary">
+                  {getInitials(userProfile.name)}
+                </AvatarFallback>
+              </Avatar>
+              {userProfile.name}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72" align="center">
+            <div className="space-y-4">
+              <div className="text-center">
+                <h4 className="font-medium mb-3">Personalizar Conta</h4>
+                
+                {/* Avatar Preview */}
+                <div className="flex justify-center mb-4">
+                  <div className="relative">
+                    <Avatar className="h-20 w-20 border-2 border-primary/30">
+                      <AvatarImage src={userProfile.avatarUrl || undefined} alt={userProfile.name} />
+                      <AvatarFallback className="text-xl bg-primary/20 text-primary">
+                        {getInitials(userProfile.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                </div>
+
+                {/* Photo Upload & Generate */}
+                <div className="flex gap-2 justify-center mb-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-1"
+                  >
+                    <Camera size={14} />
+                    Foto
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateAvatar}
+                    disabled={isGeneratingAvatar}
+                    className="gap-1"
+                  >
+                    <Wand2 size={14} />
+                    Gerar Avatar
+                  </Button>
+                </div>
+              </div>
+
+              {/* Name Input */}
+              <div className="space-y-2">
+                <Label htmlFor="profile-name" className="text-sm">Nome</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="profile-name"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Seu nome"
+                    className="flex-1"
+                  />
+                  <Button 
+                    size="sm" 
+                    onClick={handleSaveName}
+                    disabled={!editName.trim() || editName.trim() === userProfile.name}
+                  >
+                    Salvar
+                  </Button>
+                </div>
+              </div>
+
+              {/* Go to RH Admin */}
+              <Button
+                onClick={() => {
+                  setPopoverOpen(false);
+                  navigate("/rh");
+                }}
+                variant="default"
+                className="w-full gap-2"
+              >
+                <UserCog size={16} />
+                Acessar Painel RH
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
         <ThemeToggle />
       </div>
 
