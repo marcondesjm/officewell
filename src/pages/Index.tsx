@@ -14,7 +14,8 @@ import { BirthdayCelebration } from "@/components/BirthdayCelebration";
 import { PostureCheckModal } from "@/components/PostureCheckModal";
 import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
 import { GamificationCard } from "@/components/GamificationCard";
-
+import { InactivityWarning } from "@/components/InactivityWarning";
+import { useGamification } from "@/hooks/useGamification";
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
 import { HRAnnouncementHeader } from "@/components/HRAnnouncementHeader";
@@ -74,6 +75,9 @@ const Index = () => {
   // Goals tracking
   const { goals, incrementProgress, getTotalProgress } = useGoals();
   const goalsProgress = getTotalProgress();
+  
+  // Gamification with inactivity tracking
+  const { inactivityInfo, dismissInactivityWarning } = useGamification();
   // Show work schedule setup on first load
   useEffect(() => {
     if (needsWorkScheduleConfig) {
@@ -204,6 +208,11 @@ const Index = () => {
             </div>
           )}
         </header>
+
+        {/* Inactivity Warning */}
+        {inactivityInfo && (
+          <InactivityWarning info={inactivityInfo} onDismiss={dismissInactivityWarning} />
+        )}
 
         {/* Trial Banner */}
         <TrialBanner onUpgrade={() => setPlansOpen(true)} />

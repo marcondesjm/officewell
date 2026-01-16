@@ -18,6 +18,10 @@ export interface UserStats {
   waterBreaksCompleted: number;
   postureChecksCompleted: number;
   lastActivityDate: string | null;
+  lastOpenDate: string | null;
+  inactivityPenaltyApplied: boolean;
+  daysInactive: number;
+  pointsLostToInactivity: number;
 }
 
 export interface Rank {
@@ -28,6 +32,15 @@ export interface Rank {
   icon: string;
   color: string;
   description: string;
+}
+
+export interface InactivityInfo {
+  wasInactive: boolean;
+  daysInactive: number;
+  pointsLost: number;
+  previousRank: Rank | null;
+  currentRank: Rank;
+  rankDropped: boolean;
 }
 
 const RANKS: Rank[] = [
@@ -47,13 +60,30 @@ const POINTS_CONFIG = {
   water: 10,
   posture: 5,
   streak_bonus: 10, // Per day of streak
+  inactivity_penalty_per_day: 15, // Points lost per day inactive
+  max_inactivity_penalty: 100, // Maximum points that can be lost
+  daily_open_bonus: 5, // Bonus for opening app daily
 };
 
 const STORAGE_KEY = "officewell_gamification";
+const INACTIVITY_WARNING_KEY = "officewell_inactivity_warning";
 
 const getDateString = (timestamp?: number): string => {
   const date = timestamp ? new Date(timestamp) : new Date();
   return date.toISOString().split("T")[0];
+};
+
+const getDaysDifference = (date1: string, date2: string): number => {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  const diffTime = Math.abs(d2.getTime() - d1.getTime());
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+};
+
+const getRankByPoints = (points: number): Rank => {
+  return RANKS.find(rank => 
+    points >= rank.minPoints && points <= rank.maxPoints
+  ) || RANKS[0];
 };
 
 const loadStats = (): UserStats => {
@@ -76,6 +106,10 @@ const loadStats = (): UserStats => {
     waterBreaksCompleted: 0,
     postureChecksCompleted: 0,
     lastActivityDate: null,
+    lastOpenDate: null,
+    inactivityPenaltyApplied: false,
+    daysInactive: 0,
+    pointsLostToInactivity: 0,
   };
 };
 
@@ -89,11 +123,81 @@ const saveStats = (stats: UserStats): void => {
 
 export const useGamification = () => {
   const [stats, setStats] = useState<UserStats>(loadStats);
+  const [inactivityInfo, setInactivityInfo] = useState<InactivityInfo | null>(null);
+
+  // Check for inactivity on mount
+  useEffect(() => {
+    const today = getDateString();
+    const currentStats = loadStats();
+    
+    if (currentStats.lastOpenDate && currentStats.lastOpenDate !== today) {
+      const daysInactive = getDaysDifference(currentStats.lastOpenDate, today);
+      
+      if (daysInactive > 1) {
+        // Apply inactivity penalty
+        const penaltyPerDay = POINTS_CONFIG.inactivity_penalty_per_day;
+        const totalPenalty = Math.min(
+          (daysInactive - 1) * penaltyPerDay,
+          POINTS_CONFIG.max_inactivity_penalty
+        );
+        
+        const previousRank = getRankByPoints(currentStats.totalPoints);
+        const newPoints = Math.max(0, currentStats.totalPoints - totalPenalty);
+        const newRank = getRankByPoints(newPoints);
+        
+        // Check if we should show the warning
+        const warningKey = `${INACTIVITY_WARNING_KEY}-${today}`;
+        const alreadyWarned = localStorage.getItem(warningKey);
+        
+        if (!alreadyWarned && totalPenalty > 0) {
+          setInactivityInfo({
+            wasInactive: true,
+            daysInactive: daysInactive - 1,
+            pointsLost: totalPenalty,
+            previousRank: previousRank.id !== newRank.id ? previousRank : null,
+            currentRank: newRank,
+            rankDropped: previousRank.id !== newRank.id,
+          });
+          
+          localStorage.setItem(warningKey, 'true');
+          
+          setStats(prev => ({
+            ...prev,
+            totalPoints: newPoints,
+            currentStreak: 0, // Reset streak
+            daysInactive: daysInactive - 1,
+            pointsLostToInactivity: prev.pointsLostToInactivity + totalPenalty,
+            inactivityPenaltyApplied: true,
+            lastOpenDate: today,
+          }));
+        }
+      } else {
+        // User was active yesterday, give daily bonus
+        setStats(prev => ({
+          ...prev,
+          totalPoints: prev.totalPoints + POINTS_CONFIG.daily_open_bonus,
+          lastOpenDate: today,
+          inactivityPenaltyApplied: false,
+        }));
+      }
+    } else if (!currentStats.lastOpenDate) {
+      // First time opening
+      setStats(prev => ({
+        ...prev,
+        lastOpenDate: today,
+      }));
+    }
+  }, []);
 
   // Persist stats when they change
   useEffect(() => {
     saveStats(stats);
   }, [stats]);
+
+  // Dismiss inactivity warning
+  const dismissInactivityWarning = useCallback(() => {
+    setInactivityInfo(null);
+  }, []);
 
   // Calculate current rank
   const getCurrentRank = useCallback((): Rank => {
@@ -220,9 +324,14 @@ export const useGamification = () => {
       waterBreaksCompleted: 0,
       postureChecksCompleted: 0,
       lastActivityDate: null,
+      lastOpenDate: null,
+      inactivityPenaltyApplied: false,
+      daysInactive: 0,
+      pointsLostToInactivity: 0,
     };
     setStats(initial);
     saveStats(initial);
+    setInactivityInfo(null);
   }, []);
 
   return {
@@ -235,5 +344,7 @@ export const useGamification = () => {
     addPoints,
     getTodayPoints,
     resetStats,
+    inactivityInfo,
+    dismissInactivityWarning,
   };
 };
