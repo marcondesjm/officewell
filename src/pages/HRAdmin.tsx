@@ -45,9 +45,13 @@ import {
   Settings,
   Upload,
   Image,
+  Crown,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePlanFeatures } from "@/hooks/usePlanFeatures";
+import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 
 interface Employee {
   id: string;
@@ -128,6 +132,11 @@ const HRAdmin = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [birthdaySettings, setBirthdaySettings] = useState<BirthdaySettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [plansOpen, setPlansOpen] = useState(false);
+
+  // Plan features and limits
+  const { currentPlan, limits, canAddMore, getRemainingSlots } = usePlanFeatures();
+  const isBasicPlan = currentPlan === "basic";
 
   // Employee form state
   const [employeeDialogOpen, setEmployeeDialogOpen] = useState(false);
@@ -195,6 +204,18 @@ const HRAdmin = () => {
 
   // Employee CRUD
   const openEmployeeDialog = (employee?: Employee) => {
+    // Check limit for new employees
+    if (!employee && !canAddMore("employees", employees.length)) {
+      toast.error(`Limite de funcionários atingido!`, {
+        description: `Plano ${currentPlan === "basic" ? "Básico" : "atual"} permite até ${limits.maxEmployees} funcionários. Faça upgrade para adicionar mais.`,
+        action: {
+          label: "Ver Planos",
+          onClick: () => setPlansOpen(true),
+        },
+      });
+      return;
+    }
+    
     if (employee) {
       setEditingEmployee(employee);
       setEmployeeName(employee.name);
@@ -214,6 +235,13 @@ const HRAdmin = () => {
   const saveEmployee = async () => {
     if (!employeeName.trim()) {
       toast.error("Nome é obrigatório");
+      return;
+    }
+
+    // Double-check limit for new employees
+    if (!editingEmployee && !canAddMore("employees", employees.length)) {
+      toast.error("Limite de funcionários atingido!");
+      setEmployeeDialogOpen(false);
       return;
     }
 
@@ -265,6 +293,18 @@ const HRAdmin = () => {
 
   // Announcement CRUD
   const openAnnouncementDialog = (announcement?: Announcement) => {
+    // Check limit for new announcements
+    if (!announcement && !canAddMore("announcements", announcements.length)) {
+      toast.error(`Limite de avisos atingido!`, {
+        description: `Plano ${currentPlan === "basic" ? "Básico" : "atual"} permite até ${limits.maxAnnouncements} aviso(s). Faça upgrade para adicionar mais.`,
+        action: {
+          label: "Ver Planos",
+          onClick: () => setPlansOpen(true),
+        },
+      });
+      return;
+    }
+    
     if (announcement) {
       setEditingAnnouncement(announcement);
       setAnnouncementTitle(announcement.title);
@@ -282,6 +322,13 @@ const HRAdmin = () => {
   const saveAnnouncement = async () => {
     if (!announcementTitle.trim() || !announcementContent.trim()) {
       toast.error("Título e conteúdo são obrigatórios");
+      return;
+    }
+
+    // Double-check limit for new announcements
+    if (!editingAnnouncement && !canAddMore("announcements", announcements.length)) {
+      toast.error("Limite de avisos atingido!");
+      setAnnouncementDialogOpen(false);
       return;
     }
 
@@ -512,11 +559,39 @@ const HRAdmin = () => {
           </Card>
         )}
 
+        {/* Plan Limit Banner */}
+        {isBasicPlan && (
+          <Card className="border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-amber-500/20">
+                    <Lock className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-amber-600 dark:text-amber-400">
+                      Plano Básico - Limites Ativos
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Funcionários: {employees.length}/{limits.maxEmployees} • 
+                      Avisos: {announcements.length}/{limits.maxAnnouncements}
+                    </p>
+                  </div>
+                </div>
+                <Button onClick={() => setPlansOpen(true)} size="sm" className="gap-1.5">
+                  <Crown className="h-4 w-4" />
+                  Fazer Upgrade
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Tabs defaultValue="employees" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="employees" className="gap-2">
               <Users className="h-4 w-4" />
-              Funcionários ({employees.length})
+              Funcionários ({employees.length}{isBasicPlan ? `/${limits.maxEmployees}` : ""})
             </TabsTrigger>
             <TabsTrigger value="birthdays" className="gap-2 relative">
               <Cake className="h-4 w-4" />
@@ -529,20 +604,43 @@ const HRAdmin = () => {
             </TabsTrigger>
             <TabsTrigger value="announcements" className="gap-2">
               <Megaphone className="h-4 w-4" />
-              Avisos ({announcements.length})
+              Avisos ({announcements.length}{isBasicPlan ? `/${limits.maxAnnouncements}` : ""})
             </TabsTrigger>
           </TabsList>
 
           {/* Employees Tab */}
           <TabsContent value="employees" className="space-y-4">
-            <div className="flex justify-end">
-              <Dialog open={employeeDialogOpen} onOpenChange={setEmployeeDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => openEmployeeDialog()} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Novo Funcionário
-                  </Button>
-                </DialogTrigger>
+            <div className="flex items-center justify-between">
+              {isBasicPlan && (
+                <p className="text-sm text-muted-foreground">
+                  {getRemainingSlots("employees", employees.length) > 0 
+                    ? `${getRemainingSlots("employees", employees.length)} vaga(s) restante(s)`
+                    : <span className="text-amber-500">Limite atingido</span>
+                  }
+                </p>
+              )}
+              <div className="ml-auto">
+                <Button 
+                  onClick={() => openEmployeeDialog()} 
+                  className="gap-2"
+                  disabled={!canAddMore("employees", employees.length)}
+                >
+                  {canAddMore("employees", employees.length) ? (
+                    <>
+                      <Plus className="h-4 w-4" />
+                      Novo Funcionário
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4" />
+                      Limite Atingido
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+            
+            <Dialog open={employeeDialogOpen} onOpenChange={setEmployeeDialogOpen}>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
@@ -596,7 +694,6 @@ const HRAdmin = () => {
                   </div>
                 </DialogContent>
               </Dialog>
-            </div>
 
             <Card>
               <CardContent className="p-0">
@@ -936,14 +1033,37 @@ const HRAdmin = () => {
 
           {/* Announcements Tab */}
           <TabsContent value="announcements" className="space-y-4">
-            <div className="flex justify-end">
-              <Dialog open={announcementDialogOpen} onOpenChange={setAnnouncementDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => openAnnouncementDialog()} className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Novo Aviso
-                  </Button>
-                </DialogTrigger>
+            <div className="flex items-center justify-between">
+              {isBasicPlan && (
+                <p className="text-sm text-muted-foreground">
+                  {getRemainingSlots("announcements", announcements.length) > 0 
+                    ? `${getRemainingSlots("announcements", announcements.length)} aviso(s) restante(s)`
+                    : <span className="text-amber-500">Limite atingido</span>
+                  }
+                </p>
+              )}
+              <div className="ml-auto">
+                <Button 
+                  onClick={() => openAnnouncementDialog()} 
+                  className="gap-2"
+                  disabled={!canAddMore("announcements", announcements.length)}
+                >
+                  {canAddMore("announcements", announcements.length) ? (
+                    <>
+                      <Plus className="h-4 w-4" />
+                      Novo Aviso
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4" />
+                      Limite Atingido
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+            
+            <Dialog open={announcementDialogOpen} onOpenChange={setAnnouncementDialogOpen}>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
@@ -992,8 +1112,7 @@ const HRAdmin = () => {
                     </div>
                   </div>
                 </DialogContent>
-              </Dialog>
-            </div>
+            </Dialog>
 
             <Card>
               <CardContent className="p-0">
@@ -1076,6 +1195,12 @@ const HRAdmin = () => {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Subscription Plans Dialog */}
+        <SubscriptionPlans
+          open={plansOpen}
+          onOpenChange={setPlansOpen}
+        />
       </div>
     </div>
   );
