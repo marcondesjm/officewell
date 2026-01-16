@@ -15,6 +15,7 @@ import { PostureCheckModal } from "@/components/PostureCheckModal";
 import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
 import { GamificationCard } from "@/components/GamificationCard";
 import { InactivityWarning } from "@/components/InactivityWarning";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { useGamification } from "@/hooks/useGamification";
 import { ComplianceReport } from "@/components/ComplianceReport";
 import { HRPanel } from "@/components/HRPanel";
@@ -523,6 +524,9 @@ const Index = () => {
           </p>
         </footer>
       </div>
+      
+      {/* Onboarding Tour for new demo users */}
+      <OnboardingTour />
     </div>
   );
 };
