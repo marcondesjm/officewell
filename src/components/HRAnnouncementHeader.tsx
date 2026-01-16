@@ -42,6 +42,7 @@ import { useGamification } from "@/hooks/useGamification";
 import waterBreakImg from "@/assets/water-break.png";
 import stretchingBreakImg from "@/assets/stretching-break.png";
 import eyeBreakImg from "@/assets/eye-break.png";
+import logoOfficeWell from "@/assets/logo-officewell.png";
 
 interface Announcement {
   id: string;
@@ -427,7 +428,13 @@ export const HRAnnouncementHeader = () => {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
       {/* Profile with Level and Points */}
-      <div className="flex justify-center items-center gap-3">
+      <div className="flex justify-center items-center gap-4">
+        {/* Logo */}
+        <img 
+          src={logoOfficeWell} 
+          alt="OfficeWell" 
+          className="h-8 w-auto object-contain drop-shadow-md"
+        />
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
