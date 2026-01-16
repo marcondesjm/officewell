@@ -21,7 +21,32 @@ export interface PlanFeatures {
   dedicatedSupport: boolean;
 }
 
+export interface PlanLimits {
+  maxEmployees: number;
+  maxAnnouncements: number;
+  maxBirthdaySettings: number;
+}
+
 export type PlanType = "basic" | "pro" | "enterprise";
+
+// Limites por plano
+const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
+  basic: {
+    maxEmployees: 3,
+    maxAnnouncements: 1,
+    maxBirthdaySettings: 1,
+  },
+  pro: {
+    maxEmployees: 999999,
+    maxAnnouncements: 999999,
+    maxBirthdaySettings: 999999,
+  },
+  enterprise: {
+    maxEmployees: 999999,
+    maxAnnouncements: 999999,
+    maxBirthdaySettings: 999999,
+  },
+};
 
 export const usePlanFeatures = () => {
   const { isOnTrial, planId, isExpired } = useTrialStatus();
@@ -36,6 +61,7 @@ export const usePlanFeatures = () => {
   };
 
   const currentPlan = getCurrentPlan();
+  const limits = PLAN_LIMITS[currentPlan];
 
   // Define features for each plan
   const getFeatures = (): PlanFeatures => {
@@ -115,12 +141,35 @@ export const usePlanFeatures = () => {
     return "basic";
   };
 
+  const canAddMore = (type: "employees" | "announcements", currentCount: number): boolean => {
+    if (type === "employees") {
+      return currentCount < limits.maxEmployees;
+    }
+    if (type === "announcements") {
+      return currentCount < limits.maxAnnouncements;
+    }
+    return true;
+  };
+
+  const getRemainingSlots = (type: "employees" | "announcements", currentCount: number): number => {
+    if (type === "employees") {
+      return Math.max(0, limits.maxEmployees - currentCount);
+    }
+    if (type === "announcements") {
+      return Math.max(0, limits.maxAnnouncements - currentCount);
+    }
+    return 999999;
+  };
+
   return {
     currentPlan,
     features,
+    limits,
     isFeatureLocked,
     getRequiredPlan,
     isOnTrial,
     isExpired,
+    canAddMore,
+    getRemainingSlots,
   };
 };
