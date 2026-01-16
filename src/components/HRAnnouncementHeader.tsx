@@ -130,6 +130,7 @@ export const HRAnnouncementHeader = () => {
     type: 'today' | 'week' | 'month';
   }>({ employees: [], type: 'today' });
   const [birthdayIndex, setBirthdayIndex] = useState(0);
+  const [isPageVisible, setIsPageVisible] = useState(!document.hidden);
   
   // User profile state
   const [userProfile, setUserProfile] = useState<UserProfile>(getStoredProfile);
@@ -143,6 +144,16 @@ export const HRAnnouncementHeader = () => {
   const currentRank = getCurrentRank();
   const nextRank = getNextRank();
   const progressToNextRank = getProgressToNextRank();
+
+  // Track page visibility to pause carousels when minimized
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
   useEffect(() => {
     localStorage.setItem('hr-demo-profile', JSON.stringify(userProfile));
   }, [userProfile]);
@@ -340,27 +351,27 @@ export const HRAnnouncementHeader = () => {
     };
   }, []);
 
-  // Auto-rotate announcements
+  // Auto-rotate announcements (only when page is visible)
   useEffect(() => {
-    if (announcements.length <= 1) return;
+    if (announcements.length <= 1 || !isPageVisible) return;
     
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % announcements.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [announcements.length]);
+  }, [announcements.length, isPageVisible]);
 
-  // Auto-rotate motivational messages when no announcements
+  // Auto-rotate motivational messages when no announcements (only when page is visible)
   useEffect(() => {
-    if (announcements.length > 0) return;
+    if (announcements.length > 0 || !isPageVisible) return;
     
     const interval = setInterval(() => {
       setMotivationalIndex((prev) => (prev + 1) % motivationalMessages.length);
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [announcements.length]);
+  }, [announcements.length, isPageVisible]);
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev - 1 + announcements.length) % announcements.length);
@@ -378,16 +389,16 @@ export const HRAnnouncementHeader = () => {
     setMotivationalIndex((prev) => (prev + 1) % motivationalMessages.length);
   };
 
-  // Auto-rotate birthdays
+  // Auto-rotate birthdays (only when page is visible)
   useEffect(() => {
-    if (birthdayData.employees.length <= 1) return;
+    if (birthdayData.employees.length <= 1 || !isPageVisible) return;
     
     const interval = setInterval(() => {
       setBirthdayIndex((prev) => (prev + 1) % birthdayData.employees.length);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [birthdayData.employees.length]);
+  }, [birthdayData.employees.length, isPageVisible]);
 
   const goToPreviousBirthday = () => {
     setBirthdayIndex((prev) => (prev - 1 + birthdayData.employees.length) % birthdayData.employees.length);
