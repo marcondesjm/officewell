@@ -1,0 +1,126 @@
+import { useTrialStatus } from "./useTrialStatus";
+
+export interface PlanFeatures {
+  // Basic features (available to all)
+  waterReminders: boolean;
+  stretchReminders: boolean;
+  eyeBreakReminders: boolean;
+  basicStats: boolean;
+  
+  // Pro features
+  detailedReports: boolean;
+  customGoals: boolean;
+  prioritySupport: boolean;
+  noAds: boolean;
+  
+  // Enterprise features
+  hrPanel: boolean;
+  complianceReports: boolean;
+  internalAnnouncements: boolean;
+  employeeManagement: boolean;
+  dedicatedSupport: boolean;
+}
+
+export type PlanType = "basic" | "pro" | "enterprise";
+
+export const usePlanFeatures = () => {
+  const { isOnTrial, planId, isExpired } = useTrialStatus();
+
+  // Determine current plan
+  const getCurrentPlan = (): PlanType => {
+    if (isOnTrial && !isExpired && planId) {
+      if (planId === "enterprise") return "enterprise";
+      if (planId === "pro") return "pro";
+    }
+    return "basic";
+  };
+
+  const currentPlan = getCurrentPlan();
+
+  // Define features for each plan
+  const getFeatures = (): PlanFeatures => {
+    const baseFeatures: PlanFeatures = {
+      // Basic - available to all
+      waterReminders: true,
+      stretchReminders: true,
+      eyeBreakReminders: true,
+      basicStats: true,
+      
+      // Pro - locked by default
+      detailedReports: false,
+      customGoals: false,
+      prioritySupport: false,
+      noAds: false,
+      
+      // Enterprise - locked by default
+      hrPanel: false,
+      complianceReports: false,
+      internalAnnouncements: false,
+      employeeManagement: false,
+      dedicatedSupport: false,
+    };
+
+    if (currentPlan === "pro") {
+      return {
+        ...baseFeatures,
+        detailedReports: true,
+        customGoals: true,
+        prioritySupport: true,
+        noAds: true,
+      };
+    }
+
+    if (currentPlan === "enterprise") {
+      return {
+        ...baseFeatures,
+        detailedReports: true,
+        customGoals: true,
+        prioritySupport: true,
+        noAds: true,
+        hrPanel: true,
+        complianceReports: true,
+        internalAnnouncements: true,
+        employeeManagement: true,
+        dedicatedSupport: true,
+      };
+    }
+
+    return baseFeatures;
+  };
+
+  const features = getFeatures();
+
+  const isFeatureLocked = (feature: keyof PlanFeatures): boolean => {
+    return !features[feature];
+  };
+
+  const getRequiredPlan = (feature: keyof PlanFeatures): PlanType => {
+    const proFeatures: (keyof PlanFeatures)[] = [
+      "detailedReports",
+      "customGoals",
+      "prioritySupport",
+      "noAds",
+    ];
+    
+    const enterpriseFeatures: (keyof PlanFeatures)[] = [
+      "hrPanel",
+      "complianceReports",
+      "internalAnnouncements",
+      "employeeManagement",
+      "dedicatedSupport",
+    ];
+
+    if (enterpriseFeatures.includes(feature)) return "enterprise";
+    if (proFeatures.includes(feature)) return "pro";
+    return "basic";
+  };
+
+  return {
+    currentPlan,
+    features,
+    isFeatureLocked,
+    getRequiredPlan,
+    isOnTrial,
+    isExpired,
+  };
+};
