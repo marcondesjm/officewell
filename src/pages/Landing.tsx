@@ -459,11 +459,21 @@ const Landing = () => {
             animate="visible"
             variants={fadeInUp}
             transition={{ duration: 0.5 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4"
           >
-            <Badge variant="outline" className="mb-4 px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
+            <Badge variant="outline" className="px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
               <Sparkles className="h-3.5 w-3.5 mr-2" />
               Teste grátis por 7 dias
             </Badge>
+            <Link to="/demo?tour=true">
+              <Badge 
+                variant="outline" 
+                className="px-4 py-2 border-accent/30 bg-accent/5 text-accent font-medium cursor-pointer hover:bg-accent/10 transition-colors"
+              >
+                <Play className="h-3.5 w-3.5 mr-2" />
+                Ver Tour
+              </Badge>
+            </Link>
           </motion.div>
           
           <motion.h1 
