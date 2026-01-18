@@ -12,6 +12,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
   Megaphone, 
   AlertTriangle,
@@ -437,46 +443,58 @@ export const HRAnnouncementHeader = () => {
   }
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="w-full max-w-2xl mx-auto space-y-4">
       {/* Header Principal - Logo, Perfil e Tema */}
       <div className="flex items-center justify-between gap-3 bg-card/80 backdrop-blur-sm rounded-2xl p-3 border border-border/50 shadow-sm">
-        {/* Logo com link */}
-        <div className="flex items-center gap-2 min-w-0">
-          <img 
-            src={logoOfficeWell} 
-            alt="OfficeWell - Bem-estar no Trabalho" 
-            className="h-10 w-auto object-contain drop-shadow-md flex-shrink-0"
-          />
-        </div>
+        {/* Logo com tooltip */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center gap-2 min-w-0 cursor-default">
+              <img 
+                src={logoOfficeWell} 
+                alt="OfficeWell - Bem-estar no Trabalho" 
+                className="h-10 w-auto object-contain drop-shadow-md flex-shrink-0"
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-xs">
+            <p className="font-semibold">OfficeWell</p>
+            <p className="text-xs text-muted-foreground">Seu assistente de bem-estar no trabalho</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Perfil do Usuário - Botão de Acesso Rápido */}
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              className="rounded-2xl hover:bg-primary/10 gap-3 px-3 h-auto py-2 min-h-12 flex-1 max-w-xs justify-start touch-manipulation active:scale-95 transition-transform"
-              aria-label="Abrir menu do perfil"
-            >
-              <Avatar className="h-10 w-10 border-2 border-primary/40 flex-shrink-0">
-                <AvatarImage src={userProfile.avatarUrl || undefined} alt={userProfile.name} />
-                <AvatarFallback className="text-sm bg-gradient-to-br from-primary/30 to-primary/10 text-primary font-bold">
-                  {getInitials(userProfile.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col items-start gap-0.5 min-w-0">
-                <span className="text-sm font-semibold leading-none truncate max-w-[120px]">
-                  {userProfile.name}
-                </span>
-                <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-lg leading-none">{currentRank.icon}</span>
-                  <span className={`font-bold ${currentRank.color}`}>{currentRank.name}</span>
-                  <span className="text-muted-foreground/50">•</span>
-                  <span className="text-primary font-bold">{stats.totalPoints}</span>
-                  <Star className="h-3.5 w-3.5 text-primary fill-primary" />
-                </div>
-              </div>
-            </Button>
-          </PopoverTrigger>
+        {/* Perfil do Usuário - Botão de Acesso Rápido com Tooltip */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex-1 max-w-xs">
+              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="rounded-2xl hover:bg-primary/10 gap-3 px-3 h-auto py-2 min-h-12 w-full justify-start touch-manipulation active:scale-95 transition-transform"
+                    aria-label="Abrir menu do perfil"
+                  >
+                    <Avatar className="h-10 w-10 border-2 border-primary/40 flex-shrink-0">
+                      <AvatarImage src={userProfile.avatarUrl || undefined} alt={userProfile.name} />
+                      <AvatarFallback className="text-sm bg-gradient-to-br from-primary/30 to-primary/10 text-primary font-bold">
+                        {getInitials(userProfile.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start gap-0.5 min-w-0">
+                      <span className="text-sm font-semibold leading-none truncate max-w-[120px]">
+                        {userProfile.name}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-xs">
+                        <span className="text-lg leading-none">{currentRank.icon}</span>
+                        <span className={`font-bold ${currentRank.color}`}>{currentRank.name}</span>
+                        <span className="text-muted-foreground/50">•</span>
+                        <span className="text-primary font-bold">{stats.totalPoints}</span>
+                        <Star className="h-3.5 w-3.5 text-primary fill-primary" />
+                      </div>
+                    </div>
+                  </Button>
+                </PopoverTrigger>
           <PopoverContent className="w-80" align="center">
             <div className="space-y-4">
               <div className="text-center">
@@ -618,12 +636,27 @@ export const HRAnnouncementHeader = () => {
               </div>
             </div>
           </PopoverContent>
-        </Popover>
+              </Popover>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-xs">
+            <p className="font-semibold">Meu Perfil</p>
+            <p className="text-xs text-muted-foreground">Toque para editar nome, foto e ver seu progresso</p>
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Theme Toggle com Visual Melhorado */}
-        <div className="flex-shrink-0">
-          <ThemeToggle />
-        </div>
+        {/* Theme Toggle com Tooltip */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex-shrink-0">
+              <ThemeToggle />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p className="font-semibold">Alternar Tema</p>
+            <p className="text-xs text-muted-foreground">Clique para mudar entre claro e escuro</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Birthdays */}
@@ -845,5 +878,6 @@ export const HRAnnouncementHeader = () => {
         </div>
       )}
     </div>
+    </TooltipProvider>
   );
 };
