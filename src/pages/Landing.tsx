@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import {
   Accordion,
   AccordionContent,
@@ -56,6 +57,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { OnboardingTour } from '@/components/OnboardingTour';
 import { LGPDConsentBanner } from '@/components/LGPDConsentBanner';
+import { TermsOfUseDialog } from '@/components/TermsOfUseDialog';
 
 // Animation variants
 const fadeInUp = {
@@ -102,6 +104,8 @@ const Landing = () => {
   const [loading, setLoading] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | undefined>();
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1874,8 +1878,22 @@ const Landing = () => {
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Termos de Uso</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Privacidade</a></li>
+                <li>
+                  <button 
+                    onClick={() => setTermsOpen(true)} 
+                    className="hover:text-foreground transition-colors text-left"
+                  >
+                    Termos de Uso
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => setPrivacyOpen(true)} 
+                    className="hover:text-foreground transition-colors text-left"
+                  >
+                    Privacidade
+                  </button>
+                </li>
               </ul>
             </div>
           </div>
@@ -1914,6 +1932,112 @@ const Landing = () => {
 
       {/* LGPD Consent Banner */}
       <LGPDConsentBanner />
+
+      {/* Terms of Use Dialog */}
+      <TermsOfUseDialog open={termsOpen} onOpenChange={setTermsOpen} />
+
+      {/* Privacy Policy - Using LGPD banner's policy */}
+      <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Shield className="h-5 w-5 text-primary" />
+              Política de Privacidade
+            </DialogTitle>
+            <DialogDescription>
+              Em conformidade com a LGPD (Lei 13.709/2018)
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4 text-sm text-muted-foreground">
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">1. Controlador dos Dados</h4>
+              <p>
+                O OfficeWell é responsável pelo tratamento dos seus dados pessoais conforme 
+                descrito nesta política.
+              </p>
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">2. Dados Coletados</h4>
+              <p>Coletamos e processamos os seguintes dados:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li><strong>Dados de configuração:</strong> Horário de expediente, preferências de notificação</li>
+                <li><strong>Dados de uso:</strong> Interações com lembretes, metas cumpridas, pontuação</li>
+                <li><strong>Dados técnicos:</strong> Informações do dispositivo para funcionamento do PWA</li>
+              </ul>
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">3. Finalidade do Tratamento</h4>
+              <p>Seus dados são utilizados para:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Personalizar lembretes de saúde conforme seu expediente</li>
+                <li>Salvar seu progresso e configurações</li>
+                <li>Melhorar a experiência do usuário</li>
+                <li>Gerar estatísticas anônimas de uso</li>
+              </ul>
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">4. Base Legal (Art. 7º LGPD)</h4>
+              <p>O tratamento é baseado em:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li><strong>Consentimento (Art. 7º, I):</strong> Para cookies de funcionalidade e análise</li>
+                <li><strong>Execução de contrato (Art. 7º, V):</strong> Para funcionamento básico do serviço</li>
+                <li><strong>Legítimo interesse (Art. 7º, IX):</strong> Para melhorias e segurança</li>
+              </ul>
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">5. Armazenamento</h4>
+              <p>
+                Seus dados são armazenados localmente no seu dispositivo (localStorage) e, 
+                quando aplicável, em servidores seguros com criptografia.
+              </p>
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">6. Seus Direitos (Art. 18 LGPD)</h4>
+              <p>Você tem direito a:</p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Confirmar a existência de tratamento</li>
+                <li>Acessar seus dados</li>
+                <li>Corrigir dados incompletos ou desatualizados</li>
+                <li>Solicitar anonimização, bloqueio ou eliminação</li>
+                <li>Revogar o consentimento a qualquer momento</li>
+                <li>Portabilidade dos dados</li>
+              </ul>
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">7. Retenção de Dados</h4>
+              <p>
+                Os dados são mantidos enquanto você utilizar o aplicativo ou até que solicite 
+                sua exclusão. Dados locais podem ser excluídos limpando o cache do navegador.
+              </p>
+            </section>
+
+            <section className="space-y-2">
+              <h4 className="font-bold text-foreground">8. Contato</h4>
+              <p>
+                Para exercer seus direitos ou esclarecer dúvidas sobre o tratamento de dados, 
+                entre em contato através do WhatsApp: +55 (48) 99602-9392
+              </p>
+            </section>
+
+            <div className="pt-4 border-t border-border">
+              <p className="text-xs text-muted-foreground/70">
+                Última atualização: {new Date().toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+          </div>
+
+          <Button onClick={() => setPrivacyOpen(false)} className="w-full">
+            Entendi
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
