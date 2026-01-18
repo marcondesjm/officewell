@@ -346,14 +346,15 @@ const Landing = () => {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400 }}
           >
-            <a href="/landing" aria-label="OfficeWell - Página inicial">
-              <img 
-                src={logoOfficeWell} 
-                alt="OfficeWell - Bem-Estar Home Office" 
-                className="h-auto w-auto max-h-10 object-contain drop-shadow-lg"
-                style={{ filter: 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15))' }}
-                loading="eager"
-              />
+            <a href="/landing" aria-label="OfficeWell - Página inicial" className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-md">
+                <div className="h-7 w-7 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Activity className="h-4 w-4 text-white" aria-hidden="true" />
+                </div>
+                <span className="text-white font-bold text-lg tracking-tight">
+                  Office<span className="text-primary-foreground/90">Well</span>
+                </span>
+              </div>
             </a>
           </motion.div>
 
@@ -1587,13 +1588,15 @@ const Landing = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="mb-4">
-                <img 
-                  src={logoOfficeWell} 
-                  alt="OfficeWell - Bem-Estar Home Office" 
-                  className="h-12 w-auto object-contain drop-shadow-lg"
-                  style={{ filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2))' }}
-                />
+              <div className="mb-4 flex items-center gap-2">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-md">
+                  <div className="h-7 w-7 rounded-lg bg-white/20 flex items-center justify-center">
+                    <Activity className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-white font-bold text-lg tracking-tight">
+                    Office<span className="text-primary-foreground/90">Well</span>
+                  </span>
+                </div>
               </div>
               <p className="text-sm text-muted-foreground">
                 Cuidando da saúde no ambiente de trabalho.
