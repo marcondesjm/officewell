@@ -122,9 +122,45 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--gradient-bg);
     min-height: 100vh;
     overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% -10%, hsl(220 90% 70% / 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 10%, hsl(280 70% 65% / 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 50% at 50% 100%, hsl(160 70% 50% / 0.08) 0%, transparent 40%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 100%);
+    pointer-events: none;
+    z-index: -2;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: 
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.5;
+  }
+
+  .dark body::before {
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% -10%, hsl(220 90% 50% / 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 80% 10%, hsl(280 70% 55% / 0.10) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 50% at 50% 100%, hsl(160 70% 45% / 0.06) 0%, transparent 40%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 100%);
+  }
+
+  .dark body::after {
+    opacity: 0.3;
   }
 }
 
@@ -292,6 +328,76 @@ All colors MUST be HSL.
   background: radial-gradient(circle, hsl(280 70% 60% / 0.06) 0%, transparent 70%);
   pointer-events: none;
   z-index: -1;
+}
+
+/* Animated floating orbs */
+@keyframes float-orb-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  50% {
+    transform: translate(10px, 20px) scale(0.95);
+  }
+  75% {
+    transform: translate(-20px, 10px) scale(1.02);
+  }
+}
+
+@keyframes float-orb-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-25px, 15px) scale(1.03);
+  }
+  66% {
+    transform: translate(15px, -25px) scale(0.97);
+  }
+}
+
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -3;
+  overflow: hidden;
+}
+
+.bg-orbs::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 15%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, hsl(220 90% 65% / 0.18) 0%, hsl(220 90% 65% / 0) 70%);
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: float-orb-1 20s ease-in-out infinite;
+}
+
+.bg-orbs::after {
+  content: '';
+  position: absolute;
+  bottom: 20%;
+  right: 10%;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, hsl(280 70% 60% / 0.15) 0%, hsl(280 70% 60% / 0) 70%);
+  border-radius: 50%;
+  filter: blur(50px);
+  animation: float-orb-2 18s ease-in-out infinite;
+}
+
+.dark .bg-orbs::before {
+  background: radial-gradient(circle, hsl(220 90% 55% / 0.12) 0%, hsl(220 90% 55% / 0) 70%);
+}
+
+.dark .bg-orbs::after {
+  background: radial-gradient(circle, hsl(280 70% 50% / 0.10) 0%, hsl(280 70% 50% / 0) 70%);
 }
 
 /* Hide Lovable branding elements */
