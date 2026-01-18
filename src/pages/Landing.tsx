@@ -322,13 +322,22 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden scroll-smooth">
+      {/* Skip to main content - Accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Pular para o conteúdo principal
+      </a>
+
       {/* Header */}
       <motion.header 
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-b"
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50"
+        role="banner"
       >
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo */}
@@ -337,21 +346,25 @@ const Landing = () => {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400 }}
           >
-            <img 
-              src={logoOfficeWell} 
-              alt="OfficeWell - Bem-Estar Home Office" 
-              className="h-auto w-auto max-h-10 object-contain drop-shadow-lg"
-              style={{ filter: 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15))' }}
-            />
+            <a href="/landing" aria-label="OfficeWell - Página inicial">
+              <img 
+                src={logoOfficeWell} 
+                alt="OfficeWell - Bem-Estar Home Office" 
+                className="h-auto w-auto max-h-10 object-contain drop-shadow-lg"
+                style={{ filter: 'drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15))' }}
+                loading="eager"
+              />
+            </a>
           </motion.div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-1" role="navigation" aria-label="Menu principal">
             {navLinks.map((link) => (
               <button
                 key={link.href}
                 onClick={() => scrollToSection(link.href)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                aria-label={`Ir para seção ${link.label}`}
               >
                 {link.label}
               </button>
@@ -362,19 +375,19 @@ const Landing = () => {
           <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link to="/demo?tour=true" className="hidden sm:block">
-              <Button variant="ghost" size="sm">
-                <Sparkles className="h-4 w-4 mr-1" />
-                Ver Tour
+              <Button variant="ghost" size="sm" className="gap-1.5 focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                <span>Ver Tour</span>
               </Button>
             </Link>
             <Link to="/demo" className="hidden sm:block">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="focus:ring-2 focus:ring-ring focus:ring-offset-2">
                 Acessar App
               </Button>
             </Link>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="hidden sm:block">
               <Link to="/demo">
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
+                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-md focus:ring-2 focus:ring-ring focus:ring-offset-2">
                   Começar Agora
                 </Button>
               </Link>
@@ -384,10 +397,13 @@ const Landing = () => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="lg:hidden"
+              className="lg:hidden focus:ring-2 focus:ring-ring"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
             </Button>
           </div>
         </div>
@@ -396,28 +412,31 @@ const Landing = () => {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
+              id="mobile-menu"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="lg:hidden bg-background border-t overflow-hidden"
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="lg:hidden bg-background/95 backdrop-blur-xl border-t overflow-hidden"
+              role="navigation"
+              aria-label="Menu móvel"
             >
-              <nav className="container mx-auto px-4 py-4 flex flex-col gap-2">
+              <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
                 {navLinks.map((link) => (
                   <button
                     key={link.href}
                     onClick={() => scrollToSection(link.href)}
-                    className="text-left py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                    className="text-left py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     {link.label}
                   </button>
                 ))}
-                <div className="border-t my-2" />
-                <Link to="/demo?tour=true" className="py-3 px-4 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/5 rounded-lg transition-colors flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
+                <div className="border-t border-border/50 my-2" />
+                <Link to="/demo?tour=true" className="py-3 px-4 text-sm font-medium text-primary hover:text-primary/80 hover:bg-primary/5 rounded-lg transition-all duration-200 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
                   Ver Tour Guiado
                 </Link>
-                <Link to="/demo" className="py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors block">
+                <Link to="/demo" className="py-3 px-4 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all duration-200 block">
                   Acessar App
                 </Link>
                 <Link to="/demo">
@@ -434,183 +453,193 @@ const Landing = () => {
       </motion.header>
 
       {/* Hero Section - Compact & Impact-focused */}
-      <section className="pt-24 pb-8 px-4">
-        <div className="container mx-auto text-center max-w-5xl">
-          {/* Stats Banner - Above the fold highlight */}
-          <motion.div 
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 p-4 rounded-2xl bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20"
-          >
-            {stats.map((stat, index) => (
-              <motion.div 
-                key={index}
-                variants={scaleIn}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="p-3"
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className="text-2xl md:text-3xl font-bold text-primary">{stat.value}</div>
-                <div className="text-xs md:text-sm text-muted-foreground">{stat.label}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4"
-          >
-            <Badge variant="outline" className="px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
-              <Sparkles className="h-3.5 w-3.5 mr-2" />
-              Teste grátis por 7 dias
-            </Badge>
-            <Link to="/demo?tour=true">
-              <Badge 
-                variant="outline" 
-                className="px-4 py-2 border-accent/30 bg-accent/5 text-accent font-medium cursor-pointer hover:bg-accent/10 transition-colors"
-              >
-                <Play className="h-3.5 w-3.5 mr-2" />
-                Ver Tour
-              </Badge>
-            </Link>
-          </motion.div>
-          
-          <motion.h1 
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent leading-tight"
-          >
-            Cuide da saúde da sua equipe no trabalho
-          </motion.h1>
-          
-          <motion.p 
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"
-          >
-            Lembretes inteligentes de hidratação, alongamento e descanso visual. 
-            Reduza afastamentos e aumente a produtividade.
-          </motion.p>
-          
-          {/* CTAs - Prominent and accessible */}
-          <motion.div 
-            initial="hidden"
-            animate="visible"
-            variants={fadeInUp}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="flex flex-col gap-4 justify-center items-center"
-          >
-            {/* Primary CTA - Consultoria Gratuita */}
-            <motion.a
-              href="https://wa.me/5548996029392?text=Olá! Gostaria de agendar uma consultoria gratuita sobre o OfficeWell"
-              target="_blank"
-              rel="noopener noreferrer"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-primary-foreground rounded-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:shadow-lg hover:shadow-primary/25 transition-all duration-300 border border-primary/20"
+      <main id="main-content" role="main">
+        <section className="pt-28 pb-12 px-4" aria-labelledby="hero-title">
+          <div className="container mx-auto text-center max-w-5xl">
+            {/* Stats Banner - Above the fold highlight */}
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={staggerContainer}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 p-5 rounded-2xl bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 shadow-lg"
+              role="region"
+              aria-label="Estatísticas da plataforma"
             >
-              <MessageCircle className="h-4 w-4" />
-              Consultoria Gratuita
-              <ArrowRight className="h-4 w-4" />
-            </motion.a>
-            
-            <div className="flex flex-col sm:flex-row gap-3">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button size="lg" className="px-6 bg-accent hover:bg-accent/90 text-accent-foreground shadow-md" onClick={() => setPlansOpen(true)}>
-                  Começar Grátis
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </motion.div>
-              <Link to="/demo">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button size="lg" variant="outline" className="px-6">
-                    <Smartphone className="mr-2 h-4 w-4" />
-                    Ver Demo
-                  </Button>
-                </motion.div>
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Social Proof - Quick testimonials preview */}
-      <section className="py-6 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeIn}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col md:flex-row items-center justify-center gap-6 p-4 rounded-xl bg-muted/30"
-          >
-            <div className="flex -space-x-3">
-              {testimonials.slice(0, 3).map((t, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.4 + i * 0.1, type: "spring" }}
+              {stats.map((stat, index) => (
+                <motion.div 
+                  key={index}
+                  variants={scaleIn}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                  className="p-4"
+                  whileHover={{ scale: 1.05, y: -2 }}
                 >
-                  <Avatar className="border-2 border-background h-10 w-10">
-                    <img src={t.image} alt={t.name} className="object-cover" />
-                    <AvatarFallback>{t.name[0]}</AvatarFallback>
-                  </Avatar>
+                  <div className="text-2xl md:text-4xl font-bold text-primary">{stat.value}</div>
+                  <div className="text-xs md:text-sm text-muted-foreground mt-1">{stat.label}</div>
                 </motion.div>
               ))}
-            </div>
-            <div className="text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-1 mb-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+            </motion.div>
+
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6"
+            >
+              <Badge variant="outline" className="px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
+                <Sparkles className="h-3.5 w-3.5 mr-2" aria-hidden="true" />
+                Teste grátis por 7 dias
+              </Badge>
+              <Link to="/demo?tour=true">
+                <Badge 
+                  variant="outline" 
+                  className="px-4 py-2 border-accent/30 bg-accent/5 text-accent font-medium cursor-pointer hover:bg-accent/10 transition-all duration-200"
+                >
+                  <Play className="h-3.5 w-3.5 mr-2" aria-hidden="true" />
+                  Ver Tour
+                </Badge>
+              </Link>
+            </motion.div>
+            
+            <motion.h1 
+              id="hero-title"
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent leading-tight"
+            >
+              Bem-estar no Home Office: Ergonomia, Saúde e Produtividade
+            </motion.h1>
+            
+            <motion.p 
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed"
+            >
+              Conteúdos sobre bem-estar no home office, ergonomia, produtividade e saúde para quem trabalha em casa de forma confortável e eficiente.
+              <span className="block mt-2 text-foreground/80 font-medium">Reduza afastamentos e aumente a produtividade.</span>
+            </motion.p>
+            
+            {/* CTAs - Prominent and accessible */}
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="flex flex-col gap-5 justify-center items-center"
+            >
+              {/* Primary CTA - Consultoria Gratuita */}
+              <motion.a
+                href="https://wa.me/5548996029392?text=Olá! Gostaria de agendar uma consultoria gratuita sobre o OfficeWell"
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.03, y: -3 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center gap-2 px-8 py-3 text-base font-semibold text-primary-foreground rounded-full bg-gradient-to-r from-primary via-primary/90 to-primary/80 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 border border-primary/20 focus:outline-none focus:ring-4 focus:ring-primary/30"
+                aria-label="Agendar consultoria gratuita via WhatsApp"
+              >
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                Consultoria Gratuita
+                <ArrowRight className="h-5 w-5" aria-hidden="true" />
+              </motion.a>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }}>
+                  <Button 
+                    size="lg" 
+                    className="px-8 py-6 text-base bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg focus:ring-4 focus:ring-accent/30" 
+                    onClick={() => setPlansOpen(true)}
+                  >
+                    Começar Grátis
+                    <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                  </Button>
+                </motion.div>
+                <Link to="/demo">
+                  <motion.div whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.98 }}>
+                    <Button size="lg" variant="outline" className="px-8 py-6 text-base focus:ring-4 focus:ring-ring/30">
+                      <Smartphone className="mr-2 h-5 w-5" aria-hidden="true" />
+                      Ver Demo
+                    </Button>
+                  </motion.div>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Social Proof - Quick testimonials preview */}
+        <section className="py-8 px-4" aria-label="Prova social">
+          <div className="container mx-auto max-w-4xl">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeIn}
+              transition={{ duration: 0.7, delay: 0.35 }}
+              className="flex flex-col md:flex-row items-center justify-center gap-6 p-5 rounded-2xl bg-muted/40 border border-border/30 shadow-sm"
+            >
+              <div className="flex -space-x-3" role="group" aria-label="Avatares de clientes">
+                {testimonials.slice(0, 3).map((t, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.5 + i * 0.12, type: "spring" }}
+                  >
+                    <Avatar className="border-2 border-background h-11 w-11 shadow-md">
+                      <img src={t.image} alt={`Foto de ${t.name}`} className="object-cover" />
+                      <AvatarFallback>{t.name[0]}</AvatarFallback>
+                    </Avatar>
+                  </motion.div>
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">+200 empresas</span> já cuidam de suas equipes com OfficeWell
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+              <div className="text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start gap-1 mb-1" role="img" aria-label="Avaliação 5 estrelas">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 fill-yellow-500 text-yellow-500" aria-hidden="true" />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">+200 empresas</span> já cuidam de suas equipes com OfficeWell
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </section>
 
-      {/* Scroll Indicator - After Social Proof */}
-      <motion.div 
-        className="flex flex-col items-center justify-center py-8"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-      >
-        <motion.button
-          onClick={() => scrollToSection('#funcionalidades')}
-          className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors cursor-pointer group"
-          whileHover={{ scale: 1.05 }}
+        {/* Scroll Indicator - After Social Proof */}
+        <motion.div 
+          className="flex flex-col items-center justify-center py-10"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
         >
-          <span className="text-sm font-medium">Descubra mais</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ 
-              duration: 1.5, 
-              repeat: Infinity, 
-              ease: "easeInOut" 
-            }}
-            className="p-2 rounded-full border border-muted-foreground/30 group-hover:border-primary/50 transition-colors"
+          <motion.button
+            onClick={() => scrollToSection('#funcionalidades')}
+            className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-4 rounded-lg p-2"
+            whileHover={{ scale: 1.08 }}
+            aria-label="Descobrir mais sobre as funcionalidades"
           >
-            <ChevronDown className="h-5 w-5" />
-          </motion.div>
-        </motion.button>
-      </motion.div>
+            <span className="text-sm font-medium">Descubra mais</span>
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ 
+                duration: 1.8, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+              className="p-2 rounded-full border border-muted-foreground/30 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-300"
+            >
+              <ChevronDown className="h-5 w-5" aria-hidden="true" />
+            </motion.div>
+          </motion.button>
+        </motion.div>
 
-      {/* Features Section */}
-      <section id="funcionalidades" className="py-20 px-4 bg-muted/30">
+        {/* Features Section */}
+        <section id="funcionalidades" className="py-20 px-4 bg-muted/30" aria-labelledby="features-title">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             initial="hidden"
@@ -661,10 +690,10 @@ const Landing = () => {
             ))}
           </motion.div>
         </div>
-      </section>
+        </section>
 
-      {/* Pain Points & Benefits Section */}
-      <section id="beneficios" className="py-20 px-4">
+        {/* Pain Points & Benefits Section */}
+        <section id="beneficios" className="py-20 px-4" aria-labelledby="benefits-title">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -1484,6 +1513,68 @@ const Landing = () => {
           </motion.div>
         </div>
       </section>
+
+        {/* SEO Content Sections */}
+        <section className="py-16 px-4 bg-muted/20" aria-labelledby="seo-content">
+          <div className="container mx-auto max-w-4xl">
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={staggerContainer}
+              className="space-y-12"
+            >
+              {/* Ergonomia no Home Office */}
+              <motion.article variants={fadeInUp} className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Activity className="h-6 w-6 text-primary" aria-hidden="true" />
+                  </div>
+                  <h2 id="ergonomia" className="text-2xl md:text-3xl font-bold text-foreground">
+                    Ergonomia no Home Office
+                  </h2>
+                </div>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Aprenda como ajustar cadeira, mesa e monitor para evitar dores e melhorar sua postura no trabalho remoto. 
+                  Uma boa ergonomia é fundamental para prevenir LER/DORT e aumentar seu conforto durante longas horas de trabalho.
+                </p>
+              </motion.article>
+
+              {/* Produtividade no Trabalho Remoto */}
+              <motion.article variants={fadeInUp} className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                    <BarChart3 className="h-6 w-6 text-accent" aria-hidden="true" />
+                  </div>
+                  <h2 id="produtividade" className="text-2xl md:text-3xl font-bold text-foreground">
+                    Produtividade no Trabalho Remoto
+                  </h2>
+                </div>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Técnicas de foco, organização da rotina e pausas ativas para trabalhar melhor em casa. 
+                  Descubra como manter alta performance sem comprometer sua saúde física e mental.
+                </p>
+              </motion.article>
+
+              {/* Saúde Física e Mental */}
+              <motion.article variants={fadeInUp} className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    <Heart className="h-6 w-6 text-secondary" aria-hidden="true" />
+                  </div>
+                  <h2 id="saude" className="text-2xl md:text-3xl font-bold text-foreground">
+                    Saúde Física e Mental
+                  </h2>
+                </div>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  Dicas de alongamentos, equilíbrio emocional e bem-estar para quem passa muitas horas no computador. 
+                  Cuide da sua mente e corpo com práticas simples que fazem toda a diferença no dia a dia.
+                </p>
+              </motion.article>
+            </motion.div>
+          </div>
+        </section>
+      </main>
 
       {/* Footer */}
       <motion.footer 
