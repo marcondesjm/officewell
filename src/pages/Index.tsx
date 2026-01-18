@@ -581,10 +581,10 @@ const Index = () => {
               Versão {APP_VERSION}
             </div>
             {/* Legal Disclaimer */}
-            <div className="bg-muted/50 border border-border/50 rounded-xl p-3 max-w-lg mx-auto">
-              <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
-                <span className="text-base">⚖️</span>
-                <span>As orientações do OfficeWell têm caráter educativo e não substituem avaliação médica ou fisioterapêutica.</span>
+            <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-xl p-4 max-w-lg mx-auto">
+              <p className="text-sm text-foreground leading-relaxed flex items-start gap-3">
+                <span className="text-xl">⚖️</span>
+                <span className="font-medium">As orientações do OfficeWell têm caráter educativo e não substituem avaliação médica ou fisioterapêutica.</span>
               </p>
             </div>
           </div>
