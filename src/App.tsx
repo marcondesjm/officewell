@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Install from "./pages/Install";
 import HRAdmin from "./pages/HRAdmin";
 import PartnersAdmin from "./pages/PartnersAdmin";
+import Termos from "./pages/Termos";
 import Landing from "./pages/Landing";
 import Goals from "./pages/Goals";
 import Demo from "./pages/Demo";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/parceiros" element={<PartnersAdmin />} />
             <Route path="/demo" element={<Demo />} />
             <Route path="/privacidade" element={<Privacidade />} />
+            <Route path="/termos" element={<Termos />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

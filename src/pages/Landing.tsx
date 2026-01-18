@@ -104,7 +104,7 @@ const Landing = () => {
   const [loading, setLoading] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | undefined>();
-  const [termsOpen, setTermsOpen] = useState(false);
+  
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1879,12 +1879,12 @@ const Landing = () => {
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <button 
-                    onClick={() => setTermsOpen(true)} 
-                    className="hover:text-foreground transition-colors text-left"
+                  <Link 
+                    to="/termos" 
+                    className="hover:text-foreground transition-colors"
                   >
                     Termos de Uso
-                  </button>
+                  </Link>
                 </li>
                 <li>
                   <Link 
@@ -1933,8 +1933,6 @@ const Landing = () => {
       {/* LGPD Consent Banner */}
       <LGPDConsentBanner />
 
-      {/* Terms of Use Dialog */}
-      <TermsOfUseDialog open={termsOpen} onOpenChange={setTermsOpen} />
 
     </div>
   );
