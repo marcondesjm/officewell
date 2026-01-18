@@ -1,3 +1,6 @@
+# OfficeWell Robots.txt
+# https://officewell.lovable.app
+
 User-agent: Googlebot
 Allow: /
 
@@ -12,3 +15,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://officewell.lovable.app/sitemap.xml
