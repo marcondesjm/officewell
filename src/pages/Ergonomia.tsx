@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ErgonomicChecklist, ErgonomicData } from "@/components/ErgonomicChecklist";
+import { ErgonomicCharts, ErgonomicHistoryData, LerDistribution, FatigueHistoryData } from "@/components/ErgonomicCharts";
 import { avaliarRiscoLER, LerForm } from "@/utils/lerRisk";
 import { sugestaoFadiga, Fadiga } from "@/utils/mentalFatigue";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,7 @@ import {
   Activity, 
   AlertTriangle, 
   ArrowLeft, 
+  BarChart3,
   Brain, 
   CheckCircle2, 
   ClipboardCheck, 
@@ -83,6 +85,17 @@ export default function Ergonomia() {
     fatigue: number;
     avgScore: number;
   } | null>(null);
+
+  // ============ CHARTS DATA STATE ============
+  const [ergonomicChartData, setErgonomicChartData] = useState<ErgonomicHistoryData[]>([]);
+  const [lerDistribution, setLerDistribution] = useState<LerDistribution[]>([
+    { level: "baixo", count: 0, color: "hsl(160 84% 39%)" },
+    { level: "medio", count: 0, color: "hsl(43 96% 56%)" },
+    { level: "alto", count: 0, color: "hsl(0 84% 60%)" },
+  ]);
+  const [fatigueChartData, setFatigueChartData] = useState<FatigueHistoryData[]>([]);
+  const [showCharts, setShowCharts] = useState(false);
+  const [isLoadingCharts, setIsLoadingCharts] = useState(false);
 
   // ============ COMPANY REPORT STATE ============
   const [showReport, setShowReport] = useState(false);
@@ -287,6 +300,67 @@ export default function Ergonomia() {
     }
   };
 
+  // Load charts data from database
+  const loadChartsData = async () => {
+    setIsLoadingCharts(true);
+    try {
+      const [ergonomicRes, lerRes, fatigueRes] = await Promise.all([
+        supabase
+          .from("ergonomic_assessments")
+          .select("score, created_at")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true })
+          .limit(30),
+        supabase
+          .from("ler_assessments")
+          .select("risk_level, created_at")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("fatigue_assessments")
+          .select("fatigue_level, created_at")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: true })
+          .limit(30),
+      ]);
+
+      // Process ergonomic data for line chart
+      const ergonomicData: ErgonomicHistoryData[] = (ergonomicRes.data || []).map((item) => ({
+        date: item.created_at,
+        score: item.score,
+      }));
+      setErgonomicChartData(ergonomicData);
+
+      // Process LER data for pie chart
+      const lerCounts = { baixo: 0, medio: 0, alto: 0 };
+      (lerRes.data || []).forEach((item) => {
+        if (item.risk_level === "baixo") lerCounts.baixo++;
+        else if (item.risk_level === "medio") lerCounts.medio++;
+        else if (item.risk_level === "alto") lerCounts.alto++;
+      });
+      setLerDistribution([
+        { level: "baixo", count: lerCounts.baixo, color: "hsl(160 84% 39%)" },
+        { level: "medio", count: lerCounts.medio, color: "hsl(43 96% 56%)" },
+        { level: "alto", count: lerCounts.alto, color: "hsl(0 84% 60%)" },
+      ]);
+
+      // Process fatigue data for bar chart
+      const fatigueData: FatigueHistoryData[] = (fatigueRes.data || []).map((item) => ({
+        date: item.created_at,
+        level: item.fatigue_level,
+        value: item.fatigue_level === "boa" ? 1 : item.fatigue_level === "media" ? 2 : 3,
+      }));
+      setFatigueChartData(fatigueData);
+
+      setShowCharts(true);
+    } catch (error) {
+      console.error("Error loading charts data:", error);
+      toast.error("Erro ao carregar dados dos gráficos");
+    } finally {
+      setIsLoadingCharts(false);
+    }
+  };
+
   // Calculate overall ergonomic score
   const ergonomicScore = Object.values(ergonomicData).filter(Boolean).length * 20;
 
@@ -354,14 +428,29 @@ export default function Ergonomia() {
         {assessmentHistory && (assessmentHistory.ergonomic > 0 || assessmentHistory.ler > 0 || assessmentHistory.fatigue > 0) && (
           <Card className="glass-card animate-fade-in">
             <CardContent className="pt-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-lg bg-info/10">
-                  <History className="h-5 w-5 text-info" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-info/10">
+                    <History className="h-5 w-5 text-info" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Seu Histórico</h3>
+                    <p className="text-sm text-muted-foreground">Score médio: {assessmentHistory.avgScore}%</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">Seu Histórico</h3>
-                  <p className="text-sm text-muted-foreground">Score médio: {assessmentHistory.avgScore}%</p>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadChartsData}
+                  disabled={isLoadingCharts}
+                >
+                  {isLoadingCharts ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                  )}
+                  {showCharts ? "Atualizar Gráficos" : "Ver Gráficos"}
+                </Button>
               </div>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div className="p-3 rounded-lg bg-primary/10">
@@ -379,6 +468,17 @@ export default function Ergonomia() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Charts Section */}
+        {showCharts && (
+          <div className="animate-fade-in">
+            <ErgonomicCharts
+              ergonomicHistory={ergonomicChartData}
+              lerDistribution={lerDistribution}
+              fatigueHistory={fatigueChartData}
+            />
+          </div>
         )}
 
         {/* Ergonomic Checklist */}
