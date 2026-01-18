@@ -577,11 +577,13 @@ const Index = () => {
           
           {/* Branding */}
           <div className="pt-4 space-y-4">
-            <img 
-              src={logoOfficeWell} 
-              alt="OfficeWell - Seu assistente de bem-estar no trabalho" 
-              className="h-14 w-auto object-contain mx-auto drop-shadow-lg hover:scale-105 transition-transform duration-300"
-            />
+            <div className="bg-slate-900 rounded-2xl p-3 mx-auto w-fit shadow-lg hover:scale-105 transition-transform duration-300">
+              <img 
+                src={logoOfficeWell} 
+                alt="OfficeWell - Seu assistente de bem-estar no trabalho" 
+                className="h-12 w-auto object-contain"
+              />
+            </div>
             <p className="text-lg font-semibold text-foreground flex items-center justify-center gap-2">
               Mantenha-se saudável e produtivo 
               <span className="text-2xl animate-pulse">💪</span>
