@@ -469,6 +469,34 @@ const Landing = () => {
             >
               Bem-estar no Home Office: Ergonomia, Saúde e Produtividade
             </motion.h1>
+
+            {/* Scroll Indicator - Right after H1 */}
+            <motion.div 
+              className="flex flex-col items-center justify-center py-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <motion.button
+                onClick={() => scrollToSection('#funcionalidades')}
+                className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-4 rounded-lg p-2"
+                whileHover={{ scale: 1.08 }}
+                aria-label="Descobrir mais sobre as funcionalidades"
+              >
+                <span className="text-sm font-medium">Descubra mais</span>
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{ 
+                    duration: 1.8, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                  className="p-2 rounded-full border border-muted-foreground/30 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-300"
+                >
+                  <ChevronDown className="h-5 w-5" aria-hidden="true" />
+                </motion.div>
+              </motion.button>
+            </motion.div>
             
             {/* Description */}
             <motion.p 
@@ -614,34 +642,6 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* Scroll Indicator - After Social Proof */}
-        <motion.div 
-          className="flex flex-col items-center justify-center py-10"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.button
-            onClick={() => scrollToSection('#funcionalidades')}
-            className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-4 rounded-lg p-2"
-            whileHover={{ scale: 1.08 }}
-            aria-label="Descobrir mais sobre as funcionalidades"
-          >
-            <span className="text-sm font-medium">Descubra mais</span>
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ 
-                duration: 1.8, 
-                repeat: Infinity, 
-                ease: "easeInOut" 
-              }}
-              className="p-2 rounded-full border border-muted-foreground/30 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-300"
-            >
-              <ChevronDown className="h-5 w-5" aria-hidden="true" />
-            </motion.div>
-          </motion.button>
-        </motion.div>
 
         {/* Features Section */}
         <section id="funcionalidades" className="py-20 px-4 bg-muted/30" aria-labelledby="features-title">
