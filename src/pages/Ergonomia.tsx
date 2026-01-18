@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ErgonomicChecklist, ErgonomicData } from "@/components/ErgonomicChecklist";
 import { avaliarRiscoLER, LerForm } from "@/utils/lerRisk";
 import { sugestaoFadiga, Fadiga } from "@/utils/mentalFatigue";
-import { gerarRelatorio } from "@/utils/companyReport";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Activity, 
   AlertTriangle, 
@@ -20,8 +20,11 @@ import {
   FileBarChart, 
   Hand, 
   Heart, 
+  History,
   Info,
   Lightbulb,
+  Loader2,
+  Save,
   Shield,
   Sparkles,
   ThumbsUp,
@@ -32,8 +35,24 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ParallaxBackground from "@/components/ParallaxBackground";
 
+// Generate or retrieve session ID for anonymous tracking
+const getSessionId = () => {
+  let sessionId = localStorage.getItem("ergonomic_session_id");
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem("ergonomic_session_id", sessionId);
+  }
+  return sessionId;
+};
+
 export default function Ergonomia() {
   const navigate = useNavigate();
+  const sessionId = getSessionId();
+
+  // ============ LOADING STATES ============
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingReport, setIsLoadingReport] = useState(false);
 
   // ============ ERGONOMIC CHECKLIST STATE ============
   const [ergonomicData, setErgonomicData] = useState<ErgonomicData>({
@@ -57,12 +76,21 @@ export default function Ergonomia() {
   const [fadiga, setFadiga] = useState<Fadiga | null>(null);
   const [fadigaSugestao, setFadigaSugestao] = useState<string | null>(null);
 
+  // ============ HISTORY STATE ============
+  const [assessmentHistory, setAssessmentHistory] = useState<{
+    ergonomic: number;
+    ler: number;
+    fatigue: number;
+    avgScore: number;
+  } | null>(null);
+
   // ============ COMPANY REPORT STATE ============
   const [showReport, setShowReport] = useState(false);
   const [reportData, setReportData] = useState<{
     mediaScore: number;
     colaboradoresRiscoAlto: number;
     total: number;
+    totalAssessments: number;
   } | null>(null);
 
   // ============ HANDLERS ============
@@ -74,48 +102,198 @@ export default function Ergonomia() {
     setLerForm((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const avaliarLER = () => {
-    const result = avaliarRiscoLER(lerForm);
-    setLerResult(result);
+  // Save ergonomic assessment to database
+  const saveErgonomicAssessment = async () => {
+    const score = Object.values(ergonomicData).filter(Boolean).length * 20;
     
-    if (result.nivel === "alto") {
-      toast.error("Risco LER Elevado!", {
-        description: "Recomendamos consultar um profissional de saúde.",
-      });
-    } else if (result.nivel === "medio") {
-      toast.warning("Atenção ao Risco LER", {
-        description: "Faça pausas regulares e exercícios de alongamento.",
-      });
-    } else {
-      toast.success("Risco LER Baixo", {
-        description: "Continue mantendo bons hábitos ergonômicos!",
-      });
+    const { error } = await supabase.from("ergonomic_assessments").insert({
+      session_id: sessionId,
+      monitor_altura: ergonomicData.monitorAltura,
+      distancia_monitor: ergonomicData.distanciaMonitor,
+      postura_punhos: ergonomicData.posturaPunhos,
+      encosto_cadeira: ergonomicData.encostoCadeira,
+      pes_apoiados: ergonomicData.pesApoiados,
+      score,
+    });
+
+    if (error) {
+      console.error("Error saving ergonomic assessment:", error);
+      throw error;
     }
   };
 
-  const avaliarFadiga = (nivel: Fadiga) => {
+  // Save LER assessment to database
+  const saveLerAssessment = async (riskLevel: string) => {
+    const { error } = await supabase.from("ler_assessments").insert({
+      session_id: sessionId,
+      dor_punhos: lerForm.dorPunhos,
+      formigamento: lerForm.formigamento,
+      rigidez: lerForm.rigidez,
+      dor_pescoco: lerForm.dorPescoco,
+      risk_level: riskLevel,
+    });
+
+    if (error) {
+      console.error("Error saving LER assessment:", error);
+      throw error;
+    }
+  };
+
+  // Save fatigue assessment to database
+  const saveFatigueAssessment = async (level: Fadiga, suggestion: string) => {
+    const { error } = await supabase.from("fatigue_assessments").insert({
+      session_id: sessionId,
+      fatigue_level: level,
+      suggestion,
+    });
+
+    if (error) {
+      console.error("Error saving fatigue assessment:", error);
+      throw error;
+    }
+  };
+
+  const avaliarLER = async () => {
+    const result = avaliarRiscoLER(lerForm);
+    setLerResult(result);
+    setIsSaving(true);
+
+    try {
+      await saveLerAssessment(result.nivel);
+      
+      if (result.nivel === "alto") {
+        toast.error("Risco LER Elevado!", {
+          description: "Avaliação salva. Recomendamos consultar um profissional.",
+        });
+      } else if (result.nivel === "medio") {
+        toast.warning("Atenção ao Risco LER", {
+          description: "Avaliação salva. Faça pausas e alongamentos.",
+        });
+      } else {
+        toast.success("Risco LER Baixo", {
+          description: "Avaliação salva. Continue assim!",
+        });
+      }
+    } catch {
+      toast.error("Erro ao salvar avaliação LER");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const avaliarFadiga = async (nivel: Fadiga) => {
     setFadiga(nivel);
     const sugestao = sugestaoFadiga(nivel);
     setFadigaSugestao(sugestao);
+    setIsSaving(true);
+
+    try {
+      await saveFatigueAssessment(nivel, sugestao);
+      toast.success("Avaliação de fadiga salva!");
+    } catch {
+      toast.error("Erro ao salvar avaliação de fadiga");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const gerarRelatorioEmpresa = () => {
-    // Simulating company data (in production, this would come from database)
-    const ergonomicScore = Object.values(ergonomicData).filter(Boolean).length * 20;
-    const scores = [ergonomicScore, 75, 85, 60, 90]; // Simulated team scores
-    const riscosLER = [lerResult?.nivel || "baixo", "baixo", "medio", "alto", "baixo"];
-    
-    const report = gerarRelatorio(scores, riscosLER);
-    setReportData(report);
-    setShowReport(true);
-    
-    toast.success("Relatório gerado!", {
-      description: `Analisados ${report.total} colaboradores.`,
-    });
+  const salvarChecklistErgonomico = async () => {
+    setIsSaving(true);
+    try {
+      await saveErgonomicAssessment();
+      toast.success("Checklist ergonômico salvo!", {
+        description: `Score: ${ergonomicScore}%`,
+      });
+    } catch {
+      toast.error("Erro ao salvar checklist");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Load assessment history
+  const loadHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const [ergonomicRes, lerRes, fatigueRes] = await Promise.all([
+        supabase.from("ergonomic_assessments").select("score").eq("session_id", sessionId),
+        supabase.from("ler_assessments").select("risk_level").eq("session_id", sessionId),
+        supabase.from("fatigue_assessments").select("fatigue_level").eq("session_id", sessionId),
+      ]);
+
+      const ergonomicCount = ergonomicRes.data?.length || 0;
+      const lerCount = lerRes.data?.length || 0;
+      const fatigueCount = fatigueRes.data?.length || 0;
+      
+      const avgScore = ergonomicCount > 0 
+        ? Math.round((ergonomicRes.data?.reduce((acc, curr) => acc + curr.score, 0) || 0) / ergonomicCount)
+        : 0;
+
+      setAssessmentHistory({
+        ergonomic: ergonomicCount,
+        ler: lerCount,
+        fatigue: fatigueCount,
+        avgScore,
+      });
+    } catch (error) {
+      console.error("Error loading history:", error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  // Generate real company report from database
+  const gerarRelatorioEmpresa = async () => {
+    setIsLoadingReport(true);
+    setShowReport(false);
+
+    try {
+      const [ergonomicRes, lerRes] = await Promise.all([
+        supabase.from("ergonomic_assessments").select("score, session_id"),
+        supabase.from("ler_assessments").select("risk_level, session_id"),
+      ]);
+
+      const scores = ergonomicRes.data?.map((a) => a.score) || [];
+      const riskLevels = lerRes.data?.map((a) => a.risk_level) || [];
+      
+      // Get unique sessions (simulating unique employees)
+      const uniqueSessions = new Set([
+        ...(ergonomicRes.data?.map((a) => a.session_id) || []),
+        ...(lerRes.data?.map((a) => a.session_id) || []),
+      ]);
+
+      const mediaScore = scores.length > 0 
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+        : 0;
+
+      const riscoAlto = riskLevels.filter((r) => r === "alto").length;
+
+      setReportData({
+        mediaScore,
+        colaboradoresRiscoAlto: riscoAlto,
+        total: uniqueSessions.size,
+        totalAssessments: scores.length + riskLevels.length,
+      });
+      setShowReport(true);
+
+      toast.success("Relatório gerado!", {
+        description: `Dados de ${uniqueSessions.size} colaborador(es) analisados.`,
+      });
+    } catch (error) {
+      console.error("Error generating report:", error);
+      toast.error("Erro ao gerar relatório");
+    } finally {
+      setIsLoadingReport(false);
+    }
   };
 
   // Calculate overall ergonomic score
   const ergonomicScore = Object.values(ergonomicData).filter(Boolean).length * 20;
+
+  // Load history on mount
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
   // Set page metadata
   useEffect(() => {
@@ -172,6 +350,37 @@ export default function Ergonomia() {
           </div>
         </Card>
 
+        {/* History Card */}
+        {assessmentHistory && (assessmentHistory.ergonomic > 0 || assessmentHistory.ler > 0 || assessmentHistory.fatigue > 0) && (
+          <Card className="glass-card animate-fade-in">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 rounded-lg bg-info/10">
+                  <History className="h-5 w-5 text-info" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Seu Histórico</h3>
+                  <p className="text-sm text-muted-foreground">Score médio: {assessmentHistory.avgScore}%</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <p className="text-2xl font-bold text-primary">{assessmentHistory.ergonomic}</p>
+                  <p className="text-xs text-muted-foreground">Checklists</p>
+                </div>
+                <div className="p-3 rounded-lg bg-destructive/10">
+                  <p className="text-2xl font-bold text-destructive">{assessmentHistory.ler}</p>
+                  <p className="text-xs text-muted-foreground">Avaliações LER</p>
+                </div>
+                <div className="p-3 rounded-lg bg-secondary/10">
+                  <p className="text-2xl font-bold text-secondary">{assessmentHistory.fatigue}</p>
+                  <p className="text-xs text-muted-foreground">Fadiga</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Ergonomic Checklist */}
         <Card className="glass-card animate-fade-in">
           <CardHeader>
@@ -187,11 +396,23 @@ export default function Ergonomia() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <ErgonomicChecklist 
               data={ergonomicData} 
               onChange={handleErgonomicChange} 
             />
+            <Button 
+              onClick={salvarChecklistErgonomico}
+              disabled={isSaving}
+              className="w-full gradient-primary text-primary-foreground"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Salvar Avaliação
+            </Button>
           </CardContent>
         </Card>
 
@@ -239,11 +460,16 @@ export default function Ergonomia() {
             </div>
 
             <Button 
-              onClick={avaliarLER} 
+              onClick={avaliarLER}
+              disabled={isSaving}
               className="w-full gradient-warm text-primary-foreground mt-4"
             >
-              <Shield className="h-4 w-4 mr-2" />
-              Avaliar Risco LER
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Shield className="h-4 w-4 mr-2" />
+              )}
+              Avaliar e Salvar
             </Button>
 
             {lerResult && (
@@ -350,45 +576,68 @@ export default function Ergonomia() {
               <div>
                 <CardTitle>Relatório da Equipe</CardTitle>
                 <CardDescription>
-                  Visão geral da saúde ergonômica do time (simulação)
+                  Visão geral da saúde ergonômica baseada em dados reais
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
-              onClick={gerarRelatorioEmpresa} 
+              onClick={gerarRelatorioEmpresa}
+              disabled={isLoadingReport}
               className="w-full gradient-primary text-primary-foreground"
             >
-              <Sparkles className="h-4 w-4 mr-2" />
+              {isLoadingReport ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4 mr-2" />
+              )}
               Gerar Relatório
             </Button>
 
             {showReport && reportData && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <Card className="bg-primary/10 border-primary/30">
-                  <CardContent className="pt-6 text-center">
-                    <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="text-3xl font-bold text-primary">{reportData.mediaScore}%</p>
-                    <p className="text-sm text-muted-foreground">Score Médio</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-destructive/10 border-destructive/30">
-                  <CardContent className="pt-6 text-center">
-                    <AlertTriangle className="h-8 w-8 text-destructive mx-auto mb-2" />
-                    <p className="text-3xl font-bold text-destructive">{reportData.colaboradoresRiscoAlto}</p>
-                    <p className="text-sm text-muted-foreground">Risco Alto LER</p>
-                  </CardContent>
-                </Card>
-                
-                <Card className="bg-success/10 border-success/30">
-                  <CardContent className="pt-6 text-center">
-                    <Heart className="h-8 w-8 text-success mx-auto mb-2" />
-                    <p className="text-3xl font-bold text-success">{reportData.total}</p>
-                    <p className="text-sm text-muted-foreground">Colaboradores</p>
-                  </CardContent>
-                </Card>
+              <div className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card className="bg-primary/10 border-primary/30">
+                    <CardContent className="pt-6 text-center">
+                      <TrendingUp className="h-6 w-6 text-primary mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-primary">{reportData.mediaScore}%</p>
+                      <p className="text-xs text-muted-foreground">Score Médio</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-destructive/10 border-destructive/30">
+                    <CardContent className="pt-6 text-center">
+                      <AlertTriangle className="h-6 w-6 text-destructive mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-destructive">{reportData.colaboradoresRiscoAlto}</p>
+                      <p className="text-xs text-muted-foreground">Risco Alto LER</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-success/10 border-success/30">
+                    <CardContent className="pt-6 text-center">
+                      <Heart className="h-6 w-6 text-success mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-success">{reportData.total}</p>
+                      <p className="text-xs text-muted-foreground">Colaboradores</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-info/10 border-info/30">
+                    <CardContent className="pt-6 text-center">
+                      <ClipboardCheck className="h-6 w-6 text-info mx-auto mb-2" />
+                      <p className="text-2xl font-bold text-info">{reportData.totalAssessments}</p>
+                      <p className="text-xs text-muted-foreground">Avaliações</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Alert className="border-info bg-info/10">
+                  <Info className="h-5 w-5 text-info" />
+                  <AlertTitle className="text-info">Dados em Tempo Real</AlertTitle>
+                  <AlertDescription>
+                    Este relatório é gerado com base em todas as avaliações salvas no sistema.
+                  </AlertDescription>
+                </Alert>
               </div>
             )}
           </CardContent>
