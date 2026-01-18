@@ -451,11 +451,13 @@ export const HRAnnouncementHeader = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-2 min-w-0 cursor-default">
-              <img 
-                src={logoOfficeWell} 
-                alt="OfficeWell - Bem-estar no Trabalho" 
-                className="h-10 w-auto object-contain drop-shadow-md flex-shrink-0"
-              />
+              <div className="bg-slate-900 rounded-xl p-1.5 shadow-md">
+                <img 
+                  src={logoOfficeWell} 
+                  alt="OfficeWell - Bem-estar no Trabalho" 
+                  className="h-8 w-auto object-contain flex-shrink-0"
+                />
+              </div>
             </div>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-xs">
