@@ -29,6 +29,7 @@ import { AdBanner } from "@/components/AdBanner";
 import { PartnersBanner } from "@/components/PartnersBanner";
 import logoOfficeWell from "@/assets/logo-officewell.png";
 import { LockedFeature } from "@/components/LockedFeature";
+import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION, SyncStatus } from "@/hooks/useAppRefresh";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
@@ -598,6 +599,9 @@ const Index = () => {
       
       {/* Onboarding Tour for new demo users */}
       <OnboardingTour />
+      
+      {/* LGPD Consent Banner */}
+      <LGPDConsentBanner />
     </div>
   );
 };
