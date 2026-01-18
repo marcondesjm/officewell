@@ -30,7 +30,8 @@ import { PartnersBanner } from "@/components/PartnersBanner";
 import logoOfficeWell from "@/assets/logo-officewell.png";
 import { LockedFeature } from "@/components/LockedFeature";
 import { useReminders } from "@/hooks/useReminders";
-import { useAppRefresh, APP_VERSION } from "@/hooks/useAppRefresh";
+import { useAppRefresh, APP_VERSION, SyncStatus } from "@/hooks/useAppRefresh";
+import { Check, AlertCircle, Loader2 } from "lucide-react";
 import { usePlanFeatures } from "@/hooks/usePlanFeatures";
 import { useGoals } from "@/hooks/useGoals";
 import { useState, useEffect } from "react";
@@ -96,7 +97,7 @@ const Index = () => {
   }, [needsWorkScheduleConfig]);
 
   // Auto-refresh every hour to keep app updated
-  const { checkForUpdates } = useAppRefresh(60 * 60 * 1000);
+  const { checkForUpdates, syncStatus } = useAppRefresh(60 * 60 * 1000);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -487,15 +488,50 @@ const Index = () => {
         <footer className="text-center pt-8 pb-4 space-y-4">
           <div className="flex flex-wrap items-center justify-center gap-3">
             <ThemeToggle />
-            <Button
-              onClick={handleManualRefresh}
-              variant="outline"
-              disabled={isRefreshing}
-              className="rounded-2xl border-2 hover:bg-primary/5"
-            >
-              <RefreshCw size={18} className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-            </Button>
+            
+            {/* Status de sincronização */}
+            {syncStatus === 'synced' && !isRefreshing && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium border-2 border-green-500/20">
+                <Check size={16} />
+                App atualizado
+              </div>
+            )}
+            
+            {(syncStatus === 'checking' || syncStatus === 'updating' || isRefreshing) && (
+              <Button
+                onClick={handleManualRefresh}
+                variant="outline"
+                disabled={true}
+                className="rounded-2xl border-2 hover:bg-primary/5"
+              >
+                <Loader2 size={18} className="mr-2 animate-spin" />
+                {isRefreshing ? 'Atualizando...' : 'Sincronizando...'}
+              </Button>
+            )}
+            
+            {syncStatus === 'error' && !isRefreshing && (
+              <Button
+                onClick={handleManualRefresh}
+                variant="outline"
+                className="rounded-2xl border-2 border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/10"
+              >
+                <AlertCircle size={18} className="mr-2" />
+                Tentar novamente
+              </Button>
+            )}
+            
+            {/* Botão de atualização manual (sempre visível, mas discreto quando sincronizado) */}
+            {syncStatus === 'synced' && !isRefreshing && (
+              <Button
+                onClick={handleManualRefresh}
+                variant="ghost"
+                size="sm"
+                className="rounded-2xl text-muted-foreground hover:text-foreground"
+              >
+                <RefreshCw size={16} className="mr-1" />
+                Verificar
+              </Button>
+            )}
             {showInstallButton && (
               <Button
                 onClick={() => navigate("/install")}
