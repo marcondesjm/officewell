@@ -55,6 +55,7 @@ import { SubscriptionPlans } from '@/components/SubscriptionPlans';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { OnboardingTour } from '@/components/OnboardingTour';
+import { LGPDConsentBanner } from '@/components/LGPDConsentBanner';
 
 // Animation variants
 const fadeInUp = {
@@ -1910,6 +1911,9 @@ const Landing = () => {
 
       {/* Onboarding Tour */}
       <OnboardingTour />
+
+      {/* LGPD Consent Banner */}
+      <LGPDConsentBanner />
     </div>
   );
 };
