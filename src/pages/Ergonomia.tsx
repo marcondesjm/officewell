@@ -19,6 +19,7 @@ import {
   Brain, 
   CheckCircle2, 
   ClipboardCheck, 
+  Download,
   FileBarChart, 
   Hand, 
   Heart, 
@@ -33,6 +34,7 @@ import {
   TrendingUp,
   XCircle
 } from "lucide-react";
+import { generateErgonomicPDF, PDFExportData } from "@/utils/pdfExport";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ParallaxBackground from "@/components/ParallaxBackground";
@@ -55,6 +57,7 @@ export default function Ergonomia() {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingReport, setIsLoadingReport] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   // ============ ERGONOMIC CHECKLIST STATE ============
   const [ergonomicData, setErgonomicData] = useState<ErgonomicData>({
@@ -297,6 +300,81 @@ export default function Ergonomia() {
       toast.error("Erro ao gerar relatório");
     } finally {
       setIsLoadingReport(false);
+    }
+  };
+
+  // Export PDF report
+  const exportarPDF = async () => {
+    if (!reportData) {
+      toast.error("Gere o relatório primeiro antes de exportar");
+      return;
+    }
+
+    setIsExportingPDF(true);
+
+    try {
+      // Fetch all data for PDF
+      const [ergonomicRes, lerRes, fatigueRes] = await Promise.all([
+        supabase
+          .from("ergonomic_assessments")
+          .select("score, created_at")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase
+          .from("ler_assessments")
+          .select("risk_level, dor_punhos, formigamento, rigidez, dor_pescoco, created_at")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: false })
+          .limit(20),
+        supabase
+          .from("fatigue_assessments")
+          .select("fatigue_level, suggestion, created_at")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: false })
+          .limit(20),
+      ]);
+
+      const ergonomicHistory = (ergonomicRes.data || []).map((item) => ({
+        date: item.created_at,
+        score: item.score,
+      }));
+
+      const lerHistory = (lerRes.data || []).map((item) => {
+        const symptoms: string[] = [];
+        if (item.dor_punhos) symptoms.push("Dor nos punhos");
+        if (item.formigamento) symptoms.push("Formigamento");
+        if (item.rigidez) symptoms.push("Rigidez nos dedos");
+        if (item.dor_pescoco) symptoms.push("Dor no pescoço");
+        
+        return {
+          date: item.created_at,
+          risk_level: item.risk_level,
+          symptoms,
+        };
+      });
+
+      const fatigueHistory = (fatigueRes.data || []).map((item) => ({
+        date: item.created_at,
+        level: item.fatigue_level,
+        suggestion: item.suggestion || undefined,
+      }));
+
+      const pdfData: PDFExportData = {
+        reportData,
+        ergonomicHistory,
+        lerHistory,
+        fatigueHistory,
+        generatedAt: new Date(),
+      };
+
+      generateErgonomicPDF(pdfData);
+      toast.success("PDF exportado com sucesso!");
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.error("Erro ao exportar PDF");
+    } finally {
+      setIsExportingPDF(false);
     }
   };
 
@@ -682,18 +760,36 @@ export default function Ergonomia() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button 
-              onClick={gerarRelatorioEmpresa}
-              disabled={isLoadingReport}
-              className="w-full gradient-primary text-primary-foreground"
-            >
-              {isLoadingReport ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4 mr-2" />
+            <div className="flex gap-3">
+              <Button 
+                onClick={gerarRelatorioEmpresa}
+                disabled={isLoadingReport}
+                className="flex-1 gradient-primary text-primary-foreground"
+              >
+                {isLoadingReport ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                Gerar Relatório
+              </Button>
+              
+              {showReport && reportData && (
+                <Button 
+                  onClick={exportarPDF}
+                  disabled={isExportingPDF}
+                  variant="outline"
+                  className="border-primary text-primary hover:bg-primary/10"
+                >
+                  {isExportingPDF ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-2" />
+                  )}
+                  Exportar PDF
+                </Button>
               )}
-              Gerar Relatório
-            </Button>
+            </div>
 
             {showReport && reportData && (
               <div className="space-y-4 mt-4">
