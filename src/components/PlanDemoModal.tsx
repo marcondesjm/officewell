@@ -14,8 +14,8 @@ const planDemos = {
   basic: {
     name: "Básico",
     icon: Check,
-    color: "text-emerald-500",
-    bgColor: "bg-emerald-500/10",
+    color: "text-success",
+    bgColor: "bg-success-light",
     description: "Perfeito para começar a cuidar da sua saúde no trabalho",
     features: [
       {
@@ -44,7 +44,7 @@ const planDemos = {
     name: "Pro",
     icon: Rocket,
     color: "text-primary",
-    bgColor: "bg-primary/10",
+    bgColor: "bg-primary-light",
     description: "Para profissionais que querem maximizar sua produtividade",
     trial: true,
     trialDays: 7,
@@ -74,8 +74,8 @@ const planDemos = {
   enterprise: {
     name: "Empresarial",
     icon: Building2,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
+    color: "text-secondary",
+    bgColor: "bg-secondary-light",
     description: "Solução completa para equipes e departamentos de RH",
     trial: true,
     trialDays: 7,
@@ -114,17 +114,17 @@ export const PlanDemoModal = ({ open, onOpenChange, planId, onSelectPlan }: Plan
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-card via-card to-muted/30">
         <DialogHeader>
           <div className="flex items-center justify-center gap-3 mb-2">
-            <div className={`w-12 h-12 rounded-full ${demo.bgColor} flex items-center justify-center`}>
+            <div className={`w-12 h-12 rounded-full ${demo.bgColor} flex items-center justify-center border border-current/10`}>
               <Icon className={`h-6 w-6 ${demo.color}`} />
             </div>
             <div className="text-left">
               <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                 Plano {demo.name}
                 {planId === "pro" && (
-                  <Badge className="bg-amber-500 text-amber-950">Popular</Badge>
+                  <Badge className="bg-accent text-accent-foreground">Popular</Badge>
                 )}
               </DialogTitle>
               <DialogDescription>{demo.description}</DialogDescription>
@@ -134,13 +134,13 @@ export const PlanDemoModal = ({ open, onOpenChange, planId, onSelectPlan }: Plan
 
         {/* Trial Banner */}
         {'trial' in demo && demo.trial && (
-          <div className="p-4 rounded-xl bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30">
+          <div className="p-4 rounded-xl bg-gradient-to-r from-success-light to-secondary-light border border-success/30">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                <Gift className="h-5 w-5 text-green-500" />
+              <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+                <Gift className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="font-semibold text-green-600 dark:text-green-400">
+                <p className="font-semibold text-success">
                   {'trialDays' in demo ? demo.trialDays : 7} dias de teste grátis!
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -163,17 +163,17 @@ export const PlanDemoModal = ({ open, onOpenChange, planId, onSelectPlan }: Plan
               return (
                 <div
                   key={index}
-                  className="p-4 rounded-xl bg-muted/50 border border-border/50 hover:border-primary/30 transition-all animate-fade-in"
+                  className="p-4 rounded-xl bg-muted/50 border border-border/50 hover:border-primary/30 hover:shadow-sm transition-all animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="flex items-start gap-4">
-                    <div className={`w-10 h-10 rounded-lg ${demo.bgColor} flex items-center justify-center flex-shrink-0`}>
+                    <div className={`w-10 h-10 rounded-lg ${demo.bgColor} flex items-center justify-center flex-shrink-0 border border-current/10`}>
                       <FeatureIcon className={`h-5 w-5 ${demo.color}`} />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-semibold mb-1">{feature.title}</h4>
                       <p className="text-sm text-muted-foreground mb-2">{feature.description}</p>
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background text-sm font-medium">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-background border border-border text-sm font-medium">
                         {feature.demo}
                       </div>
                     </div>
@@ -184,7 +184,7 @@ export const PlanDemoModal = ({ open, onOpenChange, planId, onSelectPlan }: Plan
           </div>
 
           {planId !== "basic" && (
-            <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
+            <div className="p-4 rounded-xl bg-primary-light border border-primary/20">
               <p className="text-sm text-center text-muted-foreground">
                 ✅ Inclui todas as funcionalidades do plano {planId === "enterprise" ? "Pro" : "Básico"}
               </p>
@@ -195,13 +195,19 @@ export const PlanDemoModal = ({ open, onOpenChange, planId, onSelectPlan }: Plan
         <div className="mt-6 flex gap-3">
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 border-muted hover:bg-muted"
             onClick={() => onOpenChange(false)}
           >
             Voltar
           </Button>
           <Button
-            className="flex-1 gap-2"
+            className={`flex-1 gap-2 ${
+              planId === "basic" 
+                ? "bg-success text-success-foreground" 
+                : planId === "pro" 
+                  ? "gradient-primary text-primary-foreground" 
+                  : "bg-secondary text-secondary-foreground"
+            }`}
             disabled={demo.ctaDisabled}
             onClick={() => {
               onOpenChange(false);

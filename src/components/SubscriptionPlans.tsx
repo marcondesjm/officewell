@@ -222,13 +222,13 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-card via-card to-muted/30">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
-            <Crown className="h-6 w-6 text-yellow-500" />
+            <Crown className="h-6 w-6 text-accent" />
             {step === "plans" ? "Escolha seu Plano" : "Finalizar Assinatura"}
           </DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription className="text-center text-muted-foreground">
             {step === "plans" 
               ? "Selecione o plano ideal para você ou sua empresa"
               : `Preencha seus dados para assinar o plano ${plans.find(p => p.id === selectedPlan)?.name}`
@@ -240,23 +240,48 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             {plans.map((plan) => {
               const Icon = plan.icon;
+              const planColors = {
+                basic: {
+                  bg: "bg-success-light",
+                  border: "border-success/30",
+                  iconBg: "bg-success/20",
+                  iconColor: "text-success",
+                  badge: "bg-success text-success-foreground",
+                },
+                pro: {
+                  bg: "bg-primary-light",
+                  border: "border-primary/30",
+                  iconBg: "bg-primary/20",
+                  iconColor: "text-primary",
+                  badge: "bg-accent text-accent-foreground",
+                },
+                enterprise: {
+                  bg: "bg-secondary-light",
+                  border: "border-secondary/30",
+                  iconBg: "bg-secondary/20",
+                  iconColor: "text-secondary",
+                  badge: "bg-secondary text-secondary-foreground",
+                },
+              };
+              const colors = planColors[plan.id as keyof typeof planColors];
+              
               return (
                 <Card 
                   key={plan.id} 
-                  className={`relative transition-all hover:shadow-lg ${
-                    plan.popular ? "border-primary shadow-md scale-105" : ""
+                  className={`relative transition-all hover:shadow-lg hover:-translate-y-1 ${colors.border} ${
+                    plan.popular ? "ring-2 ring-primary shadow-md scale-105" : ""
                   }`}
                 >
                   {plan.popular && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                      <span className="bg-accent text-accent-foreground text-xs font-semibold px-3 py-1 rounded-full shadow-md">
                         Mais Popular
                       </span>
                     </div>
                   )}
                   <CardHeader className="text-center pb-2">
-                    <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                      <Icon className="h-6 w-6 text-primary" />
+                    <div className={`mx-auto w-12 h-12 rounded-full ${colors.iconBg} flex items-center justify-center mb-2`}>
+                      <Icon className={`h-6 w-6 ${colors.iconColor}`} />
                     </div>
                     <CardTitle>{plan.name}</CardTitle>
                     <CardDescription>{plan.description}</CardDescription>
@@ -268,7 +293,7 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                         <span className="text-muted-foreground">{plan.period}</span>
                       )}
                       {plan.trial && (
-                        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium">
+                        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success-light text-success text-xs font-medium border border-success/20">
                           🎁 {plan.trialDays} dias grátis
                         </div>
                       )}
@@ -276,7 +301,7 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                     <ul className="space-y-2 text-sm text-left">
                       {plan.features.map((feature, index) => (
                         <li key={index} className="flex items-center gap-2">
-                          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <Check className="h-4 w-4 text-success flex-shrink-0" />
                           <span>{feature}</span>
                         </li>
                       ))}
@@ -284,7 +309,15 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      className="w-full" 
+                      className={`w-full ${
+                        plan.popular 
+                          ? "gradient-primary text-primary-foreground" 
+                          : plan.id === "basic" 
+                            ? "bg-success hover:bg-success/90 text-success-foreground" 
+                            : plan.id === "enterprise"
+                              ? "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                              : ""
+                      }`}
                       variant={plan.popular ? "default" : "outline"}
                       onClick={() => handleSelectPlan(plan.id)}
                       disabled={isOnTrial && currentTrialPlanId === plan.id}
@@ -304,9 +337,9 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-            <Card className="p-4 bg-primary/5 border-primary/20">
+            <Card className="p-4 bg-primary-light border-primary/20">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                   {(() => {
                     const Icon = selectedPlanData?.icon || Check;
                     return <Icon className="h-5 w-5 text-primary" />;
@@ -318,10 +351,10 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                     {appliedCoupon ? (
                       <>
                         <span className="text-muted-foreground line-through">{selectedPlanData?.price}</span>
-                        <span className="text-green-600 dark:text-green-400 font-bold">
+                        <span className="text-success font-bold">
                           {formatPrice(getDiscountedPrice(selectedPlanData?.priceValue || 0))}
                         </span>
-                        <span className="px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium">
+                        <span className="px-1.5 py-0.5 rounded-full bg-success-light text-success text-xs font-medium border border-success/20">
                           -{appliedCoupon.discount}%
                         </span>
                       </>
@@ -339,21 +372,21 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
             {/* Cupom de desconto */}
             <div className="space-y-2">
               <Label htmlFor="coupon" className="flex items-center gap-2">
-                <Tag className="h-4 w-4" />
+                <Tag className="h-4 w-4 text-accent" />
                 Cupom de Desconto
               </Label>
               {appliedCoupon ? (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/30">
-                  <BadgePercent className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-success-light border border-success/30">
+                  <BadgePercent className="h-5 w-5 text-success" />
                   <div className="flex-1">
-                    <p className="font-semibold text-green-600 dark:text-green-400">{appliedCoupon.code}</p>
+                    <p className="font-semibold text-success">{appliedCoupon.code}</p>
                     <p className="text-xs text-muted-foreground">{appliedCoupon.description}</p>
                   </div>
                   <Button 
                     type="button" 
                     variant="ghost" 
                     size="icon" 
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive-light"
                     onClick={handleRemoveCoupon}
                   >
                     <X className="h-4 w-4" />
@@ -366,9 +399,9 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                     placeholder="Digite o código do cupom"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    className="uppercase"
+                    className="uppercase border-muted focus:border-primary"
                   />
-                  <Button type="button" variant="outline" onClick={handleApplyCoupon}>
+                  <Button type="button" variant="outline" onClick={handleApplyCoupon} className="border-accent text-accent hover:bg-accent-light">
                     <Percent className="h-4 w-4 mr-1" />
                     Aplicar
                   </Button>
@@ -387,6 +420,7 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                className="border-muted focus:border-primary"
               />
             </div>
 
@@ -398,14 +432,15 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
+                className="border-muted focus:border-primary"
               />
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
+              <Button type="button" variant="outline" onClick={handleBack} className="flex-1 border-muted hover:bg-muted">
                 Voltar
               </Button>
-              <Button type="submit" className="flex-1 gap-2">
+              <Button type="submit" className="flex-1 gap-2 gradient-success text-success-foreground">
                 <MessageCircle className="h-4 w-4" />
                 Enviar via WhatsApp
               </Button>
