@@ -36,7 +36,9 @@ import {
   PartyPopper,
   AlertCircle,
   Gift,
-  ChevronDown
+  ChevronDown,
+  Monitor,
+  Target
 } from 'lucide-react';
 
 // Import real photos
@@ -836,6 +838,82 @@ const Landing = () => {
                 </Card>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* SEO Content Sections */}
+      <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/30" aria-labelledby="seo-content">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Ergonomia no Home Office */}
+            <motion.article
+              className="group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <Card className="h-full border-border/50 bg-card/50 backdrop-blur hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <Monitor className="h-6 w-6 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-bold text-foreground">Ergonomia no Home Office</h2>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Aprenda como ajustar cadeira, mesa e monitor para evitar dores e melhorar sua postura no trabalho remoto.
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.article>
+
+            {/* Produtividade no Trabalho Remoto */}
+            <motion.article
+              className="group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <Card className="h-full border-border/50 bg-card/50 backdrop-blur hover:border-secondary/30 hover:shadow-lg transition-all duration-300">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary/20 transition-colors">
+                    <Target className="h-6 w-6 text-secondary" />
+                  </div>
+                  <h2 className="text-xl font-bold text-foreground">Produtividade no Trabalho Remoto</h2>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Técnicas de foco, organização da rotina e pausas ativas para trabalhar melhor em casa.
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.article>
+
+            {/* Saúde Física e Mental */}
+            <motion.article
+              className="group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Card className="h-full border-border/50 bg-card/50 backdrop-blur hover:border-accent/30 hover:shadow-lg transition-all duration-300">
+                <CardHeader>
+                  <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+                    <Heart className="h-6 w-6 text-accent" />
+                  </div>
+                  <h2 className="text-xl font-bold text-foreground">Saúde Física e Mental</h2>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Dicas de alongamentos, equilíbrio emocional e bem-estar para quem passa muitas horas no computador.
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.article>
           </div>
         </div>
       </section>
