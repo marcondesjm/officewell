@@ -469,8 +469,20 @@ const Landing = () => {
             >
               Bem-estar no Home Office: Ergonomia, Saúde e Produtividade
             </motion.h1>
+            
+            {/* Description */}
+            <motion.p 
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-lg md:text-xl text-muted-foreground mb-6 max-w-3xl mx-auto leading-relaxed"
+            >
+              Conteúdos sobre bem-estar no home office, ergonomia, produtividade e saúde para quem trabalha em casa de forma confortável e eficiente.
+              <span className="block mt-2 text-foreground/80 font-medium">Reduza afastamentos e aumente a produtividade.</span>
+            </motion.p>
 
-            {/* Scroll Indicator - Right after H1 */}
+            {/* Scroll Indicator - After description */}
             <motion.div 
               className="flex flex-col items-center justify-center py-6"
               initial={{ opacity: 0 }}
@@ -497,18 +509,6 @@ const Landing = () => {
                 </motion.div>
               </motion.button>
             </motion.div>
-            
-            {/* Description */}
-            <motion.p 
-              initial="hidden"
-              animate="visible"
-              variants={fadeInUp}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed"
-            >
-              Conteúdos sobre bem-estar no home office, ergonomia, produtividade e saúde para quem trabalha em casa de forma confortável e eficiente.
-              <span className="block mt-2 text-foreground/80 font-medium">Reduza afastamentos e aumente a produtividade.</span>
-            </motion.p>
 
             {/* Badges */}
             <motion.div
