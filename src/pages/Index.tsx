@@ -167,8 +167,11 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-decoration">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen p-4 md:p-8 relative">
+      {/* Background orbs */}
+      <div className="bg-orbs" />
+      
+      <div className="max-w-6xl mx-auto space-y-8 relative z-10">
         {/* Header with HR Announcements */}
         <header className="text-center space-y-6 py-6 animate-fade-in">
           <HRAnnouncementHeader />
