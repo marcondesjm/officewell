@@ -567,22 +567,27 @@ const Index = () => {
               Ver Tour
             </Button>
           </div>
-          <img 
-            src={logoOfficeWell} 
-            alt="OfficeWell" 
-            className="h-10 w-auto object-contain mx-auto drop-shadow-md"
-          />
-          <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-            Mantenha-se saudável e produtivo 
-            <span className="text-lg">💪</span>
-          </p>
-          <p className="text-xs text-muted-foreground/60">
-            Versão {APP_VERSION}
-          </p>
-          {/* Legal Disclaimer */}
-          <p className="text-[10px] text-muted-foreground/50 max-w-md mx-auto leading-tight pt-2">
-            ⚖️ As orientações do OfficeWell têm caráter educativo e não substituem avaliação médica ou fisioterapêutica.
-          </p>
+          <div className="pt-6 space-y-3">
+            <img 
+              src={logoOfficeWell} 
+              alt="OfficeWell" 
+              className="h-12 w-auto object-contain mx-auto drop-shadow-lg"
+            />
+            <p className="text-base font-medium text-foreground flex items-center justify-center gap-2">
+              Mantenha-se saudável e produtivo 
+              <span className="text-xl">💪</span>
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mx-auto">
+              Versão {APP_VERSION}
+            </div>
+            {/* Legal Disclaimer */}
+            <div className="bg-muted/50 border border-border/50 rounded-xl p-3 max-w-lg mx-auto">
+              <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-2">
+                <span className="text-base">⚖️</span>
+                <span>As orientações do OfficeWell têm caráter educativo e não substituem avaliação médica ou fisioterapêutica.</span>
+              </p>
+            </div>
+          </div>
         </footer>
       </div>
       
