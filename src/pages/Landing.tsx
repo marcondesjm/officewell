@@ -485,27 +485,50 @@ const Landing = () => {
             {/* Scroll Indicator - After description */}
             <motion.div 
               className="flex flex-col items-center justify-center py-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
             >
               <motion.button
                 onClick={() => scrollToSection('#funcionalidades')}
-                className="flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-4 rounded-lg p-2"
-                whileHover={{ scale: 1.08 }}
+                className="flex flex-col items-center gap-3 text-primary hover:text-primary/80 transition-all duration-300 cursor-pointer group focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-4 rounded-lg p-3"
+                whileHover={{ scale: 1.1 }}
+                animate={{ 
+                  scale: [1, 1.05, 1],
+                }}
+                transition={{
+                  scale: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
                 aria-label="Descobrir mais sobre as funcionalidades"
               >
-                <span className="text-sm font-medium">Descubra mais</span>
+                <motion.span 
+                  className="text-sm font-semibold tracking-wide"
+                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  Descubra mais
+                </motion.span>
                 <motion.div
-                  animate={{ y: [0, 10, 0] }}
+                  animate={{ 
+                    y: [0, 12, 0],
+                    boxShadow: [
+                      "0 0 0 0 rgba(var(--primary), 0)",
+                      "0 0 20px 8px hsl(var(--primary) / 0.3)",
+                      "0 0 0 0 rgba(var(--primary), 0)"
+                    ]
+                  }}
                   transition={{ 
-                    duration: 1.8, 
+                    duration: 1.5, 
                     repeat: Infinity, 
                     ease: "easeInOut" 
                   }}
-                  className="p-2 rounded-full border border-muted-foreground/30 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-300"
+                  className="p-3 rounded-full border-2 border-primary/50 bg-primary/10 group-hover:border-primary group-hover:bg-primary/20 transition-all duration-300"
                 >
-                  <ChevronDown className="h-5 w-5" aria-hidden="true" />
+                  <ChevronDown className="h-6 w-6" aria-hidden="true" />
                 </motion.div>
               </motion.button>
             </motion.div>
