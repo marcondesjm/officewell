@@ -24,6 +24,14 @@
     <priority>0.8</priority>
   </url>
   
+  <!-- Ergonomic Assessment Page -->
+  <url>
+    <loc>https://officewell.lovable.app/ergonomia</loc>
+    <lastmod>2025-01-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
   <!-- Demo Page -->
   <url>
     <loc>https://officewell.lovable.app/demo</loc>
