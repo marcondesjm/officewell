@@ -104,9 +104,45 @@ const loadTimestamps = (config: ReminderConfig): TimerTimestamps => {
   try {
     const saved = localStorage.getItem("timerTimestamps");
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      const now = Date.now();
+      
+      // Validar que os timestamps são números válidos e não estão muito no passado
+      // Se um timer expirou há mais de 5 minutos, significa que o app ficou muito tempo fechado
+      // Nesse caso, resetar apenas os timers expirados
+      const maxExpiredTime = 5 * 60 * 1000; // 5 minutos
+      
+      const isValidTimestamp = (ts: number) => {
+        return typeof ts === 'number' && !isNaN(ts) && ts > 0;
+      };
+      
+      // Se todos os timestamps são válidos, usar os salvos
+      if (isValidTimestamp(parsed.eyeEndTime) && 
+          isValidTimestamp(parsed.stretchEndTime) && 
+          isValidTimestamp(parsed.waterEndTime)) {
+        
+        // Ajustar timestamps que expiraram há muito tempo (mais de 5 min)
+        const eyeEndTime = (parsed.eyeEndTime < now - maxExpiredTime) 
+          ? now + config.eyeInterval * 60 * 1000 
+          : parsed.eyeEndTime;
+        const stretchEndTime = (parsed.stretchEndTime < now - maxExpiredTime) 
+          ? now + config.stretchInterval * 60 * 1000 
+          : parsed.stretchEndTime;
+        const waterEndTime = (parsed.waterEndTime < now - maxExpiredTime) 
+          ? now + config.waterInterval * 60 * 1000 
+          : parsed.waterEndTime;
+        
+        return {
+          eyeEndTime,
+          stretchEndTime,
+          waterEndTime,
+          lastPausedAt: parsed.lastPausedAt || null,
+        };
+      }
     }
-  } catch {}
+  } catch (e) {
+    console.error('Erro ao carregar timestamps:', e);
+  }
   
   const now = Date.now();
   return {
@@ -180,6 +216,45 @@ export const useReminders = () => {
   useEffect(() => {
     localStorage.setItem("timersRunning", String(isRunning));
   }, [isRunning]);
+
+  // Salvar estado antes de fechar/minimizar o app
+  useEffect(() => {
+    const saveStateBeforeUnload = () => {
+      const stateToSave = {
+        eyeEndTime: timestamps.eyeEndTime,
+        stretchEndTime: timestamps.stretchEndTime,
+        waterEndTime: timestamps.waterEndTime,
+        lastPausedAt: timestamps.lastPausedAt,
+        savedAt: Date.now(),
+      };
+      localStorage.setItem("timerTimestamps", JSON.stringify(stateToSave));
+      localStorage.setItem("timersRunning", String(isRunning));
+    };
+
+    // Salvar ao perder visibilidade (app minimizado)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        saveStateBeforeUnload();
+      }
+    };
+
+    // Salvar antes de fechar
+    window.addEventListener("beforeunload", saveStateBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    // Também salvar ao perder foco
+    window.addEventListener("blur", saveStateBeforeUnload);
+    
+    // Salvar periodicamente a cada 30 segundos como backup
+    const saveInterval = setInterval(saveStateBeforeUnload, 30000);
+
+    return () => {
+      window.removeEventListener("beforeunload", saveStateBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", saveStateBeforeUnload);
+      clearInterval(saveInterval);
+    };
+  }, [timestamps, isRunning]);
 
   // Aplicar intervalos otimizados quando o expediente começa
   useEffect(() => {
@@ -418,8 +493,36 @@ export const useReminders = () => {
 
     const handleVisibility = () => {
       if (!document.hidden) {
+        // Recarregar timestamps do localStorage ao voltar ao foco
+        // Isso garante que pegamos o estado mais recente caso o app tenha sido reiniciado
+        const savedTimestamps = localStorage.getItem("timerTimestamps");
+        if (savedTimestamps) {
+          try {
+            const parsed = JSON.parse(savedTimestamps);
+            const now = Date.now();
+            
+            // Verificar se os timestamps salvos são diferentes dos atuais
+            // e se são válidos (não resetados)
+            if (parsed.eyeEndTime !== timestamps.eyeEndTime ||
+                parsed.stretchEndTime !== timestamps.stretchEndTime ||
+                parsed.waterEndTime !== timestamps.waterEndTime) {
+              
+              // Se os timestamps salvos ainda são válidos (não expiraram há muito tempo)
+              const maxExpiredTime = 5 * 60 * 1000;
+              const validEye = parsed.eyeEndTime > now - maxExpiredTime;
+              const validStretch = parsed.stretchEndTime > now - maxExpiredTime;
+              const validWater = parsed.waterEndTime > now - maxExpiredTime;
+              
+              if (validEye && validStretch && validWater) {
+                setTimestamps(parsed);
+              }
+            }
+          } catch (e) {
+            console.error('Erro ao recarregar timestamps:', e);
+          }
+        }
+        
         setState(prev => ({ ...prev, ...calculateTimeLeft() }));
-        // Não chamar checkAndNotify aqui para evitar notificação duplicada
       }
     };
 
