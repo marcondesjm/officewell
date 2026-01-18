@@ -346,15 +346,14 @@ const Landing = () => {
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400 }}
           >
-            <a href="/landing" aria-label="OfficeWell - Página inicial" className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-md">
-                <div className="h-7 w-7 rounded-lg bg-white/20 flex items-center justify-center">
-                  <Activity className="h-4 w-4 text-white" aria-hidden="true" />
-                </div>
-                <span className="text-white font-bold text-lg tracking-tight">
-                  Office<span className="text-primary-foreground/90">Well</span>
-                </span>
+            <a href="/landing" aria-label="OfficeWell - Página inicial" className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-primary to-secondary flex items-center justify-center shadow-glow">
+                <Activity className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
               </div>
+              <span className="text-xl font-bold tracking-tight">
+                <span className="text-foreground">Office</span>
+                <span className="text-primary">Well</span>
+              </span>
             </a>
           </motion.div>
 
@@ -1588,15 +1587,14 @@ const Landing = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="mb-4 flex items-center gap-2">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-md">
-                  <div className="h-7 w-7 rounded-lg bg-white/20 flex items-center justify-center">
-                    <Activity className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-white font-bold text-lg tracking-tight">
-                    Office<span className="text-primary-foreground/90">Well</span>
-                  </span>
+              <div className="mb-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary via-primary to-secondary flex items-center justify-center shadow-glow">
+                  <Activity className="h-5 w-5 text-primary-foreground" />
                 </div>
+                <span className="text-xl font-bold tracking-tight">
+                  <span className="text-foreground">Office</span>
+                  <span className="text-primary">Well</span>
+                </span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Cuidando da saúde no ambiente de trabalho.
