@@ -204,9 +204,12 @@ const Index = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setWorkScheduleOpen(true)}
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-2"
               >
                 ⚙️ {workSchedule.startTime} - {workSchedule.endTime}
+                <span className="text-primary/70 hover:text-primary underline underline-offset-2">
+                  (clique aqui para alterar)
+                </span>
               </Button>
             </div>
           )}
