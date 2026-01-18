@@ -11,6 +11,7 @@ import PartnersAdmin from "./pages/PartnersAdmin";
 import Landing from "./pages/Landing";
 import Goals from "./pages/Goals";
 import Demo from "./pages/Demo";
+import Privacidade from "./pages/Privacidade";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/metas" element={<Goals />} />
             <Route path="/parceiros" element={<PartnersAdmin />} />
             <Route path="/demo" element={<Demo />} />
+            <Route path="/privacidade" element={<Privacidade />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
