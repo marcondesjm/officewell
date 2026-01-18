@@ -122,9 +122,9 @@ export const ControlPanel = ({
   const getNotificationIcon = () => {
     switch (notificationStatus) {
       case 'granted':
-        return <BellRing size={20} className="text-green-500" />;
+        return <BellRing size={20} className="text-success" />;
       case 'denied':
-        return <BellOff size={20} className="text-red-500" />;
+        return <BellOff size={20} className="text-destructive" />;
       default:
         return <Bell size={20} />;
     }
@@ -144,11 +144,11 @@ export const ControlPanel = ({
   const getNotificationButtonClass = () => {
     switch (notificationStatus) {
       case 'granted':
-        return 'border-green-500/50 bg-green-500/10 hover:bg-green-500/20 text-green-700 dark:text-green-400';
+        return 'border-success/50 bg-success-light hover:bg-success/20 text-success dark:text-success';
       case 'denied':
-        return 'border-red-500/50 bg-red-500/10 hover:bg-red-500/20 text-red-700 dark:text-red-400';
+        return 'border-destructive/50 bg-destructive-light hover:bg-destructive/20 text-destructive dark:text-destructive';
       default:
-        return 'hover:bg-secondary hover:text-secondary-foreground hover:border-secondary';
+        return 'hover:bg-secondary-light hover:text-secondary hover:border-secondary';
     }
   };
   return (
@@ -160,10 +160,10 @@ export const ControlPanel = ({
           className={`
             min-h-14 px-8 rounded-2xl font-semibold text-base
             transition-all duration-300 ease-out touch-manipulation
-            inline-flex items-center gap-2
+            inline-flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105
             ${isRunning 
-              ? 'gradient-primary hover:opacity-90 shadow-lg hover:shadow-xl hover:scale-105' 
-              : 'bg-accent hover:bg-accent/90 shadow-lg hover:shadow-xl hover:scale-105'
+              ? 'gradient-primary text-primary-foreground' 
+              : 'gradient-secondary text-secondary-foreground'
             }
           `}
         >
@@ -205,7 +205,7 @@ export const ControlPanel = ({
           disabled={isTesting}
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 border-purple-500/50 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-400 transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 border-info/50 bg-info-light hover:bg-info/20 text-info transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
           <Send size={20} className={isTesting ? "animate-pulse" : ""} />
           <span>{isTesting ? "Enviando..." : "Testar"}</span>
@@ -214,7 +214,7 @@ export const ControlPanel = ({
           onClick={onSettings} 
           variant="outline" 
           size="lg"
-          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-accent hover:text-accent-foreground hover:border-accent transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
+          className="min-h-14 px-6 rounded-2xl font-medium border-2 hover:bg-accent-light hover:text-accent hover:border-accent transition-all duration-300 hover:scale-105 touch-manipulation inline-flex items-center gap-2"
         >
           <Settings size={20} />
           <span>Ajustes</span>

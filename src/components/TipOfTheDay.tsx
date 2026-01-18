@@ -82,24 +82,24 @@ export const TipOfTheDay = () => {
   };
 
   return (
-    <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 shadow-lg animate-fade-in">
+    <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary-light via-card to-secondary-light shadow-card animate-fade-in">
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
       
       <div className="relative p-5 md:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4 flex-1">
-            <div className="flex-shrink-0 p-3 rounded-2xl bg-primary/20 shadow-inner">
-              <Lightbulb className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            <div className="flex-shrink-0 p-3 rounded-2xl bg-gradient-to-br from-primary to-info text-primary-foreground shadow-lg">
+              <Lightbulb className="h-6 w-6 md:h-8 md:w-8" />
             </div>
             
             <div className={`space-y-2 flex-1 transition-opacity duration-300 ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-semibold uppercase tracking-wider text-primary/80">
+                <span className="text-xs font-semibold uppercase tracking-wider text-primary">
                   💡 Dica do Dia
                 </span>
-                <span className="px-2 py-0.5 text-xs rounded-full bg-primary/20 text-primary font-medium">
+                <span className="px-2 py-0.5 text-xs rounded-full bg-secondary-light text-secondary font-medium border border-secondary/20">
                   {tip.category}
                 </span>
               </div>
@@ -118,7 +118,7 @@ export const TipOfTheDay = () => {
             variant="ghost"
             size="icon"
             onClick={handleRefresh}
-            className="flex-shrink-0 rounded-full hover:bg-primary/10 hover:text-primary"
+            className="flex-shrink-0 rounded-full hover:bg-primary-light hover:text-primary border border-transparent hover:border-primary/20"
             title="Nova dica"
           >
             <RefreshCw className={`h-4 w-4 ${isAnimating ? 'animate-spin' : ''}`} />

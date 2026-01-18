@@ -259,7 +259,7 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
             <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
           </div>
           
-          <div className="bg-primary/10 rounded-lg p-4 space-y-2">
+          <div className="bg-primary-light rounded-lg p-4 space-y-2 border border-primary/20">
             <h4 className="font-semibold text-primary text-sm">{tipSet.title}</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
               {tipSet.tips.map((tip, index) => (
@@ -273,9 +273,9 @@ export const EyeBreakModal = ({ open, onClose }: EyeBreakModalProps) => {
             <div className="flex items-center justify-between text-sm">
               <span className="flex items-center gap-2 text-muted-foreground">
                 {canClose ? (
-                  <Unlock className="h-4 w-4 text-green-500" />
+                  <Unlock className="h-4 w-4 text-success" />
                 ) : (
-                  <Lock className="h-4 w-4 text-orange-500 animate-pulse" />
+                  <Lock className="h-4 w-4 text-accent animate-pulse" />
                 )}
                 {canClose ? "Pausa concluída!" : "Aguarde para concluir"}
               </span>

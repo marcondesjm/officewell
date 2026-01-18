@@ -58,28 +58,28 @@ export const ActiveTimerCard = ({
 
   const variantStyles = {
     primary: {
-      card: "from-primary/5 via-primary/10 to-secondary/5",
+      card: "from-primary-light via-primary/5 to-secondary-light",
       border: "border-primary/30 hover:border-primary/50",
-      icon: "from-primary to-secondary",
+      icon: "from-primary to-info",
       text: "text-primary",
       progress: "gradient-primary",
-      glow: "group-hover:shadow-[0_0_40px_hsl(220_90%_56%/0.3)]",
+      glow: "group-hover:shadow-glow",
     },
     secondary: {
-      card: "from-secondary/5 via-secondary/10 to-primary/5",
+      card: "from-secondary-light via-secondary/5 to-success-light",
       border: "border-secondary/30 hover:border-secondary/50",
-      icon: "from-secondary to-primary",
+      icon: "from-secondary to-success",
       text: "text-secondary",
-      progress: "gradient-accent",
-      glow: "group-hover:shadow-[0_0_40px_hsl(280_70%_60%/0.3)]",
+      progress: "gradient-secondary",
+      glow: "group-hover:shadow-glow-secondary",
     },
     accent: {
-      card: "from-accent/5 via-accent/10 to-primary/5",
+      card: "from-accent-light via-accent/5 to-warning-light",
       border: "border-accent/30 hover:border-accent/50",
-      icon: "from-accent to-primary",
+      icon: "from-accent to-warning",
       text: "text-accent",
-      progress: "gradient-secondary",
-      glow: "group-hover:shadow-[0_0_40px_hsl(160_80%_45%/0.3)]",
+      progress: "gradient-accent",
+      glow: "group-hover:shadow-glow-accent",
     },
   };
 

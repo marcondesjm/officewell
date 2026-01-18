@@ -52,11 +52,11 @@ export const WaterTracker = () => {
       relative overflow-hidden p-6 md:p-8
       glass-strong shadow-card border-0
       animate-fade-in
-      ${isComplete ? 'ring-2 ring-accent/50' : ''}
+      ${isComplete ? 'ring-2 ring-success/50' : ''}
     `}>
       {/* Background decoration */}
-      <div className="absolute -top-20 -right-20 w-48 h-48 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl" />
-      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-accent/10 to-primary/10 rounded-full blur-2xl" />
+      <div className="absolute -top-20 -right-20 w-48 h-48 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-gradient-to-br from-secondary/10 to-success/10 rounded-full blur-2xl" />
       
       <div className="relative">
         <div className="flex items-center justify-between gap-4 mb-6">
@@ -64,14 +64,14 @@ export const WaterTracker = () => {
             <div className={`
               p-4 rounded-2xl shadow-lg
               ${isComplete 
-                ? 'bg-gradient-to-br from-accent to-primary animate-glow' 
-                : 'bg-gradient-to-br from-primary to-accent'
+                ? 'bg-gradient-to-br from-success to-secondary animate-glow' 
+                : 'bg-gradient-to-br from-primary to-secondary'
               }
             `}>
               {isComplete ? (
-                <Trophy size={28} className="text-white" />
+                <Trophy size={28} className="text-primary-foreground" />
               ) : (
-                <Droplets size={28} className="text-white" />
+                <Droplets size={28} className="text-primary-foreground" />
               )}
             </div>
             <div>
@@ -98,7 +98,7 @@ export const WaterTracker = () => {
               className={`
                 w-8 h-10 rounded-full rounded-tl-sm transition-all duration-500
                 ${filled 
-                  ? 'bg-gradient-to-b from-primary to-accent shadow-lg scale-100' 
+                  ? 'bg-gradient-to-b from-primary to-secondary shadow-lg scale-100' 
                   : 'bg-muted/50 scale-90'
                 }
               `}
@@ -130,7 +130,7 @@ export const WaterTracker = () => {
             onClick={removeWater}
             variant="outline"
             size="lg"
-            className="h-14 w-14 rounded-2xl border-2 hover:bg-destructive/10 hover:border-destructive/50 hover:text-destructive transition-all duration-300 hover:scale-105"
+            className="h-14 w-14 rounded-2xl border-2 hover:bg-destructive-light hover:border-destructive/50 hover:text-destructive transition-all duration-300 hover:scale-105"
             disabled={waterCount === 0}
           >
             <Minus size={24} />
@@ -142,8 +142,8 @@ export const WaterTracker = () => {
               flex-1 h-14 rounded-2xl font-semibold text-base
               transition-all duration-300 hover:scale-[1.02]
               ${isComplete 
-                ? 'bg-accent hover:bg-accent/90' 
-                : 'gradient-primary hover:opacity-90'
+                ? 'gradient-success text-success-foreground' 
+                : 'gradient-primary text-primary-foreground'
               }
               shadow-lg hover:shadow-xl
             `}

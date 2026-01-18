@@ -57,7 +57,7 @@ export const GamificationCard = () => {
           <div className="flex items-center gap-3">
             {/* Streak Badge */}
             {stats.currentStreak > 0 && (
-              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-orange-500/10 text-orange-500">
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-accent-light text-accent">
                 <Flame className="h-4 w-4" />
                 <span className="font-bold text-sm">{stats.currentStreak}</span>
               </div>
@@ -102,7 +102,7 @@ export const GamificationCard = () => {
             <div className="p-4 space-y-4">
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg bg-background/50 border">
+                <div className="p-3 rounded-lg bg-primary-light border border-primary/20">
                   <div className="flex items-center gap-2 text-primary">
                     <Target className="h-4 w-4" />
                     <span className="text-xs font-medium">Atividades</span>
@@ -110,24 +110,24 @@ export const GamificationCard = () => {
                   <p className="text-2xl font-bold mt-1">{stats.activitiesCompleted}</p>
                 </div>
                 
-                <div className="p-3 rounded-lg bg-background/50 border">
-                  <div className="flex items-center gap-2 text-orange-500">
+                <div className="p-3 rounded-lg bg-accent-light border border-accent/20">
+                  <div className="flex items-center gap-2 text-accent">
                     <Flame className="h-4 w-4" />
                     <span className="text-xs font-medium">Maior Sequência</span>
                   </div>
                   <p className="text-2xl font-bold mt-1">{stats.longestStreak} dias</p>
                 </div>
 
-                <div className="p-3 rounded-lg bg-background/50 border">
-                  <div className="flex items-center gap-2 text-green-500">
+                <div className="p-3 rounded-lg bg-success-light border border-success/20">
+                  <div className="flex items-center gap-2 text-success">
                     <Zap className="h-4 w-4" />
                     <span className="text-xs font-medium">Sessões Diárias</span>
                   </div>
                   <p className="text-2xl font-bold mt-1">{stats.dailySessionsCompleted}</p>
                 </div>
 
-                <div className="p-3 rounded-lg bg-background/50 border">
-                  <div className="flex items-center gap-2 text-purple-500">
+                <div className="p-3 rounded-lg bg-secondary-light border border-secondary/20">
+                  <div className="flex items-center gap-2 text-secondary">
                     <Award className="h-4 w-4" />
                     <span className="text-xs font-medium">Verificações Postura</span>
                   </div>
@@ -158,15 +158,15 @@ export const GamificationCard = () => {
               </div>
 
               {/* Points Info */}
-              <div className="p-3 rounded-lg bg-gradient-to-r from-primary/10 to-secondary/10 border">
+              <div className="p-3 rounded-lg bg-gradient-to-r from-primary-light to-secondary-light border border-primary/20">
                 <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-yellow-500" />
+                  <Trophy className="h-4 w-4 text-warning" />
                   Pontos por Atividade
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="flex justify-between">
                     <span>Sessão Diária</span>
-                    <span className="font-bold text-green-500">+{pointsConfig.daily_session}</span>
+                    <span className="font-bold text-success">+{pointsConfig.daily_session}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Alongamento</span>
@@ -178,11 +178,11 @@ export const GamificationCard = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Hidratação</span>
-                    <span className="font-bold text-blue-500">+{pointsConfig.water}</span>
+                    <span className="font-bold text-info">+{pointsConfig.water}</span>
                   </div>
                   <div className="flex justify-between col-span-2">
                     <span>Bônus por dia de sequência</span>
-                    <span className="font-bold text-orange-500">+{pointsConfig.streak_bonus}/dia</span>
+                    <span className="font-bold text-accent">+{pointsConfig.streak_bonus}/dia</span>
                   </div>
                 </div>
               </div>

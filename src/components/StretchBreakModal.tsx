@@ -443,14 +443,14 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
                         key={index}
                         className={`flex items-center gap-2 text-sm p-2 rounded-md transition-all ${
                           index === currentExerciseIndex 
-                            ? "bg-secondary/20 text-foreground font-medium" 
+                            ? "bg-secondary-light text-foreground font-medium" 
                             : completedExercises.includes(index)
-                            ? "text-green-600 dark:text-green-400 line-through opacity-70"
+                            ? "text-success line-through opacity-70"
                             : "text-muted-foreground"
                         }`}
                       >
                         {completedExercises.includes(index) ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <CheckCircle2 className="h-4 w-4 text-success flex-shrink-0" />
                         ) : index === currentExerciseIndex ? (
                           <Timer className="h-4 w-4 text-secondary animate-pulse flex-shrink-0" />
                         ) : (
@@ -482,7 +482,7 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
                 className="space-y-4"
               >
                 {/* Tips with durations */}
-                <div className="bg-secondary/10 rounded-lg p-4 space-y-3">
+                <div className="bg-secondary-light rounded-lg p-4 space-y-3 border border-secondary/20">
                   <div className="flex items-center justify-between">
                     <h4 className="font-semibold text-secondary text-sm">{tipSet.title}</h4>
                     <Button
@@ -518,9 +518,9 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
                   <div className="flex items-center justify-between text-sm">
                     <span className="flex items-center gap-2 text-muted-foreground">
                       {canClose ? (
-                        <Unlock className="h-4 w-4 text-green-500" />
+                        <Unlock className="h-4 w-4 text-success" />
                       ) : (
-                        <Lock className="h-4 w-4 text-orange-500 animate-pulse" />
+                        <Lock className="h-4 w-4 text-accent animate-pulse" />
                       )}
                       {canClose ? "Pausa concluída!" : "Aguarde para concluir"}
                     </span>
@@ -539,7 +539,7 @@ export const StretchBreakModal = ({ open, onClose }: StretchBreakModalProps) => 
             disabled={!canClose}
             className={`w-full font-semibold transition-all ${
               canClose 
-                ? "gradient-accent text-white" 
+                ? "gradient-secondary text-secondary-foreground" 
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             }`}
           >

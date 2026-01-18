@@ -68,9 +68,9 @@ interface Employee {
 
 const priorityConfig = {
   low: { label: "Baixa", color: "bg-muted text-muted-foreground", icon: Info },
-  normal: { label: "Normal", color: "bg-blue-500/10 text-blue-500", icon: Info },
-  high: { label: "Alta", color: "bg-orange-500/10 text-orange-500", icon: AlertCircle },
-  urgent: { label: "Urgente", color: "bg-red-500/10 text-red-500", icon: AlertTriangle },
+  normal: { label: "Normal", color: "bg-info-light text-info", icon: Info },
+  high: { label: "Alta", color: "bg-warning-light text-warning", icon: AlertCircle },
+  urgent: { label: "Urgente", color: "bg-destructive-light text-destructive", icon: AlertTriangle },
 };
 
 const motivationalMessages = [
