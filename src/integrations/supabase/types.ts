@@ -101,6 +101,66 @@ export type Database = {
         }
         Relationships: []
       }
+      ergonomic_assessments: {
+        Row: {
+          created_at: string
+          distancia_monitor: boolean
+          encosto_cadeira: boolean
+          id: string
+          monitor_altura: boolean
+          pes_apoiados: boolean
+          postura_punhos: boolean
+          score: number
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          distancia_monitor?: boolean
+          encosto_cadeira?: boolean
+          id?: string
+          monitor_altura?: boolean
+          pes_apoiados?: boolean
+          postura_punhos?: boolean
+          score?: number
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          distancia_monitor?: boolean
+          encosto_cadeira?: boolean
+          id?: string
+          monitor_altura?: boolean
+          pes_apoiados?: boolean
+          postura_punhos?: boolean
+          score?: number
+          session_id?: string
+        }
+        Relationships: []
+      }
+      fatigue_assessments: {
+        Row: {
+          created_at: string
+          fatigue_level: string
+          id: string
+          session_id: string
+          suggestion: string | null
+        }
+        Insert: {
+          created_at?: string
+          fatigue_level: string
+          id?: string
+          session_id: string
+          suggestion?: string | null
+        }
+        Update: {
+          created_at?: string
+          fatigue_level?: string
+          id?: string
+          session_id?: string
+          suggestion?: string | null
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           company: string | null
@@ -131,6 +191,39 @@ export type Database = {
           source?: string | null
           status?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ler_assessments: {
+        Row: {
+          created_at: string
+          dor_pescoco: boolean
+          dor_punhos: boolean
+          formigamento: boolean
+          id: string
+          rigidez: boolean
+          risk_level: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          dor_pescoco?: boolean
+          dor_punhos?: boolean
+          formigamento?: boolean
+          id?: string
+          rigidez?: boolean
+          risk_level: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          dor_pescoco?: boolean
+          dor_punhos?: boolean
+          formigamento?: boolean
+          id?: string
+          rigidez?: boolean
+          risk_level?: string
+          session_id?: string
         }
         Relationships: []
       }
