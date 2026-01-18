@@ -30,6 +30,7 @@ import { PartnersBanner } from "@/components/PartnersBanner";
 import logoOfficeWell from "@/assets/logo-officewell.png";
 import { LockedFeature } from "@/components/LockedFeature";
 import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
+import ParallaxBackground from "@/components/ParallaxBackground";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION, SyncStatus } from "@/hooks/useAppRefresh";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
@@ -168,8 +169,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen p-4 md:p-8 relative">
-      {/* Background orbs */}
-      <div className="bg-orbs" />
+      {/* Parallax Background */}
+      <ParallaxBackground />
       
       <div className="max-w-6xl mx-auto space-y-8 relative z-10">
         {/* Header with HR Announcements */}
