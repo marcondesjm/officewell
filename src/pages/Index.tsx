@@ -202,14 +202,14 @@ const Index = () => {
                 </div>
               )}
               <Button
-                variant="ghost"
-                size="sm"
+                variant="outline"
                 onClick={() => setWorkScheduleOpen(true)}
-                className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-2"
+                className="min-h-11 px-4 rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-sm font-medium flex items-center gap-2 touch-manipulation active:scale-95 transition-all"
+                aria-label="Alterar horário de trabalho"
               >
                 ⚙️ {workSchedule.startTime} - {workSchedule.endTime}
-                <span className="text-primary/70 hover:text-primary underline underline-offset-2">
-                  (clique aqui para alterar)
+                <span className="text-primary font-semibold">
+                  (alterar)
                 </span>
               </Button>
             </div>
@@ -272,39 +272,40 @@ const Index = () => {
         </div>
 
         {/* Botões de Postura e Sessão Diária */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card className="p-4 glass-card">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-500/20">
-                  <ScanFace className="h-6 w-6 text-violet-500" />
+        <div className="grid md:grid-cols-2 gap-4 animate-fade-in">
+          <Card className="p-5 glass-card hover:shadow-lg transition-all duration-300 group">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-500/20 group-hover:scale-110 transition-transform duration-300">
+                  <ScanFace className="h-7 w-7 text-violet-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Monitoramento de Postura</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-bold text-lg">Monitoramento de Postura</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Analise sua postura usando a câmera
                   </p>
                 </div>
               </div>
               <Button 
                 onClick={() => setPostureCheckOpen(true)}
-                className="gradient-primary"
+                className="gradient-primary min-h-12 px-6 text-base font-semibold rounded-xl w-full sm:w-auto touch-manipulation active:scale-95 transition-transform"
+                aria-label="Verificar postura"
               >
-                <ScanFace className="h-4 w-4 mr-2" />
+                <ScanFace className="h-5 w-5 mr-2" />
                 Verificar
               </Button>
             </div>
           </Card>
 
-          <Card className="p-4 glass-card">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20">
-                  <Activity className="h-6 w-6 text-emerald-500" />
+          <Card className="p-5 glass-card hover:shadow-lg transition-all duration-300 group">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 group-hover:scale-110 transition-transform duration-300">
+                  <Activity className="h-7 w-7 text-emerald-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Sessão Diária de Ergonomia</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-bold text-lg">Sessão Diária de Ergonomia</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
                     5 exercícios rápidos para sua saúde
                   </p>
                 </div>
@@ -312,8 +313,10 @@ const Index = () => {
               <Button 
                 onClick={() => setDailySessionOpen(true)}
                 variant="secondary"
+                className="min-h-12 px-6 text-base font-semibold rounded-xl w-full sm:w-auto touch-manipulation active:scale-95 transition-transform"
+                aria-label="Iniciar sessão de ergonomia"
               >
-                <Activity className="h-4 w-4 mr-2" />
+                <Activity className="h-5 w-5 mr-2" />
                 Iniciar
               </Button>
             </div>
@@ -485,106 +488,108 @@ const Index = () => {
         />
 
         {/* Footer */}
-        <footer className="text-center pt-8 pb-4 space-y-4">
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <ThemeToggle />
-            
-            {/* Status de sincronização */}
+        <footer className="text-center pt-8 pb-6 space-y-6 animate-fade-in">
+          {/* Status de sincronização - destacado */}
+          <div className="flex justify-center">
             {syncStatus === 'synced' && !isRefreshing && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-green-500/10 text-green-600 dark:text-green-400 text-sm font-medium border-2 border-green-500/20">
-                <Check size={16} />
-                App atualizado
+              <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-green-500/15 text-green-600 dark:text-green-400 text-base font-semibold border-2 border-green-500/30 shadow-sm">
+                <Check size={20} className="flex-shrink-0" />
+                <span>App atualizado</span>
+                <Button
+                  onClick={handleManualRefresh}
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 h-8 px-3 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-500/20"
+                  aria-label="Verificar atualizações"
+                >
+                  <RefreshCw size={14} />
+                </Button>
               </div>
             )}
             
             {(syncStatus === 'checking' || syncStatus === 'updating' || isRefreshing) && (
-              <Button
-                onClick={handleManualRefresh}
-                variant="outline"
-                disabled={true}
-                className="rounded-2xl border-2 hover:bg-primary/5"
-              >
-                <Loader2 size={18} className="mr-2 animate-spin" />
-                {isRefreshing ? 'Atualizando...' : 'Sincronizando...'}
-              </Button>
+              <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-blue-500/15 text-blue-600 dark:text-blue-400 text-base font-semibold border-2 border-blue-500/30">
+                <Loader2 size={20} className="animate-spin flex-shrink-0" />
+                <span>{isRefreshing ? 'Atualizando...' : 'Sincronizando...'}</span>
+              </div>
             )}
             
             {syncStatus === 'error' && !isRefreshing && (
               <Button
                 onClick={handleManualRefresh}
-                variant="outline"
-                className="rounded-2xl border-2 border-orange-500/30 text-orange-600 dark:text-orange-400 hover:bg-orange-500/10"
+                className="min-h-12 px-6 rounded-2xl bg-orange-500/15 text-orange-600 dark:text-orange-400 border-2 border-orange-500/30 hover:bg-orange-500/25 font-semibold"
+                aria-label="Tentar sincronizar novamente"
               >
-                <AlertCircle size={18} className="mr-2" />
+                <AlertCircle size={20} className="mr-2" />
                 Tentar novamente
               </Button>
             )}
+          </div>
+
+          {/* Ações principais */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <ThemeToggle />
             
-            {/* Botão de atualização manual (sempre visível, mas discreto quando sincronizado) */}
-            {syncStatus === 'synced' && !isRefreshing && (
-              <Button
-                onClick={handleManualRefresh}
-                variant="ghost"
-                size="sm"
-                className="rounded-2xl text-muted-foreground hover:text-foreground"
-              >
-                <RefreshCw size={16} className="mr-1" />
-                Verificar
-              </Button>
-            )}
             {showInstallButton && (
               <Button
                 onClick={() => navigate("/install")}
-                variant="outline"
-                className="rounded-2xl border-2 hover:bg-primary/5"
+                className="min-h-12 px-5 rounded-2xl bg-primary/10 text-primary border-2 border-primary/30 hover:bg-primary/20 font-semibold touch-manipulation active:scale-95 transition-transform"
+                aria-label="Instalar aplicativo"
               >
-                <Download size={18} className="mr-2" />
+                <Download size={20} className="mr-2" />
                 Instalar App
               </Button>
             )}
+            
             <Button
               onClick={() => setDonationOpen(true)}
-              variant="outline"
-              className="rounded-2xl border-2 hover:bg-pink-500/5 hover:border-pink-500/50 hover:text-pink-500"
+              className="min-h-12 px-5 rounded-2xl bg-pink-500/10 text-pink-600 dark:text-pink-400 border-2 border-pink-500/30 hover:bg-pink-500/20 font-semibold touch-manipulation active:scale-95 transition-transform"
+              aria-label="Apoiar o projeto"
             >
-              <Heart size={18} className="mr-2" />
-              Apoiar Projeto
+              <Heart size={20} className="mr-2" />
+              Apoiar
             </Button>
+            
             <Button
               onClick={() => setPlansOpen(true)}
-              variant="outline"
-              className="rounded-2xl border-2 hover:bg-yellow-500/5 hover:border-yellow-500/50 hover:text-yellow-600"
+              className="min-h-12 px-5 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-500 border-2 border-amber-500/30 hover:bg-amber-500/20 font-semibold touch-manipulation active:scale-95 transition-transform"
+              aria-label="Ver planos disponíveis"
             >
-              <Crown size={18} className="mr-2" />
-              Ver Planos
+              <Crown size={20} className="mr-2" />
+              Planos
             </Button>
+            
             <Button
               onClick={resetTour}
               variant="outline"
-              className="rounded-2xl border-2 hover:bg-primary/5 hover:border-primary/50"
+              className="min-h-12 px-5 rounded-2xl border-2 hover:bg-primary/10 font-semibold touch-manipulation active:scale-95 transition-transform"
+              aria-label="Ver tour do aplicativo"
             >
-              <Sparkles size={18} className="mr-2" />
-              Ver Tour
+              <Sparkles size={20} className="mr-2" />
+              Tour
             </Button>
           </div>
-          <div className="pt-6 space-y-3">
+          
+          {/* Branding */}
+          <div className="pt-4 space-y-4">
             <img 
               src={logoOfficeWell} 
-              alt="OfficeWell" 
-              className="h-12 w-auto object-contain mx-auto drop-shadow-lg"
+              alt="OfficeWell - Seu assistente de bem-estar no trabalho" 
+              className="h-14 w-auto object-contain mx-auto drop-shadow-lg hover:scale-105 transition-transform duration-300"
             />
-            <p className="text-base font-medium text-foreground flex items-center justify-center gap-2">
+            <p className="text-lg font-semibold text-foreground flex items-center justify-center gap-2">
               Mantenha-se saudável e produtivo 
-              <span className="text-xl">💪</span>
+              <span className="text-2xl animate-pulse">💪</span>
             </p>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-semibold mx-auto">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/15 text-primary text-sm font-bold mx-auto shadow-sm">
               Versão {APP_VERSION}
             </div>
+            
             {/* Legal Disclaimer */}
-            <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-xl p-4 max-w-lg mx-auto">
-              <p className="text-sm text-foreground leading-relaxed flex items-start gap-3">
-                <span className="text-xl">⚖️</span>
-                <span className="font-medium">As orientações do OfficeWell têm caráter educativo e não substituem avaliação médica ou fisioterapêutica.</span>
+            <div className="bg-gradient-to-r from-amber-500/15 to-orange-500/15 border-2 border-amber-500/40 rounded-2xl p-5 max-w-lg mx-auto shadow-sm">
+              <p className="text-base text-foreground leading-relaxed flex items-start gap-4">
+                <span className="text-2xl flex-shrink-0">⚖️</span>
+                <span className="font-semibold">As orientações do OfficeWell têm caráter educativo e não substituem avaliação médica ou fisioterapêutica.</span>
               </p>
             </div>
           </div>
