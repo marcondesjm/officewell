@@ -438,34 +438,41 @@ export const HRAnnouncementHeader = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
-      {/* Profile with Level and Points */}
-      <div className="flex justify-center items-center gap-4">
-        {/* Logo */}
-        <img 
-          src={logoOfficeWell} 
-          alt="OfficeWell" 
-          className="h-8 w-auto object-contain drop-shadow-md"
-        />
+      {/* Header Principal - Logo, Perfil e Tema */}
+      <div className="flex items-center justify-between gap-3 bg-card/80 backdrop-blur-sm rounded-2xl p-3 border border-border/50 shadow-sm">
+        {/* Logo com link */}
+        <div className="flex items-center gap-2 min-w-0">
+          <img 
+            src={logoOfficeWell} 
+            alt="OfficeWell - Bem-estar no Trabalho" 
+            className="h-10 w-auto object-contain drop-shadow-md flex-shrink-0"
+          />
+        </div>
+
+        {/* Perfil do Usuário - Botão de Acesso Rápido */}
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="outline"
-              className="rounded-full border-2 border-primary/50 hover:bg-primary/10 hover:border-primary gap-2 pr-4 h-auto py-2"
+              variant="ghost"
+              className="rounded-2xl hover:bg-primary/10 gap-3 px-3 h-auto py-2 min-h-12 flex-1 max-w-xs justify-start touch-manipulation active:scale-95 transition-transform"
+              aria-label="Abrir menu do perfil"
             >
-              <Avatar className="h-8 w-8 -ml-1 border-2 border-primary/30">
+              <Avatar className="h-10 w-10 border-2 border-primary/40 flex-shrink-0">
                 <AvatarImage src={userProfile.avatarUrl || undefined} alt={userProfile.name} />
-                <AvatarFallback className="text-xs bg-primary/20 text-primary font-bold">
+                <AvatarFallback className="text-sm bg-gradient-to-br from-primary/30 to-primary/10 text-primary font-bold">
                   {getInitials(userProfile.name)}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex flex-col items-start gap-0.5">
-                <span className="text-sm font-medium leading-none">{userProfile.name}</span>
+              <div className="flex flex-col items-start gap-0.5 min-w-0">
+                <span className="text-sm font-semibold leading-none truncate max-w-[120px]">
+                  {userProfile.name}
+                </span>
                 <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-base leading-none">{currentRank.icon}</span>
-                  <span className={`font-medium ${currentRank.color}`}>{currentRank.name}</span>
-                  <span className="text-muted-foreground">•</span>
+                  <span className="text-lg leading-none">{currentRank.icon}</span>
+                  <span className={`font-bold ${currentRank.color}`}>{currentRank.name}</span>
+                  <span className="text-muted-foreground/50">•</span>
                   <span className="text-primary font-bold">{stats.totalPoints}</span>
-                  <Star className="h-3 w-3 text-primary fill-primary" />
+                  <Star className="h-3.5 w-3.5 text-primary fill-primary" />
                 </div>
               </div>
             </Button>
@@ -612,7 +619,11 @@ export const HRAnnouncementHeader = () => {
             </div>
           </PopoverContent>
         </Popover>
-        <ThemeToggle />
+
+        {/* Theme Toggle com Visual Melhorado */}
+        <div className="flex-shrink-0">
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Birthdays */}
