@@ -329,24 +329,25 @@ const Index = () => {
         </div>
 
         {/* Ergonomic Assessment Card */}
-        <Card className="p-4 glass-card overflow-hidden hover:shadow-lg transition-all duration-300 group">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 group-hover:scale-110 transition-transform duration-300">
-                <ClipboardCheck className="h-6 w-6 text-teal-500" />
+        <Card className="p-5 glass-card overflow-hidden hover:shadow-lg transition-all duration-300 group">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 group-hover:scale-110 transition-transform duration-300">
+                <ClipboardCheck className="h-7 w-7 text-teal-500" />
               </div>
               <div>
-                <h3 className="font-semibold">Avaliação Ergonômica</h3>
-                <p className="text-sm text-muted-foreground">
-                  Analise LER, fadiga e postura de trabalho
+                <h3 className="font-bold text-lg">Avaliação Ergonômica</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Analise LER, fadiga mental e postura de trabalho
                 </p>
               </div>
             </div>
             <Button 
               onClick={() => navigate("/ergonomia")}
-              className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600"
+              className="gradient-primary min-h-12 px-6 text-base font-semibold rounded-xl w-full sm:w-auto touch-manipulation active:scale-95 transition-transform"
+              aria-label="Iniciar avaliação ergonômica"
             >
-              <ClipboardCheck className="h-4 w-4 mr-2" />
+              <ClipboardCheck className="h-5 w-5 mr-2" />
               Avaliar
             </Button>
           </div>
