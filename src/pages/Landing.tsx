@@ -458,35 +458,37 @@ const Landing = () => {
       <main id="main-content" role="main">
         <section className="pt-28 pb-12 px-4" aria-labelledby="hero-title">
           <div className="container mx-auto text-center max-w-5xl">
-            {/* Stats Banner - Above the fold highlight */}
-            <motion.div 
+            {/* H1 First - Main heading for SEO and hierarchy */}
+            <motion.h1 
+              id="hero-title"
               initial="hidden"
               animate="visible"
-              variants={staggerContainer}
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 p-5 rounded-2xl bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 shadow-lg"
-              role="region"
-              aria-label="Estatísticas da plataforma"
+              variants={fadeInUp}
+              transition={{ duration: 0.6 }}
+              className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent leading-tight"
             >
-              {stats.map((stat, index) => (
-                <motion.div 
-                  key={index}
-                  variants={scaleIn}
-                  transition={{ duration: 0.5, delay: index * 0.08 }}
-                  className="p-4"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                >
-                  <div className="text-2xl md:text-4xl font-bold text-primary">{stat.value}</div>
-                  <div className="text-xs md:text-sm text-muted-foreground mt-1">{stat.label}</div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            <motion.div
+              Bem-estar no Home Office: Ergonomia, Saúde e Produtividade
+            </motion.h1>
+            
+            {/* Description */}
+            <motion.p 
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6"
+              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed"
+            >
+              Conteúdos sobre bem-estar no home office, ergonomia, produtividade e saúde para quem trabalha em casa de forma confortável e eficiente.
+              <span className="block mt-2 text-foreground/80 font-medium">Reduza afastamentos e aumente a produtividade.</span>
+            </motion.p>
+
+            {/* Badges */}
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              transition={{ duration: 0.6, delay: 0.15 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8"
             >
               <Badge variant="outline" className="px-4 py-2 border-primary/30 bg-primary/5 text-primary font-medium">
                 <Sparkles className="h-3.5 w-3.5 mr-2" aria-hidden="true" />
@@ -503,35 +505,13 @@ const Landing = () => {
               </Link>
             </motion.div>
             
-            <motion.h1 
-              id="hero-title"
-              initial="hidden"
-              animate="visible"
-              variants={fadeInUp}
-              transition={{ duration: 0.6, delay: 0.15 }}
-              className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent leading-tight"
-            >
-              Bem-estar no Home Office: Ergonomia, Saúde e Produtividade
-            </motion.h1>
-            
-            <motion.p 
-              initial="hidden"
-              animate="visible"
-              variants={fadeInUp}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed"
-            >
-              Conteúdos sobre bem-estar no home office, ergonomia, produtividade e saúde para quem trabalha em casa de forma confortável e eficiente.
-              <span className="block mt-2 text-foreground/80 font-medium">Reduza afastamentos e aumente a produtividade.</span>
-            </motion.p>
-            
             {/* CTAs - Prominent and accessible */}
             <motion.div 
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
-              transition={{ duration: 0.6, delay: 0.25 }}
-              className="flex flex-col gap-5 justify-center items-center"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="flex flex-col gap-5 justify-center items-center mb-10"
             >
               {/* Primary CTA - Consultoria Gratuita */}
               <motion.a
@@ -568,6 +548,29 @@ const Landing = () => {
                   </motion.div>
                 </Link>
               </div>
+            </motion.div>
+
+            {/* Stats Banner - After CTAs as social proof */}
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={staggerContainer}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-2xl bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 shadow-lg"
+              role="region"
+              aria-label="Estatísticas da plataforma"
+            >
+              {stats.map((stat, index) => (
+                <motion.div 
+                  key={index}
+                  variants={scaleIn}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                  className="p-4"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                >
+                  <div className="text-2xl md:text-4xl font-bold text-primary">{stat.value}</div>
+                  <div className="text-xs md:text-sm text-muted-foreground mt-1">{stat.label}</div>
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </section>
