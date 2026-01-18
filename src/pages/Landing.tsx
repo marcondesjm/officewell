@@ -843,9 +843,28 @@ const Landing = () => {
       </section>
 
       {/* SEO Content Sections */}
-      <section className="py-20 px-4 bg-gradient-to-b from-background to-muted/30" aria-labelledby="seo-content">
+      <section className="py-24 px-4 bg-gradient-to-b from-background via-muted/20 to-background" aria-labelledby="seo-content">
         <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-3 gap-8">
+          {/* Section Header */}
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 px-4 py-1.5">
+              Conteúdo Especializado
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Bem-estar no Home Office
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Conteúdos sobre ergonomia, produtividade e saúde para quem trabalha em casa de forma confortável e eficiente.
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-3 gap-8">
             {/* Ergonomia no Home Office */}
             <motion.article
               className="group"
@@ -854,17 +873,51 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <Card className="h-full border-border/50 bg-card/50 backdrop-blur hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                    <Monitor className="h-6 w-6 text-primary" />
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground">Ergonomia no Home Office</h2>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Aprenda como ajustar cadeira, mesa e monitor para evitar dores e melhorar sua postura no trabalho remoto.
+              <Card className="h-full border-border/50 bg-card/80 backdrop-blur-sm hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardHeader className="relative">
+                  <motion.div 
+                    className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                    whileHover={{ rotate: 5 }}
+                  >
+                    <Monitor className="h-7 w-7 text-primary" />
+                  </motion.div>
+                  <h2 className="text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    Ergonomia no Home Office
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Aprenda como ajustar cadeira, mesa e monitor para evitar dores e melhorar sua postura.
                   </p>
+                </CardHeader>
+                <CardContent className="relative space-y-4">
+                  <ul className="space-y-3">
+                    {[
+                      { icon: Activity, text: "Postura correta para trabalho prolongado" },
+                      { icon: Monitor, text: "Altura ideal do monitor e distância visual" },
+                      { icon: Clock, text: "Intervalos regulares para alongamento" },
+                      { icon: Check, text: "Configuração ergonômica da estação" }
+                    ].map((item, idx) => (
+                      <motion.li 
+                        key={idx}
+                        className="flex items-center gap-3 text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors"
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 * idx }}
+                      >
+                        <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <item.icon className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                        {item.text}
+                      </motion.li>
+                    ))}
+                  </ul>
+                  <div className="pt-4 border-t border-border/50">
+                    <Button variant="ghost" className="w-full justify-between text-primary hover:bg-primary/10 group/btn">
+                      Saiba mais
+                      <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </motion.article>
@@ -877,17 +930,51 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Card className="h-full border-border/50 bg-card/50 backdrop-blur hover:border-secondary/30 hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:bg-secondary/20 transition-colors">
-                    <Target className="h-6 w-6 text-secondary" />
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground">Produtividade no Trabalho Remoto</h2>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Técnicas de foco, organização da rotina e pausas ativas para trabalhar melhor em casa.
+              <Card className="h-full border-border/50 bg-card/80 backdrop-blur-sm hover:border-secondary/40 hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardHeader className="relative">
+                  <motion.div 
+                    className="h-14 w-14 rounded-2xl bg-gradient-to-br from-secondary/20 to-secondary/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                    whileHover={{ rotate: 5 }}
+                  >
+                    <Target className="h-7 w-7 text-secondary" />
+                  </motion.div>
+                  <h2 className="text-2xl font-bold text-foreground group-hover:text-secondary transition-colors">
+                    Produtividade no Trabalho Remoto
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Técnicas de foco, organização da rotina e pausas ativas para trabalhar melhor.
                   </p>
+                </CardHeader>
+                <CardContent className="relative space-y-4">
+                  <ul className="space-y-3">
+                    {[
+                      { icon: Clock, text: "Técnica Pomodoro e gestão de tempo" },
+                      { icon: Target, text: "Definição de metas diárias claras" },
+                      { icon: BarChart3, text: "Métricas de produtividade pessoal" },
+                      { icon: Sparkles, text: "Ambiente de trabalho otimizado" }
+                    ].map((item, idx) => (
+                      <motion.li 
+                        key={idx}
+                        className="flex items-center gap-3 text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors"
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 * idx }}
+                      >
+                        <div className="h-6 w-6 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0">
+                          <item.icon className="h-3.5 w-3.5 text-secondary" />
+                        </div>
+                        {item.text}
+                      </motion.li>
+                    ))}
+                  </ul>
+                  <div className="pt-4 border-t border-border/50">
+                    <Button variant="ghost" className="w-full justify-between text-secondary hover:bg-secondary/10 group/btn">
+                      Saiba mais
+                      <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </motion.article>
@@ -900,21 +987,84 @@ const Landing = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Card className="h-full border-border/50 bg-card/50 backdrop-blur hover:border-accent/30 hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                    <Heart className="h-6 w-6 text-accent" />
-                  </div>
-                  <h2 className="text-xl font-bold text-foreground">Saúde Física e Mental</h2>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Dicas de alongamentos, equilíbrio emocional e bem-estar para quem passa muitas horas no computador.
+              <Card className="h-full border-border/50 bg-card/80 backdrop-blur-sm hover:border-accent/40 hover:shadow-xl hover:shadow-accent/5 transition-all duration-500 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardHeader className="relative">
+                  <motion.div 
+                    className="h-14 w-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                    whileHover={{ rotate: 5 }}
+                  >
+                    <Heart className="h-7 w-7 text-accent" />
+                  </motion.div>
+                  <h2 className="text-2xl font-bold text-foreground group-hover:text-accent transition-colors">
+                    Saúde Física e Mental
+                  </h2>
+                  <p className="text-muted-foreground mt-2">
+                    Dicas de alongamentos, equilíbrio emocional e bem-estar diário.
                   </p>
+                </CardHeader>
+                <CardContent className="relative space-y-4">
+                  <ul className="space-y-3">
+                    {[
+                      { icon: Activity, text: "Alongamentos rápidos no escritório" },
+                      { icon: Droplets, text: "Hidratação e pausas para água" },
+                      { icon: Eye, text: "Descanso visual e exercícios oculares" },
+                      { icon: Heart, text: "Mindfulness e redução do estresse" }
+                    ].map((item, idx) => (
+                      <motion.li 
+                        key={idx}
+                        className="flex items-center gap-3 text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors"
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.1 * idx }}
+                      >
+                        <div className="h-6 w-6 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                          <item.icon className="h-3.5 w-3.5 text-accent" />
+                        </div>
+                        {item.text}
+                      </motion.li>
+                    ))}
+                  </ul>
+                  <div className="pt-4 border-t border-border/50">
+                    <Button variant="ghost" className="w-full justify-between text-accent hover:bg-accent/10 group/btn">
+                      Saiba mais
+                      <ArrowRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </motion.article>
           </div>
+
+          {/* Stats Row */}
+          <motion.div
+            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            {[
+              { value: "85%", label: "Redução de dores", icon: Activity },
+              { value: "40%", label: "Mais produtividade", icon: BarChart3 },
+              { value: "2L+", label: "Água por dia", icon: Droplets },
+              { value: "15min", label: "Pausas ativas", icon: Clock }
+            ].map((stat, idx) => (
+              <motion.div
+                key={idx}
+                className="text-center p-6 rounded-2xl bg-card/50 border border-border/30 hover:border-primary/30 transition-colors"
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                  <stat.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
