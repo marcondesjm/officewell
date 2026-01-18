@@ -1,8 +1,131 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield, Lock, Eye, Database, UserCheck, FileText, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Privacidade = () => {
+  // SEO: Dynamic meta tags and JSON-LD
+  useEffect(() => {
+    // Update document title
+    document.title = 'Política de Privacidade | OfficeWell - LGPD Compliance';
+    
+    // Meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    const descriptionContent = 'Política de Privacidade do OfficeWell em conformidade com a LGPD (Lei 13.709/2018). Saiba como coletamos, usamos e protegemos seus dados pessoais.';
+    if (metaDescription) {
+      metaDescription.setAttribute('content', descriptionContent);
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = descriptionContent;
+      document.head.appendChild(meta);
+    }
+
+    // Canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
+    if (canonical) {
+      canonical.href = 'https://officewell.lovable.app/privacidade';
+    } else {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      canonical.href = 'https://officewell.lovable.app/privacidade';
+      document.head.appendChild(canonical);
+    }
+
+    // Open Graph tags
+    const ogTags = [
+      { property: 'og:title', content: 'Política de Privacidade | OfficeWell' },
+      { property: 'og:description', content: descriptionContent },
+      { property: 'og:type', content: 'website' },
+      { property: 'og:url', content: 'https://officewell.lovable.app/privacidade' },
+    ];
+
+    ogTags.forEach(({ property, content }) => {
+      let meta = document.querySelector(`meta[property="${property}"]`);
+      if (meta) {
+        meta.setAttribute('content', content);
+      } else {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        meta.setAttribute('content', content);
+        document.head.appendChild(meta);
+      }
+    });
+
+    // JSON-LD Structured Data for Privacy Policy
+    const jsonLdScript = document.createElement('script');
+    jsonLdScript.type = 'application/ld+json';
+    jsonLdScript.id = 'privacy-policy-jsonld';
+    jsonLdScript.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Política de Privacidade",
+      "description": descriptionContent,
+      "url": "https://officewell.lovable.app/privacidade",
+      "inLanguage": "pt-BR",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "OfficeWell",
+        "url": "https://officewell.lovable.app"
+      },
+      "about": {
+        "@type": "Thing",
+        "name": "Proteção de Dados Pessoais",
+        "description": "Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018)"
+      },
+      "mainEntity": {
+        "@type": "Article",
+        "@id": "https://officewell.lovable.app/privacidade#article",
+        "headline": "Política de Privacidade do OfficeWell",
+        "description": "Como o OfficeWell coleta, usa, armazena e protege suas informações pessoais em conformidade com a LGPD.",
+        "author": {
+          "@type": "Organization",
+          "name": "OfficeWell",
+          "url": "https://officewell.lovable.app"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "OfficeWell",
+          "url": "https://officewell.lovable.app"
+        },
+        "datePublished": "2024-01-01",
+        "dateModified": new Date().toISOString().split('T')[0],
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": "https://officewell.lovable.app/privacidade"
+        }
+      },
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Início",
+            "item": "https://officewell.lovable.app"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Política de Privacidade",
+            "item": "https://officewell.lovable.app/privacidade"
+          }
+        ]
+      }
+    });
+    document.head.appendChild(jsonLdScript);
+
+    // Cleanup on unmount
+    return () => {
+      const existingScript = document.getElementById('privacy-policy-jsonld');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      // Restore original title
+      document.title = 'OfficeWell | Bem-estar e Produtividade no Home Office';
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       {/* Header */}
