@@ -8,8 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ErgonomicChecklist, ErgonomicData } from "@/components/ErgonomicChecklist";
 import { ErgonomicCharts, ErgonomicHistoryData, LerDistribution, FatigueHistoryData } from "@/components/ErgonomicCharts";
-import { avaliarRiscoLER, LerForm } from "@/utils/lerRisk";
-import { sugestaoFadiga, Fadiga } from "@/utils/mentalFatigue";
+import { avaliarRiscoLER, LerForm, LerRiskResult, sugestaoPreventiva } from "@/utils/lerRisk";
+import { sugestaoFadiga, Fadiga, sugestaoExercicio, avaliarFadigaPorExercicio } from "@/utils/mentalFatigue";
+import { useWorkSchedule, ExerciseProfile } from "@/hooks/useWorkSchedule";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Activity, 
@@ -20,6 +21,7 @@ import {
   CheckCircle2, 
   ClipboardCheck, 
   Download,
+  Dumbbell,
   FileBarChart, 
   Hand, 
   Heart, 
@@ -52,6 +54,8 @@ const getSessionId = () => {
 export default function Ergonomia() {
   const navigate = useNavigate();
   const sessionId = getSessionId();
+  const { getExerciseProfile, isActiveUser } = useWorkSchedule();
+  const exerciseProfile = getExerciseProfile();
 
   // ============ LOADING STATES ============
   const [isSaving, setIsSaving] = useState(false);
@@ -75,11 +79,13 @@ export default function Ergonomia() {
     rigidez: false,
     dorPescoco: false,
   });
-  const [lerResult, setLerResult] = useState<{ nivel: string; cor: string } | null>(null);
+  const [lerResult, setLerResult] = useState<LerRiskResult | null>(null);
+  const [lerSugestoes, setLerSugestoes] = useState<string[]>([]);
 
   // ============ MENTAL FATIGUE STATE ============
   const [fadiga, setFadiga] = useState<Fadiga | null>(null);
   const [fadigaSugestao, setFadigaSugestao] = useState<string | null>(null);
+  const [exerciseFatigueRelation, setExerciseFatigueRelation] = useState<{ isExerciseRelated: boolean; message: string } | null>(null);
 
   // ============ HISTORY STATE ============
   const [assessmentHistory, setAssessmentHistory] = useState<{
@@ -170,8 +176,9 @@ export default function Ergonomia() {
   };
 
   const avaliarLER = async () => {
-    const result = avaliarRiscoLER(lerForm);
+    const result = avaliarRiscoLER(lerForm, exerciseProfile);
     setLerResult(result);
+    setLerSugestoes(sugestaoPreventiva(exerciseProfile));
     setIsSaving(true);
 
     try {
@@ -179,15 +186,15 @@ export default function Ergonomia() {
       
       if (result.nivel === "alto") {
         toast.error("Risco LER Elevado!", {
-          description: "Avaliação salva. Recomendamos consultar um profissional.",
+          description: result.message,
         });
       } else if (result.nivel === "medio") {
         toast.warning("Atenção ao Risco LER", {
-          description: "Avaliação salva. Faça pausas e alongamentos.",
+          description: result.message,
         });
       } else {
         toast.success("Risco LER Baixo", {
-          description: "Avaliação salva. Continue assim!",
+          description: result.message,
         });
       }
     } catch {
@@ -199,8 +206,13 @@ export default function Ergonomia() {
 
   const avaliarFadiga = async (nivel: Fadiga) => {
     setFadiga(nivel);
-    const sugestao = sugestaoFadiga(nivel);
+    const sugestao = sugestaoFadiga(nivel, exerciseProfile);
     setFadigaSugestao(sugestao);
+    
+    // Verificar se fadiga pode estar relacionada ao exercício
+    const exerciseRelation = avaliarFadigaPorExercicio(nivel, exerciseProfile);
+    setExerciseFatigueRelation(exerciseRelation);
+    
     setIsSaving(true);
 
     try {
@@ -502,6 +514,34 @@ export default function Ergonomia() {
           </div>
         </Card>
 
+        {/* Exercise Profile Card */}
+        <Card className="glass-card animate-fade-in">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${isActiveUser() ? "bg-success/10" : "bg-muted"}`}>
+                  <Dumbbell className={`h-5 w-5 ${isActiveUser() ? "text-success" : "text-muted-foreground"}`} />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Seu Perfil de Exercícios</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {exerciseProfile === "intense" && "Praticante Intenso"}
+                    {exerciseProfile === "moderate" && "Praticante Moderado"}
+                    {exerciseProfile === "light" && "Praticante Leve"}
+                    {exerciseProfile === "none" && "Sedentário"}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground">Dica personalizada:</p>
+                <p className="text-sm font-medium text-primary max-w-[200px]">
+                  {sugestaoExercicio(exerciseProfile).slice(0, 60)}...
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* History Card */}
         {assessmentHistory && (assessmentHistory.ergonomic > 0 || assessmentHistory.ler > 0 || assessmentHistory.fatigue > 0) && (
           <Card className="glass-card animate-fade-in">
@@ -651,39 +691,58 @@ export default function Ergonomia() {
             </Button>
 
             {lerResult && (
-              <Alert 
-                className={`mt-4 ${
-                  lerResult.nivel === "alto" 
-                    ? "border-destructive bg-destructive/10" 
-                    : lerResult.nivel === "medio"
-                    ? "border-warning bg-warning/10"
-                    : "border-success bg-success/10"
-                }`}
-              >
-                {lerResult.nivel === "alto" ? (
-                  <XCircle className="h-5 w-5 text-destructive" />
-                ) : lerResult.nivel === "medio" ? (
-                  <AlertTriangle className="h-5 w-5 text-warning" />
-                ) : (
-                  <CheckCircle2 className="h-5 w-5 text-success" />
+              <div className="space-y-3 mt-4">
+                <Alert 
+                  className={`${
+                    lerResult.nivel === "alto" 
+                      ? "border-destructive bg-destructive/10" 
+                      : lerResult.nivel === "medio"
+                      ? "border-warning bg-warning/10"
+                      : "border-success bg-success/10"
+                  }`}
+                >
+                  {lerResult.nivel === "alto" ? (
+                    <XCircle className="h-5 w-5 text-destructive" />
+                  ) : lerResult.nivel === "medio" ? (
+                    <AlertTriangle className="h-5 w-5 text-warning" />
+                  ) : (
+                    <CheckCircle2 className="h-5 w-5 text-success" />
+                  )}
+                  <AlertTitle className={`${
+                    lerResult.nivel === "alto" 
+                      ? "text-destructive" 
+                      : lerResult.nivel === "medio"
+                      ? "text-warning"
+                      : "text-success"
+                  }`}>
+                    Risco {lerResult.nivel.charAt(0).toUpperCase() + lerResult.nivel.slice(1)}
+                    {lerResult.exerciseBonus && (
+                      <span className="ml-2 text-xs bg-success/20 text-success px-2 py-0.5 rounded-full">
+                        Bônus Exercício
+                      </span>
+                    )}
+                  </AlertTitle>
+                  <AlertDescription>{lerResult.message}</AlertDescription>
+                </Alert>
+
+                {/* Preventive Suggestions */}
+                {lerSugestoes.length > 0 && (
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Lightbulb className="h-4 w-4 text-info" />
+                      Sugestões Preventivas para seu perfil:
+                    </p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {lerSugestoes.slice(0, 4).map((sugestao, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-primary">•</span>
+                          {sugestao}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
-                <AlertTitle className={`${
-                  lerResult.nivel === "alto" 
-                    ? "text-destructive" 
-                    : lerResult.nivel === "medio"
-                    ? "text-warning"
-                    : "text-success"
-                }`}>
-                  Risco {lerResult.nivel.charAt(0).toUpperCase() + lerResult.nivel.slice(1)}
-                </AlertTitle>
-                <AlertDescription>
-                  {lerResult.nivel === "alto" 
-                    ? "Procure um profissional de saúde ocupacional. Faça pausas frequentes." 
-                    : lerResult.nivel === "medio"
-                    ? "Atenção! Revise sua ergonomia e faça alongamentos regulares."
-                    : "Ótimo! Continue mantendo bons hábitos de trabalho."}
-                </AlertDescription>
-              </Alert>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -735,11 +794,22 @@ export default function Ergonomia() {
             </RadioGroup>
 
             {fadigaSugestao && (
-              <Alert className="mt-4 border-info bg-info/10">
-                <Lightbulb className="h-5 w-5 text-info" />
-                <AlertTitle className="text-info">Sugestão</AlertTitle>
-                <AlertDescription>{fadigaSugestao}</AlertDescription>
-              </Alert>
+              <div className="space-y-3 mt-4">
+                <Alert className="border-info bg-info/10">
+                  <Lightbulb className="h-5 w-5 text-info" />
+                  <AlertTitle className="text-info">Sugestão</AlertTitle>
+                  <AlertDescription>{fadigaSugestao}</AlertDescription>
+                </Alert>
+
+                {/* Exercise-related fatigue info */}
+                {exerciseFatigueRelation?.isExerciseRelated && (
+                  <Alert className="border-secondary bg-secondary/10">
+                    <Dumbbell className="h-5 w-5 text-secondary" />
+                    <AlertTitle className="text-secondary">Pode ser do Treino</AlertTitle>
+                    <AlertDescription>{exerciseFatigueRelation.message}</AlertDescription>
+                  </Alert>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
