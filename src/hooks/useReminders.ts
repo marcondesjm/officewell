@@ -16,6 +16,7 @@ export interface ReminderConfig {
   soundForStretch: boolean;
   soundForWater: boolean;
   notificationTone: NotificationTone;
+  notifyOnResume: boolean; // Notificar ao retomar o app
 }
 
 export interface ReminderState {
@@ -49,6 +50,7 @@ const DEFAULT_CONFIG: ReminderConfig = {
   soundForStretch: true, // Tocar som para alongamento
   soundForWater: true,  // Tocar som para hidratação
   notificationTone: 'soft-beep', // Tom padrão
+  notifyOnResume: false, // Não notificar ao retomar por padrão (evita modais inesperados)
 };
 
 // Configurações de tons de notificação
@@ -502,37 +504,40 @@ export const useReminders = () => {
     setState(prev => ({ ...prev, ...calculateTimeLeft() }));
     
     // Aguardar 3 segundos antes de permitir notificações (evita abrir modais ao abrir o app)
-    // Durante este tempo, resetar timers expirados para os intervalos normais
+    // Durante este tempo, resetar timers expirados para os intervalos normais (se notifyOnResume desativado)
     if (isInitialLoadRef.current) {
       const now = Date.now();
       let needsReset = false;
       const newTimestamps = { ...timestamps };
       
-      // Se algum timer já expirou ao carregar, resetar para o intervalo normal
-      if (timestamps.eyeEndTime <= now) {
-        newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
-        notifiedRef.current.eye = true; // Marcar como notificado para evitar notificação imediata
-        needsReset = true;
-      }
-      if (timestamps.stretchEndTime <= now) {
-        newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
-        notifiedRef.current.stretch = true;
-        needsReset = true;
-      }
-      if (timestamps.waterEndTime <= now) {
-        newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
-        notifiedRef.current.water = true;
-        needsReset = true;
+      // Se notifyOnResume está desativado, resetar timers expirados silenciosamente
+      if (!config.notifyOnResume) {
+        if (timestamps.eyeEndTime <= now) {
+          newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
+          notifiedRef.current.eye = true; // Marcar como notificado para evitar notificação imediata
+          needsReset = true;
+        }
+        if (timestamps.stretchEndTime <= now) {
+          newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
+          notifiedRef.current.stretch = true;
+          needsReset = true;
+        }
+        if (timestamps.waterEndTime <= now) {
+          newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
+          notifiedRef.current.water = true;
+          needsReset = true;
+        }
+        
+        if (needsReset) {
+          setTimestamps(newTimestamps);
+        }
       }
       
-      if (needsReset) {
-        setTimestamps(newTimestamps);
-      }
-      
-      // Liberar notificações após 3 segundos
+      // Liberar notificações após 3 segundos (ou imediatamente se notifyOnResume ativo)
+      const delay = config.notifyOnResume ? 500 : 3000;
       initialLoadTimerRef.current = setTimeout(() => {
         isInitialLoadRef.current = false;
-      }, 3000);
+      }, delay);
     }
 
     const intervalId = setInterval(() => {

@@ -101,6 +101,7 @@ export const SettingsDialog = ({
   const [soundForStretch, setSoundForStretch] = useState(config.soundForStretch ?? true);
   const [soundForWater, setSoundForWater] = useState(config.soundForWater ?? true);
   const [notificationTone, setNotificationTone] = useState<NotificationTone>(config.notificationTone ?? 'soft-beep');
+  const [notifyOnResume, setNotifyOnResume] = useState(config.notifyOnResume ?? false);
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
   const volumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -116,6 +117,7 @@ export const SettingsDialog = ({
     setSoundForStretch(config.soundForStretch ?? true);
     setSoundForWater(config.soundForWater ?? true);
     setNotificationTone(config.notificationTone ?? 'soft-beep');
+    setNotifyOnResume(config.notifyOnResume ?? false);
   }, [config]);
 
   const handleSave = () => {
@@ -129,6 +131,7 @@ export const SettingsDialog = ({
       soundForStretch,
       soundForWater,
       notificationTone,
+      notifyOnResume,
     });
     toast.success("Configurações salvas com sucesso!");
     onOpenChange(false);
@@ -497,6 +500,32 @@ export const SettingsDialog = ({
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Opção de Notificação ao Retomar */}
+            <div className="space-y-4 p-4 rounded-lg bg-muted/50 border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Bell className="h-5 w-5 text-primary" />
+                  <div>
+                    <Label htmlFor="notifyOnResume" className="text-base font-medium">Notificar ao Retomar</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Mostrar lembretes perdidos ao abrir o app
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="notifyOnResume"
+                  checked={notifyOnResume}
+                  onCheckedChange={setNotifyOnResume}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {notifyOnResume 
+                  ? "✅ Ao reabrir o app, você verá os lembretes que expiraram enquanto estava fechado."
+                  : "❌ Ao reabrir o app, os timers expirados serão reiniciados silenciosamente."
+                }
+              </p>
             </div>
 
             <div className="space-y-2">
