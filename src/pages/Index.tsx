@@ -101,27 +101,50 @@ const Index = () => {
   // Auto-refresh every hour to keep app updated
   const { checkForUpdates, syncStatus } = useAppRefresh(60 * 60 * 1000);
 
-  const handleManualRefresh = async () => {
+  // Verificação leve de atualizações (sem reload)
+  const handleCheckUpdates = async () => {
     setIsRefreshing(true);
     
     try {
-      // Mostrar feedback imediato
       const { toast } = await import("sonner");
-      toast.info("Atualizando app...", { duration: 2000 });
       
-      // Marcar que está atualizando para mostrar confirmação após reload
+      // Apenas verificar se há atualizações disponíveis
+      const hasUpdates = await checkForUpdates();
+      
+      if (!hasUpdates) {
+        toast.success("✅ App já está atualizado!", {
+          description: `Versão ${APP_VERSION}`,
+          duration: 2000,
+        });
+      }
+      // Se hasUpdates = true, o hook useAppRefresh já mostra o toast e faz o reload
+      
+    } catch (e) {
+      console.error('Erro ao verificar atualizações:', e);
+      const { toast } = await import("sonner");
+      toast.error("Erro ao verificar atualizações", { duration: 2000 });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Função para forçar atualização completa (apenas quando realmente necessário)
+  const handleForceRefresh = async () => {
+    setIsRefreshing(true);
+    
+    try {
+      const { toast } = await import("sonner");
+      toast.info("Forçando atualização...", { duration: 2000 });
+      
       localStorage.setItem('app-just-updated', 'true');
       
-      // Limpar cache do service worker e forçar atualização
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const registration of registrations) {
-          // Desregistrar o service worker atual
           await registration.unregister();
         }
       }
       
-      // Limpar todos os caches
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         await Promise.all(
@@ -129,18 +152,14 @@ const Index = () => {
         );
       }
       
-      // Limpar localStorage de versão para forçar nova verificação
       localStorage.removeItem('app-version');
       
-      // Pequeno delay para garantir que tudo foi limpo
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Forçar reload completo usando location.href (funciona melhor em PWAs)
       window.location.href = window.location.origin + window.location.pathname + '?refresh=' + Date.now();
     } catch (e) {
       console.error('Erro ao atualizar:', e);
       localStorage.setItem('app-just-updated', 'true');
-      // Fallback: reload simples
       window.location.href = window.location.origin + '?refresh=' + Date.now();
     }
   };
@@ -526,13 +545,14 @@ const Index = () => {
                 <Check size={20} className="flex-shrink-0" />
                 <span>App atualizado</span>
                 <Button
-                  onClick={handleManualRefresh}
+                  onClick={handleCheckUpdates}
                   variant="ghost"
                   size="sm"
                   className="ml-2 h-8 px-3 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-500/20"
                   aria-label="Verificar atualizações"
+                  disabled={isRefreshing}
                 >
-                  <RefreshCw size={14} />
+                  <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
                 </Button>
               </div>
             )}
@@ -546,7 +566,7 @@ const Index = () => {
             
             {syncStatus === 'error' && !isRefreshing && (
               <Button
-                onClick={handleManualRefresh}
+                onClick={handleCheckUpdates}
                 className="min-h-12 px-6 rounded-2xl bg-orange-500/15 text-orange-600 dark:text-orange-400 border-2 border-orange-500/30 hover:bg-orange-500/25 font-semibold"
                 aria-label="Tentar sincronizar novamente"
               >
