@@ -313,6 +313,12 @@ export const useReminders = () => {
   }, [schedule.isConfigured, getWorkStatus, calculateOptimalIntervals]);
 
   const showNotification = useCallback((type: "eye" | "stretch" | "water") => {
+    // IMPORTANTE: Não notificar durante carregamento inicial (PWA resume)
+    if (isInitialLoadRef.current) {
+      console.log("Notificação bloqueada - carregamento inicial");
+      return;
+    }
+    
     // IMPORTANTE: Não notificar fora do horário de trabalho
     if (!isWithinWorkHours() && schedule.isConfigured) {
       console.log("Notificação bloqueada - fora do horário de trabalho");
@@ -565,96 +571,134 @@ export const useReminders = () => {
       checkAndNotify();
     }, 1000);
 
-    const handleVisibility = () => {
-      if (!document.hidden) {
-        // IMPORTANTE: Marcar como carregamento inicial ao retomar para evitar modais imediatos
-        if (!config.notifyOnResume) {
-          isInitialLoadRef.current = true;
-          
-          // Resetar timers expirados silenciosamente ao retomar
-          const now = Date.now();
-          const savedTimestamps = localStorage.getItem("timerTimestamps");
-          let currentTimestamps = timestamps;
-          
-          if (savedTimestamps) {
-            try {
-              currentTimestamps = JSON.parse(savedTimestamps);
-            } catch (e) {
-              console.error('Erro ao parsear timestamps:', e);
-            }
-          }
-          
-          let needsReset = false;
-          const newTimestamps = { ...currentTimestamps };
-          
-          if (currentTimestamps.eyeEndTime <= now) {
-            newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
-            notifiedRef.current.eye = true;
-            needsReset = true;
-          }
-          if (currentTimestamps.stretchEndTime <= now) {
-            newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
-            notifiedRef.current.stretch = true;
-            needsReset = true;
-          }
-          if (currentTimestamps.waterEndTime <= now) {
-            newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
-            notifiedRef.current.water = true;
-            needsReset = true;
-          }
-          
-          if (needsReset) {
-            setTimestamps(newTimestamps);
-          }
-          
-          // Liberar notificações após delay
-          if (initialLoadTimerRef.current) {
-            clearTimeout(initialLoadTimerRef.current);
-          }
-          initialLoadTimerRef.current = setTimeout(() => {
-            isInitialLoadRef.current = false;
-          }, 3000);
-        } else {
-          // Se notifyOnResume está ativo, recarregar timestamps do localStorage
-          const savedTimestamps = localStorage.getItem("timerTimestamps");
-          if (savedTimestamps) {
-            try {
-              const parsed = JSON.parse(savedTimestamps);
-              const now = Date.now();
+    // Função para resetar timers expirados silenciosamente (usado em resume/focus)
+    const silentlyResetExpiredTimers = () => {
+      if (config.notifyOnResume) return; // Não resetar se notifyOnResume está ativo
+      
+      const now = Date.now();
+      const savedTimestamps = localStorage.getItem("timerTimestamps");
+      let currentTimestamps = timestamps;
+      
+      if (savedTimestamps) {
+        try {
+          currentTimestamps = JSON.parse(savedTimestamps);
+        } catch (e) {
+          console.error('Erro ao parsear timestamps:', e);
+        }
+      }
+      
+      let needsReset = false;
+      const newTimestamps = { ...currentTimestamps };
+      
+      if (currentTimestamps.eyeEndTime <= now) {
+        newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
+        notifiedRef.current.eye = true;
+        needsReset = true;
+      }
+      if (currentTimestamps.stretchEndTime <= now) {
+        newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
+        notifiedRef.current.stretch = true;
+        needsReset = true;
+      }
+      if (currentTimestamps.waterEndTime <= now) {
+        newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
+        notifiedRef.current.water = true;
+        needsReset = true;
+      }
+      
+      if (needsReset) {
+        console.log('Resetando timers expirados silenciosamente');
+        setTimestamps(newTimestamps);
+        // Fechar modais abertos
+        setState(prev => ({
+          ...prev,
+          showEyeModal: false,
+          showStretchModal: false,
+          showWaterModal: false,
+        }));
+      }
+      
+      return needsReset;
+    };
+
+    const handleResume = () => {
+      // IMPORTANTE: Marcar como carregamento inicial ao retomar para evitar modais imediatos
+      if (!config.notifyOnResume) {
+        isInitialLoadRef.current = true;
+        
+        // Resetar timers expirados silenciosamente
+        silentlyResetExpiredTimers();
+        
+        // Liberar notificações após delay
+        if (initialLoadTimerRef.current) {
+          clearTimeout(initialLoadTimerRef.current);
+        }
+        initialLoadTimerRef.current = setTimeout(() => {
+          isInitialLoadRef.current = false;
+        }, 3000);
+      } else {
+        // Se notifyOnResume está ativo, recarregar timestamps do localStorage
+        const savedTimestamps = localStorage.getItem("timerTimestamps");
+        if (savedTimestamps) {
+          try {
+            const parsed = JSON.parse(savedTimestamps);
+            const now = Date.now();
+            
+            if (parsed.eyeEndTime !== timestamps.eyeEndTime ||
+                parsed.stretchEndTime !== timestamps.stretchEndTime ||
+                parsed.waterEndTime !== timestamps.waterEndTime) {
               
-              if (parsed.eyeEndTime !== timestamps.eyeEndTime ||
-                  parsed.stretchEndTime !== timestamps.stretchEndTime ||
-                  parsed.waterEndTime !== timestamps.waterEndTime) {
-                
-                const maxExpiredTime = 5 * 60 * 1000;
-                const validEye = parsed.eyeEndTime > now - maxExpiredTime;
-                const validStretch = parsed.stretchEndTime > now - maxExpiredTime;
-                const validWater = parsed.waterEndTime > now - maxExpiredTime;
-                
-                if (validEye && validStretch && validWater) {
-                  setTimestamps(parsed);
-                }
+              const maxExpiredTime = 5 * 60 * 1000;
+              const validEye = parsed.eyeEndTime > now - maxExpiredTime;
+              const validStretch = parsed.stretchEndTime > now - maxExpiredTime;
+              const validWater = parsed.waterEndTime > now - maxExpiredTime;
+              
+              if (validEye && validStretch && validWater) {
+                setTimestamps(parsed);
               }
-            } catch (e) {
-              console.error('Erro ao recarregar timestamps:', e);
             }
+          } catch (e) {
+            console.error('Erro ao recarregar timestamps:', e);
           }
         }
-        
-        setState(prev => ({ ...prev, ...calculateTimeLeft() }));
+      }
+      
+      setState(prev => ({ ...prev, ...calculateTimeLeft() }));
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        handleResume();
       }
     };
 
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("focus", handleVisibility);
+    // Focus handler - usado quando usuário volta da bandeja de notificações
+    const handleFocus = () => {
+      // Só processar se o documento está visível (evita duplicação)
+      if (!document.hidden) {
+        handleResume();
+      }
+    };
+
+    // Também escutar pageshow para PWAs que retomam do cache
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted || !document.hidden) {
+        handleResume();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handlePageShow);
 
     return () => {
       clearInterval(intervalId);
       if (initialLoadTimerRef.current) {
         clearTimeout(initialLoadTimerRef.current);
       }
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("focus", handleVisibility);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handlePageShow);
     };
   }, [isRunning, timestamps, config, showNotification, isWithinWorkHours, getWorkStatus, schedule.isConfigured, getTimeUntilNextWork, state.showEyeModal, state.showStretchModal, state.showWaterModal]);
 
