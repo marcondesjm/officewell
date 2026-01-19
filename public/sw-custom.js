@@ -292,8 +292,14 @@ async function checkAndNotify(isResumeCheck = false) {
     
     if (expired.length === 0) return;
     
-    // Se for verificação ao reabrir app, usar notificação combinada
+    // Se for verificação ao reabrir app
     if (isResumeCheck) {
+      // Se notifyOnResume está desativado, não mostrar notificações ao retomar
+      if (data.notifyOnResume === false) {
+        console.log('SW: notifyOnResume desativado, ignorando notificações ao retomar');
+        return;
+      }
+      
       // Filtrar apenas os que não estão em cooldown
       const notInCooldown = expired.filter(type => 
         (now - (lastNotified[type] || 0)) >= NOTIFICATION_COOLDOWN
