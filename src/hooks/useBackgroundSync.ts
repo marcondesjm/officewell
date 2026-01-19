@@ -92,23 +92,31 @@ export const useBackgroundSync = () => {
   // Salvar estado no cache para o Service Worker acessar
   const syncTimerState = useCallback(async (state: TimerState) => {
     try {
-      // Salvar no cache
+      const stateWithTimestamp = {
+        ...state,
+        savedAt: Date.now()
+      };
+
+      // Salvar no cache (para o SW acessar)
       if ('caches' in window) {
-        const cache = await caches.open('officewell-timers');
-        const response = new Response(JSON.stringify({
-          ...state,
-          updatedAt: Date.now()
-        }));
+        const cache = await caches.open('officewell-timers-v2');
+        const response = new Response(JSON.stringify(stateWithTimestamp));
         await cache.put('timer-state', response);
       }
 
-      // Enviar para o Service Worker
+      // Enviar para o Service Worker via mensagem direta
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
         
+        // Enviar estado completo para o SW
         registration.active?.postMessage({
-          type: 'SCHEDULE_ALL',
-          isRunning: state.isRunning,
+          type: 'SYNC_TIMER_STATE',
+          state: stateWithTimestamp
+        });
+        
+        // Também enviar comando de iniciar/parar verificação
+        registration.active?.postMessage({
+          type: state.isRunning ? 'START_CHECKING' : 'STOP_CHECKING'
         });
       }
     } catch (e) {
@@ -280,18 +288,28 @@ export const useBackgroundSync = () => {
     registerPeriodicSync();
     requestBackgroundSyncPermission();
     
-    // Manter SW ativo a cada 10 segundos
+    // Manter SW ativo a cada 5 segundos (mais frequente para mobile)
     keepAliveInterval.current = setInterval(() => {
       keepServiceWorkerAlive();
-    }, 10000);
+    }, 5000);
 
     // Verificar timers ao voltar ao foco
     const handleVisibilityChange = async () => {
       if (!document.hidden && 'serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
         registration.active?.postMessage({ type: 'CHECK_TIMERS' });
+        registration.active?.postMessage({ type: 'START_CHECKING' });
       }
     };
+
+    // Garantir que SW está verificando quando app inicia
+    const initSW = async () => {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        registration.active?.postMessage({ type: 'START_CHECKING' });
+      }
+    };
+    initSW();
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleVisibilityChange);
