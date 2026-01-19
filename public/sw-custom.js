@@ -1,5 +1,5 @@
 // Service Worker customizado para notificações em segundo plano
-// Versão 6.0 - Notificações agressivas para mobile em background
+// Versão 7.0 - Corrige acúmulo de notificações ao reabrir app
 
 const NOTIFICATION_TYPES = {
   eye: {
@@ -16,6 +16,11 @@ const NOTIFICATION_TYPES = {
     title: "💧 Hidrate-se",
     body: "Beba um copo de água agora. Mantenha-se saudável!",
     tag: "officewell-water"
+  },
+  combined: {
+    title: "🔔 Lembretes Pendentes",
+    body: "Você perdeu alguns lembretes enquanto estava fora.",
+    tag: "officewell-combined"
   },
   trial_warning: {
     title: "⏰ Seu Teste Grátis Expira em Breve!",
@@ -38,11 +43,17 @@ const NOTIFICATION_TYPES = {
 let lastNotified = { eye: 0, stretch: 0, water: 0 };
 let isChecking = false;
 let checkTimeoutId = null;
+let lastResumeCheck = 0; // Evita múltiplas verificações ao reabrir
+let pendingOnResume = []; // Acumula notificações pendentes ao reabrir
 
-// Intervalo mais curto para mobile - 3 segundos
-const CHECK_INTERVAL = 3000;
-// Cooldown mínimo entre notificações do mesmo tipo - 25 segundos
-const NOTIFICATION_COOLDOWN = 25000;
+// Intervalo para verificação contínua - 5 segundos
+const CHECK_INTERVAL = 5000;
+// Cooldown mínimo entre notificações do mesmo tipo - 60 segundos (evita spam)
+const NOTIFICATION_COOLDOWN = 60000;
+// Cooldown ao reabrir app - 3 segundos de debounce
+const RESUME_DEBOUNCE = 3000;
+// Máximo de tempo para considerar notificação pendente válida - 2 horas
+const MAX_PENDING_AGE = 2 * 60 * 60 * 1000;
 
 // Cache name para estado dos timers
 const TIMER_CACHE = 'officewell-timers-v2';
@@ -85,8 +96,8 @@ function openIDB() {
   });
 }
 
-// Mostrar notificação com máxima agressividade
-async function showTimerNotification(type) {
+// Mostrar notificação individual (usado em tempo real)
+async function showTimerNotification(type, isResumeCheck = false) {
   const notif = NOTIFICATION_TYPES[type];
   if (!notif) return false;
   
@@ -101,15 +112,15 @@ async function showTimerNotification(type) {
   lastNotified[type] = now;
   
   try {
-    // Notificação do sistema com todas as opções para mobile
+    // Notificação do sistema
     await self.registration.showNotification(notif.title, {
       body: notif.body,
       icon: '/pwa-192x192.png',
       badge: '/pwa-192x192.png',
-      tag: notif.tag,
-      requireInteraction: true,
-      vibrate: [500, 200, 500, 200, 500, 300, 500, 200, 500],
-      renotify: true,
+      tag: notif.tag, // Mesmo tag substitui notificação anterior do mesmo tipo
+      requireInteraction: false, // Menos intrusivo
+      vibrate: [300, 100, 300],
+      renotify: false, // Não re-notificar se já existe uma com mesmo tag
       silent: false,
       data: { type, timestamp: now },
       actions: [
@@ -120,24 +131,21 @@ async function showTimerNotification(type) {
     
     console.log(`SW: ✅ Notificação ${type} enviada`);
     
-    // Notificar clientes para tocar som (se estiverem ativos)
-    try {
-      const allClients = await clients.matchAll({ includeUncontrolled: true, type: 'window' });
-      allClients.forEach(client => {
-        client.postMessage({
-          type: 'PLAY_NOTIFICATION_SOUND',
-          reminderType: type,
-          timestamp: now,
-          repeatCount: 3,
-          repeatInterval: 1500
+    // Só tocar som se não for verificação de retomada (evita bombardeio)
+    if (!isResumeCheck) {
+      try {
+        const allClients = await clients.matchAll({ includeUncontrolled: true, type: 'window' });
+        allClients.forEach(client => {
+          client.postMessage({
+            type: 'PLAY_NOTIFICATION_SOUND',
+            reminderType: type,
+            timestamp: now,
+            repeatCount: 2,
+            repeatInterval: 1000
+          });
         });
-        client.postMessage({
-          type: 'NOTIFICATION_SENT',
-          reminderType: type,
-          timestamp: now
-        });
-      });
-    } catch (e) {}
+      } catch (e) {}
+    }
     
     return true;
   } catch (e) {
@@ -146,10 +154,52 @@ async function showTimerNotification(type) {
   }
 }
 
-// Verificar timers e enviar notificações
-async function checkAndNotify() {
+// Mostrar notificação combinada (quando há múltiplos lembretes pendentes)
+async function showCombinedNotification(pendingTypes) {
+  if (pendingTypes.length === 0) return;
+  
+  const now = Date.now();
+  
+  // Se só tem 1 pendente, mostrar notificação normal
+  if (pendingTypes.length === 1) {
+    await showTimerNotification(pendingTypes[0], true);
+    return;
+  }
+  
+  // Mapear tipos para emojis
+  const emojiMap = { eye: '👁️', stretch: '🤸', water: '💧' };
+  const emojis = pendingTypes.map(t => emojiMap[t] || '🔔').join(' ');
+  
   try {
-    // Tentar obter estado do Cache API primeiro
+    // Fechar notificações antigas primeiro
+    const notifications = await self.registration.getNotifications();
+    notifications.forEach(n => n.close());
+    
+    await self.registration.showNotification(`${emojis} Lembretes Pendentes`, {
+      body: `Você perdeu ${pendingTypes.length} lembretes. Abra o app para continuar.`,
+      icon: '/pwa-192x192.png',
+      badge: '/pwa-192x192.png',
+      tag: 'officewell-combined',
+      requireInteraction: false,
+      vibrate: [200, 100, 200],
+      renotify: true,
+      data: { type: 'combined', pendingTypes, timestamp: now }
+    });
+    
+    console.log(`SW: ✅ Notificação combinada enviada (${pendingTypes.length} pendentes)`);
+    
+    // Atualizar cooldown de todos os tipos
+    pendingTypes.forEach(type => {
+      lastNotified[type] = now;
+    });
+  } catch (e) {
+    console.error('SW: Erro notificação combinada:', e);
+  }
+}
+
+// Verificar timers e enviar notificações (verificação contínua em background)
+async function checkAndNotify(isResumeCheck = false) {
+  try {
     let data = null;
     
     try {
@@ -160,44 +210,59 @@ async function checkAndNotify() {
       }
     } catch (e) {}
     
-    // Fallback para IndexedDB
     if (!data) {
       data = await getFromIDB('timer-state');
     }
     
     if (!data) {
-      console.log('SW: Sem estado de timer');
       return;
     }
     
     const now = Date.now();
     
-    // Verificar se os dados não estão muito antigos (máx 1 hora)
-    if (data.savedAt && (now - data.savedAt) > 60 * 60 * 1000) {
+    // Verificar se os dados não estão muito antigos
+    if (data.savedAt && (now - data.savedAt) > MAX_PENDING_AGE) {
       console.log('SW: Estado muito antigo, ignorando');
       return;
     }
     
     if (!data.isRunning) {
-      console.log('SW: Timers pausados');
       return;
     }
     
-    console.log('SW: Verificando...', {
-      eye: Math.round((data.eyeEndTime - now) / 1000) + 's',
-      stretch: Math.round((data.stretchEndTime - now) / 1000) + 's',
-      water: Math.round((data.waterEndTime - now) / 1000) + 's'
-    });
+    // Coletar timers expirados
+    const expired = [];
     
-    // Verificar cada timer
-    if (data.eyeEndTime <= now) {
-      await showTimerNotification('eye');
+    if (data.eyeEndTime <= now && (now - data.eyeEndTime) < MAX_PENDING_AGE) {
+      expired.push('eye');
     }
-    if (data.stretchEndTime <= now) {
-      await showTimerNotification('stretch');
+    if (data.stretchEndTime <= now && (now - data.stretchEndTime) < MAX_PENDING_AGE) {
+      expired.push('stretch');
     }
-    if (data.waterEndTime <= now) {
-      await showTimerNotification('water');
+    if (data.waterEndTime <= now && (now - data.waterEndTime) < MAX_PENDING_AGE) {
+      expired.push('water');
+    }
+    
+    if (expired.length === 0) return;
+    
+    // Se for verificação ao reabrir app, usar notificação combinada
+    if (isResumeCheck) {
+      // Filtrar apenas os que não estão em cooldown
+      const notInCooldown = expired.filter(type => 
+        (now - (lastNotified[type] || 0)) >= NOTIFICATION_COOLDOWN
+      );
+      
+      if (notInCooldown.length > 0) {
+        await showCombinedNotification(notInCooldown);
+      }
+    } else {
+      // Verificação normal: enviar individualmente (mas só 1 por vez para não spammar)
+      for (const type of expired) {
+        if ((now - (lastNotified[type] || 0)) >= NOTIFICATION_COOLDOWN) {
+          await showTimerNotification(type, false);
+          break; // Só uma notificação por ciclo
+        }
+      }
     }
   } catch (e) {
     console.error('SW: Erro checkAndNotify:', e);
@@ -239,7 +304,6 @@ function stopContinuousCheck() {
 // Receber mensagens do app
 self.addEventListener('message', async (event) => {
   const { type, ...data } = event.data || {};
-  console.log('SW: Mensagem:', type);
   
   switch (type) {
     case 'START_CHECKING':
@@ -259,24 +323,37 @@ self.addEventListener('message', async (event) => {
       break;
       
     case 'CHECK_TIMERS':
-      await checkAndNotify();
+      // Debounce para evitar múltiplas verificações ao reabrir
+      const now = Date.now();
+      if (now - lastResumeCheck < RESUME_DEBOUNCE) {
+        console.log('SW: Verificação em debounce, ignorando');
+        return;
+      }
+      lastResumeCheck = now;
+      
+      // Verificação ao reabrir usa modo combinado
+      await checkAndNotify(true);
+      break;
+      
+    case 'APP_RESUMED':
+      // App voltou ao foco - usar verificação com debounce
+      const resumeNow = Date.now();
+      if (resumeNow - lastResumeCheck < RESUME_DEBOUNCE) {
+        return;
+      }
+      lastResumeCheck = resumeNow;
+      await checkAndNotify(true);
       break;
       
     case 'SYNC_TIMER_STATE':
-      // Salvar estado em múltiplos lugares para redundância
       try {
         const timerData = { ...data.state, savedAt: Date.now() };
         
-        // Cache API
         const cache = await caches.open(TIMER_CACHE);
         await cache.put('timer-state', new Response(JSON.stringify(timerData)));
         
-        // IndexedDB
         await saveToIDB('timer-state', timerData);
         
-        console.log('SW: Estado sincronizado');
-        
-        // Se timers estão rodando, garantir que verificação está ativa
         if (data.state?.isRunning) {
           startContinuousCheck();
         }
@@ -288,13 +365,16 @@ self.addEventListener('message', async (event) => {
     case 'RESET_COOLDOWN':
       if (data.reminderType && lastNotified[data.reminderType] !== undefined) {
         lastNotified[data.reminderType] = 0;
-        console.log(`SW: Cooldown ${data.reminderType} resetado`);
       }
+      break;
+      
+    case 'RESET_ALL_COOLDOWNS':
+      // Resetar todos os cooldowns (quando usuário interage com lembretes)
+      lastNotified = { eye: 0, stretch: 0, water: 0 };
       break;
       
     case 'PING':
       event.ports?.[0]?.postMessage({ type: 'PONG', timestamp: Date.now() });
-      // Manter verificação ativa
       if (!isChecking) {
         startContinuousCheck();
       }
@@ -302,6 +382,14 @@ self.addEventListener('message', async (event) => {
       
     case 'TRIAL_NOTIFICATION':
       await showTrialNotification(data.notificationType, data.planName, data.daysRemaining);
+      break;
+      
+    case 'CLEAR_NOTIFICATIONS':
+      // Limpar todas as notificações do app
+      try {
+        const notifications = await self.registration.getNotifications();
+        notifications.forEach(n => n.close());
+      } catch (e) {}
       break;
   }
 });

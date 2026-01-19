@@ -280,6 +280,30 @@ export const useBackgroundSync = () => {
     };
   }, []);
 
+  // Limpar notificações pendentes ao abrir o app
+  const clearPendingNotifications = useCallback(async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        registration.active?.postMessage({ type: 'CLEAR_NOTIFICATIONS' });
+      }
+    } catch (e) {
+      console.log('Erro ao limpar notificações:', e);
+    }
+  }, []);
+
+  // Resetar todos os cooldowns (quando usuário completa lembrete)
+  const resetAllCooldowns = useCallback(async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        registration.active?.postMessage({ type: 'RESET_ALL_COOLDOWNS' });
+      }
+    } catch (e) {
+      console.log('Erro ao resetar cooldowns:', e);
+    }
+  }, []);
+
   // Inicializar
   useEffect(() => {
     if (isInitialized.current) return;
@@ -288,17 +312,25 @@ export const useBackgroundSync = () => {
     registerPeriodicSync();
     requestBackgroundSyncPermission();
     
-    // Manter SW ativo a cada 5 segundos (mais frequente para mobile)
+    // Limpar notificações ao iniciar o app
+    clearPendingNotifications();
+    
+    // Manter SW ativo a cada 10 segundos
     keepAliveInterval.current = setInterval(() => {
       keepServiceWorkerAlive();
-    }, 5000);
+    }, 10000);
 
-    // Verificar timers ao voltar ao foco
+    // Verificar timers ao voltar ao foco (com debounce no SW)
     const handleVisibilityChange = async () => {
       if (!document.hidden && 'serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        registration.active?.postMessage({ type: 'CHECK_TIMERS' });
-        registration.active?.postMessage({ type: 'START_CHECKING' });
+        // Limpar notificações primeiro
+        await clearPendingNotifications();
+        
+        // Aguardar um pouco antes de verificar (debounce local)
+        setTimeout(async () => {
+          const registration = await navigator.serviceWorker.ready;
+          registration.active?.postMessage({ type: 'APP_RESUMED' });
+        }, 500);
       }
     };
 
@@ -321,12 +353,14 @@ export const useBackgroundSync = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleVisibilityChange);
     };
-  }, [registerPeriodicSync, requestBackgroundSyncPermission, keepServiceWorkerAlive]);
+  }, [registerPeriodicSync, requestBackgroundSyncPermission, keepServiceWorkerAlive, clearPendingNotifications]);
 
   return {
     syncTimerState,
     scheduleNotification,
     requestBackgroundSyncPermission,
     resetNotificationCooldown,
+    clearPendingNotifications,
+    resetAllCooldowns,
   };
 };
