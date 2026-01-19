@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Toggle } from "@/components/ui/toggle";
-import { Clock, Coffee, Briefcase, Moon, Calendar } from "lucide-react";
+import { Clock, Coffee, Briefcase, Moon, Calendar, Dumbbell } from "lucide-react";
 import { toast } from "sonner";
-import { WorkSchedule } from "@/hooks/useWorkSchedule";
+import { WorkSchedule, ExerciseProfile } from "@/hooks/useWorkSchedule";
 
 interface WorkScheduleSetupProps {
   open: boolean;
@@ -26,12 +26,20 @@ const WEEKDAYS = [
   { value: 0, label: "Dom", fullLabel: "Domingo" },
 ];
 
+const EXERCISE_OPTIONS: { value: ExerciseProfile; label: string; description: string }[] = [
+  { value: "none", label: "Sedentário", description: "Não pratico exercícios regularmente" },
+  { value: "light", label: "Leve", description: "Caminhadas ou atividades 1-2x por semana" },
+  { value: "moderate", label: "Moderado", description: "Academia ou esportes 3-4x por semana" },
+  { value: "intense", label: "Intenso", description: "Treino intenso 5+ vezes por semana" },
+];
+
 export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule }: WorkScheduleSetupProps) => {
   const [startTime, setStartTime] = useState(currentSchedule.startTime);
   const [lunchStart, setLunchStart] = useState(currentSchedule.lunchStart);
   const [lunchDuration, setLunchDuration] = useState<string>(String(currentSchedule.lunchDuration));
   const [endTime, setEndTime] = useState(currentSchedule.endTime);
   const [workDays, setWorkDays] = useState<number[]>(currentSchedule.workDays || [1, 2, 3, 4, 5]);
+  const [exerciseProfile, setExerciseProfile] = useState<ExerciseProfile>(currentSchedule.exerciseProfile || "none");
 
   const toggleWorkDay = (day: number) => {
     setWorkDays(prev => 
@@ -69,10 +77,15 @@ export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule 
       lunchDuration: Number(lunchDuration),
       endTime,
       workDays,
+      exerciseProfile,
       isConfigured: true,
     });
 
-    toast.success("Horário de trabalho configurado!");
+    toast.success("Configuração salva!", {
+      description: exerciseProfile !== "none" 
+        ? "Os alertas foram ajustados ao seu perfil ativo!" 
+        : "Os alertas serão otimizados para sedentários.",
+    });
   };
 
   return (
@@ -161,6 +174,43 @@ export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule 
             </p>
           </div>
 
+          {/* Exercise Profile */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2 text-base font-medium">
+              <Dumbbell className="h-4 w-4 text-secondary" />
+              Prática de Exercícios
+            </Label>
+            <RadioGroup
+              value={exerciseProfile}
+              onValueChange={(value) => setExerciseProfile(value as ExerciseProfile)}
+              className="space-y-2"
+            >
+              {EXERCISE_OPTIONS.map((option) => (
+                <div
+                  key={option.value}
+                  className={`flex items-start space-x-3 p-3 rounded-lg border transition-colors ${
+                    exerciseProfile === option.value 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-muted-foreground/50"
+                  }`}
+                >
+                  <RadioGroupItem value={option.value} id={`exercise-${option.value}`} className="mt-0.5" />
+                  <div className="flex-1">
+                    <Label htmlFor={`exercise-${option.value}`} className="cursor-pointer font-medium">
+                      {option.label}
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {option.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+            <p className="text-xs text-muted-foreground">
+              Seu nível de atividade física ajusta as recomendações de pausas e alertas
+            </p>
+          </div>
+
           {/* End Time */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2 text-base font-medium">
@@ -177,11 +227,12 @@ export const WorkScheduleSetup = ({ open, onOpenChange, onSave, currentSchedule 
 
           {/* Summary */}
           <div className="bg-muted/50 rounded-xl p-4 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground mb-1">📋 Resumo do Expediente:</p>
+            <p className="font-medium text-foreground mb-1">📋 Resumo da Configuração:</p>
             <p>• Trabalho: {startTime} às {lunchStart}</p>
             <p>• Almoço: {lunchDuration === "60" ? "1 hora" : "2 horas"}</p>
             <p>• Retorno e saída: até {endTime}</p>
             <p>• Dias: {WEEKDAYS.filter(d => workDays.includes(d.value)).map(d => d.label).join(", ") || "Nenhum"}</p>
+            <p>• Perfil: {EXERCISE_OPTIONS.find(e => e.value === exerciseProfile)?.label || "Sedentário"}</p>
           </div>
         </div>
 
