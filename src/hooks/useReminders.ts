@@ -178,10 +178,9 @@ export const useReminders = () => {
     getRemainingWorkMinutes 
   } = useWorkSchedule();
   
-  // Importar sincronização com backend de push notifications
-  const { usePushNotifications } = require('@/hooks/usePushNotifications');
-  const pushHook = usePushNotifications?.() || { syncTimerStateToBackend: () => {}, isSubscribed: false };
-  const { syncTimerStateToBackend, isSubscribed: isPushSubscribed } = pushHook;
+  // Push notifications state - será sincronizado via effects
+  const [isPushSubscribed, setIsPushSubscribed] = useState(false);
+  const syncTimerStateToBackendRef = useRef<((state: any) => void) | null>(null);
   
   const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
   const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
@@ -219,10 +218,10 @@ export const useReminders = () => {
     syncTimerState(timerState);
     
     // Sincronizar com backend para push notifications (se habilitado)
-    if (isPushSubscribed && syncTimerStateToBackend) {
-      syncTimerStateToBackend(timerState);
+    if (isPushSubscribed && syncTimerStateToBackendRef.current) {
+      syncTimerStateToBackendRef.current(timerState);
     }
-  }, [timestamps, isRunning, syncTimerState, isPushSubscribed, syncTimerStateToBackend]);
+  }, [timestamps, isRunning, syncTimerState, isPushSubscribed]);
 
   // Salvar estado running
   useEffect(() => {
