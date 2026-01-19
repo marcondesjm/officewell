@@ -178,6 +178,11 @@ export const useReminders = () => {
     getRemainingWorkMinutes 
   } = useWorkSchedule();
   
+  // Importar sincronização com backend de push notifications
+  const { usePushNotifications } = require('@/hooks/usePushNotifications');
+  const pushHook = usePushNotifications?.() || { syncTimerStateToBackend: () => {}, isSubscribed: false };
+  const { syncTimerStateToBackend, isSubscribed: isPushSubscribed } = pushHook;
+  
   const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
   const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
   const [isRunning, setIsRunning] = useState<boolean>(loadIsRunning);
@@ -199,18 +204,25 @@ export const useReminders = () => {
     localStorage.setItem("reminderConfig", JSON.stringify(config));
   }, [config]);
 
-  // Salvar timestamps e sincronizar com Service Worker
+  // Salvar timestamps e sincronizar com Service Worker + Backend
   useEffect(() => {
     localStorage.setItem("timerTimestamps", JSON.stringify(timestamps));
     
-    // Sincronizar estado para o Service Worker poder verificar em segundo plano
-    syncTimerState({
+    const timerState = {
       eyeEndTime: timestamps.eyeEndTime,
       stretchEndTime: timestamps.stretchEndTime,
       waterEndTime: timestamps.waterEndTime,
       isRunning,
-    });
-  }, [timestamps, isRunning, syncTimerState]);
+    };
+    
+    // Sincronizar estado para o Service Worker poder verificar em segundo plano
+    syncTimerState(timerState);
+    
+    // Sincronizar com backend para push notifications (se habilitado)
+    if (isPushSubscribed && syncTimerStateToBackend) {
+      syncTimerStateToBackend(timerState);
+    }
+  }, [timestamps, isRunning, syncTimerState, isPushSubscribed, syncTimerStateToBackend]);
 
   // Salvar estado running
   useEffect(() => {

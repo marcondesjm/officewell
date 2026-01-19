@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -23,7 +24,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ReminderConfig, NotificationTone } from "@/hooks/useReminders";
-import { Volume2, VolumeX, Volume1, Eye, Dumbbell, Droplet, Music } from "lucide-react";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { Volume2, VolumeX, Volume1, Eye, Dumbbell, Droplet, Music, Bell, BellRing, Loader2, CheckCircle2, XCircle, Smartphone } from "lucide-react";
 
 const TONE_OPTIONS: { value: NotificationTone; label: string; description: string }[] = [
   { value: 'soft-beep', label: '🔔 Beep Suave', description: 'Som suave e discreto' },
@@ -82,6 +84,14 @@ export const SettingsDialog = ({
   config,
   onSave,
 }: SettingsDialogProps) => {
+  const {
+    isSupported: isPushSupported,
+    isSubscribed: isPushSubscribed,
+    isLoading: isPushLoading,
+    subscribe: subscribeToPush,
+    unsubscribe: unsubscribeFromPush,
+    testPushNotification,
+  } = usePushNotifications();
   const [eyeInterval, setEyeInterval] = useState(config.eyeInterval);
   const [stretchInterval, setStretchInterval] = useState(config.stretchInterval);
   const [waterInterval, setWaterInterval] = useState(config.waterInterval);
@@ -393,6 +403,98 @@ export const SettingsDialog = ({
                       </label>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* Push Notifications (Backend) */}
+            <div className="space-y-4 p-4 rounded-lg bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-rose-500/10 border border-purple-500/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {isPushSubscribed ? (
+                    <BellRing className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <Bell className="h-5 w-5 text-muted-foreground" />
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-base font-medium">Notificações Push</Label>
+                      <Badge variant="secondary" className="text-xs">
+                        <Smartphone className="h-3 w-3 mr-1" />
+                        Backend
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Receba lembretes mesmo com o app fechado
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isPushLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  ) : isPushSubscribed ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </div>
+              </div>
+
+              {!isPushSupported ? (
+                <p className="text-sm text-amber-600 dark:text-amber-400">
+                  ⚠️ Push notifications não são suportadas neste navegador.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    {isPushSubscribed ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={testPushNotification}
+                          disabled={isPushLoading}
+                          className="flex-1"
+                        >
+                          🧪 Testar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={unsubscribeFromPush}
+                          disabled={isPushLoading}
+                          className="flex-1"
+                        >
+                          Desativar
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={subscribeToPush}
+                        disabled={isPushLoading}
+                        className="w-full gradient-primary"
+                      >
+                        {isPushLoading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Ativando...
+                          </>
+                        ) : (
+                          <>
+                            <BellRing className="h-4 w-4 mr-2" />
+                            Ativar Push Notifications
+                          </>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  {isPushSubscribed && (
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      ✅ Você receberá notificações mesmo quando o app estiver fechado.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
