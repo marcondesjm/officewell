@@ -216,6 +216,7 @@ export const useReminders = () => {
       stretchEndTime: timestamps.stretchEndTime,
       waterEndTime: timestamps.waterEndTime,
       isRunning,
+      notifyOnResume: config.notifyOnResume,
       // Incluir horário de trabalho para o Service Worker verificar
       workSchedule: schedule.isConfigured ? {
         startTime: schedule.startTime,
@@ -234,7 +235,7 @@ export const useReminders = () => {
     if (isPushSubscribed && syncTimerStateToBackendRef.current) {
       syncTimerStateToBackendRef.current(timerState);
     }
-  }, [timestamps, isRunning, syncTimerState, isPushSubscribed, schedule]);
+  }, [timestamps, isRunning, syncTimerState, isPushSubscribed, schedule, config.notifyOnResume]);
 
   // Salvar estado running
   useEffect(() => {
@@ -472,11 +473,15 @@ export const useReminders = () => {
     const NOTIFICATION_COOLDOWN = 5000; // 5 segundos entre notificações do mesmo tipo
 
     const checkAndNotify = () => {
+      // Ignorar notificações durante o carregamento inicial (evita abrir modais ao abrir o app)
+      // Este check deve ser o PRIMEIRO para garantir que nada aconteça durante a inicialização
+      if (isInitialLoadRef.current) {
+        console.log("checkAndNotify bloqueado - carregamento inicial");
+        return;
+      }
+      
       // Não notificar fora do horário de trabalho
       if (!isRunning || !isWithinWorkHours()) return;
-      
-      // Ignorar notificações durante o carregamento inicial (evita abrir modais ao abrir o app)
-      if (isInitialLoadRef.current) return;
       
       const now = Date.now();
 
@@ -562,32 +567,77 @@ export const useReminders = () => {
 
     const handleVisibility = () => {
       if (!document.hidden) {
-        // Recarregar timestamps do localStorage ao voltar ao foco
-        // Isso garante que pegamos o estado mais recente caso o app tenha sido reiniciado
-        const savedTimestamps = localStorage.getItem("timerTimestamps");
-        if (savedTimestamps) {
-          try {
-            const parsed = JSON.parse(savedTimestamps);
-            const now = Date.now();
-            
-            // Verificar se os timestamps salvos são diferentes dos atuais
-            // e se são válidos (não resetados)
-            if (parsed.eyeEndTime !== timestamps.eyeEndTime ||
-                parsed.stretchEndTime !== timestamps.stretchEndTime ||
-                parsed.waterEndTime !== timestamps.waterEndTime) {
-              
-              // Se os timestamps salvos ainda são válidos (não expiraram há muito tempo)
-              const maxExpiredTime = 5 * 60 * 1000;
-              const validEye = parsed.eyeEndTime > now - maxExpiredTime;
-              const validStretch = parsed.stretchEndTime > now - maxExpiredTime;
-              const validWater = parsed.waterEndTime > now - maxExpiredTime;
-              
-              if (validEye && validStretch && validWater) {
-                setTimestamps(parsed);
-              }
+        // IMPORTANTE: Marcar como carregamento inicial ao retomar para evitar modais imediatos
+        if (!config.notifyOnResume) {
+          isInitialLoadRef.current = true;
+          
+          // Resetar timers expirados silenciosamente ao retomar
+          const now = Date.now();
+          const savedTimestamps = localStorage.getItem("timerTimestamps");
+          let currentTimestamps = timestamps;
+          
+          if (savedTimestamps) {
+            try {
+              currentTimestamps = JSON.parse(savedTimestamps);
+            } catch (e) {
+              console.error('Erro ao parsear timestamps:', e);
             }
-          } catch (e) {
-            console.error('Erro ao recarregar timestamps:', e);
+          }
+          
+          let needsReset = false;
+          const newTimestamps = { ...currentTimestamps };
+          
+          if (currentTimestamps.eyeEndTime <= now) {
+            newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
+            notifiedRef.current.eye = true;
+            needsReset = true;
+          }
+          if (currentTimestamps.stretchEndTime <= now) {
+            newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
+            notifiedRef.current.stretch = true;
+            needsReset = true;
+          }
+          if (currentTimestamps.waterEndTime <= now) {
+            newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
+            notifiedRef.current.water = true;
+            needsReset = true;
+          }
+          
+          if (needsReset) {
+            setTimestamps(newTimestamps);
+          }
+          
+          // Liberar notificações após delay
+          if (initialLoadTimerRef.current) {
+            clearTimeout(initialLoadTimerRef.current);
+          }
+          initialLoadTimerRef.current = setTimeout(() => {
+            isInitialLoadRef.current = false;
+          }, 3000);
+        } else {
+          // Se notifyOnResume está ativo, recarregar timestamps do localStorage
+          const savedTimestamps = localStorage.getItem("timerTimestamps");
+          if (savedTimestamps) {
+            try {
+              const parsed = JSON.parse(savedTimestamps);
+              const now = Date.now();
+              
+              if (parsed.eyeEndTime !== timestamps.eyeEndTime ||
+                  parsed.stretchEndTime !== timestamps.stretchEndTime ||
+                  parsed.waterEndTime !== timestamps.waterEndTime) {
+                
+                const maxExpiredTime = 5 * 60 * 1000;
+                const validEye = parsed.eyeEndTime > now - maxExpiredTime;
+                const validStretch = parsed.stretchEndTime > now - maxExpiredTime;
+                const validWater = parsed.waterEndTime > now - maxExpiredTime;
+                
+                if (validEye && validStretch && validWater) {
+                  setTimestamps(parsed);
+                }
+              }
+            } catch (e) {
+              console.error('Erro ao recarregar timestamps:', e);
+            }
           }
         }
         

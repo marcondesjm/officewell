@@ -5,6 +5,7 @@ interface TimerState {
   stretchEndTime: number;
   waterEndTime: number;
   isRunning: boolean;
+  notifyOnResume?: boolean;
   workSchedule?: {
     startTime: string;
     lunchStart: string;
