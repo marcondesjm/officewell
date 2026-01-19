@@ -290,6 +290,81 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          device_info: Json | null
+          endpoint: string
+          id: string
+          p256dh: string
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          device_info?: Json | null
+          endpoint: string
+          id?: string
+          p256dh: string
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          device_info?: Json | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      timer_states: {
+        Row: {
+          created_at: string
+          eye_end_time: number | null
+          id: string
+          is_running: boolean | null
+          last_notified_eye: number | null
+          last_notified_stretch: number | null
+          last_notified_water: number | null
+          session_id: string
+          stretch_end_time: number | null
+          updated_at: string
+          water_end_time: number | null
+        }
+        Insert: {
+          created_at?: string
+          eye_end_time?: number | null
+          id?: string
+          is_running?: boolean | null
+          last_notified_eye?: number | null
+          last_notified_stretch?: number | null
+          last_notified_water?: number | null
+          session_id: string
+          stretch_end_time?: number | null
+          updated_at?: string
+          water_end_time?: number | null
+        }
+        Update: {
+          created_at?: string
+          eye_end_time?: number | null
+          id?: string
+          is_running?: boolean | null
+          last_notified_eye?: number | null
+          last_notified_stretch?: number | null
+          last_notified_water?: number | null
+          session_id?: string
+          stretch_end_time?: number | null
+          updated_at?: string
+          water_end_time?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
