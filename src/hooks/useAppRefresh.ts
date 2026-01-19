@@ -35,6 +35,9 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
         
         localStorage.setItem('app-version', currentVersion);
         
+        // IMPORTANTE: Marcar que é uma atualização automática para preservar timers
+        localStorage.setItem('app-update-in-progress', 'true');
+        
         // Reload after a short delay
         setTimeout(() => {
           window.location.reload();

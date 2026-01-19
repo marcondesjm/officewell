@@ -105,14 +105,17 @@ const loadConfig = (): ReminderConfig => {
 const loadTimestamps = (config: ReminderConfig): TimerTimestamps => {
   try {
     const saved = localStorage.getItem("timerTimestamps");
+    const wasAutoUpdate = localStorage.getItem('app-update-in-progress') === 'true';
+    
+    // Limpar flag de atualização após leitura
+    if (wasAutoUpdate) {
+      localStorage.removeItem('app-update-in-progress');
+      console.log('Restaurando timers após atualização automática do app');
+    }
+    
     if (saved) {
       const parsed = JSON.parse(saved);
       const now = Date.now();
-      
-      // Validar que os timestamps são números válidos e não estão muito no passado
-      // Se um timer expirou há mais de 5 minutos, significa que o app ficou muito tempo fechado
-      // Nesse caso, resetar apenas os timers expirados
-      const maxExpiredTime = 5 * 60 * 1000; // 5 minutos
       
       const isValidTimestamp = (ts: number) => {
         return typeof ts === 'number' && !isNaN(ts) && ts > 0;
@@ -123,7 +126,33 @@ const loadTimestamps = (config: ReminderConfig): TimerTimestamps => {
           isValidTimestamp(parsed.stretchEndTime) && 
           isValidTimestamp(parsed.waterEndTime)) {
         
-        // Ajustar timestamps que expiraram há muito tempo (mais de 5 min)
+        // Se foi atualização automática, preservar timestamps mesmo que expirados recentemente
+        // Isso evita que a atualização do app reinicie os timers
+        if (wasAutoUpdate) {
+          // Apenas ajustar timestamps que expiraram há muito tempo (mais de 30 min)
+          const maxExpiredTime = 30 * 60 * 1000; // 30 minutos
+          
+          const eyeEndTime = (parsed.eyeEndTime < now - maxExpiredTime) 
+            ? now + config.eyeInterval * 60 * 1000 
+            : parsed.eyeEndTime;
+          const stretchEndTime = (parsed.stretchEndTime < now - maxExpiredTime) 
+            ? now + config.stretchInterval * 60 * 1000 
+            : parsed.stretchEndTime;
+          const waterEndTime = (parsed.waterEndTime < now - maxExpiredTime) 
+            ? now + config.waterInterval * 60 * 1000 
+            : parsed.waterEndTime;
+          
+          return {
+            eyeEndTime,
+            stretchEndTime,
+            waterEndTime,
+            lastPausedAt: parsed.lastPausedAt || null,
+          };
+        }
+        
+        // Comportamento normal: ajustar timestamps que expiraram há mais de 5 min
+        const maxExpiredTime = 5 * 60 * 1000; // 5 minutos
+        
         const eyeEndTime = (parsed.eyeEndTime < now - maxExpiredTime) 
           ? now + config.eyeInterval * 60 * 1000 
           : parsed.eyeEndTime;
