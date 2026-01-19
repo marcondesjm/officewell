@@ -197,6 +197,8 @@ export const useReminders = () => {
 
   const notifiedRef = useRef({ eye: false, stretch: false, water: false });
   const hasAppliedOptimalIntervalsRef = useRef(false);
+  const isInitialLoadRef = useRef(true); // Evita abrir modais ao carregar o app
+  const initialLoadTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Salvar config
   useEffect(() => {
@@ -456,6 +458,9 @@ export const useReminders = () => {
       // Não notificar fora do horário de trabalho
       if (!isRunning || !isWithinWorkHours()) return;
       
+      // Ignorar notificações durante o carregamento inicial (evita abrir modais ao abrir o app)
+      if (isInitialLoadRef.current) return;
+      
       const now = Date.now();
 
       // Verificar se modal já está aberto antes de notificar novamente
@@ -495,7 +500,40 @@ export const useReminders = () => {
     };
 
     setState(prev => ({ ...prev, ...calculateTimeLeft() }));
-    checkAndNotify();
+    
+    // Aguardar 3 segundos antes de permitir notificações (evita abrir modais ao abrir o app)
+    // Durante este tempo, resetar timers expirados para os intervalos normais
+    if (isInitialLoadRef.current) {
+      const now = Date.now();
+      let needsReset = false;
+      const newTimestamps = { ...timestamps };
+      
+      // Se algum timer já expirou ao carregar, resetar para o intervalo normal
+      if (timestamps.eyeEndTime <= now) {
+        newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
+        notifiedRef.current.eye = true; // Marcar como notificado para evitar notificação imediata
+        needsReset = true;
+      }
+      if (timestamps.stretchEndTime <= now) {
+        newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
+        notifiedRef.current.stretch = true;
+        needsReset = true;
+      }
+      if (timestamps.waterEndTime <= now) {
+        newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
+        notifiedRef.current.water = true;
+        needsReset = true;
+      }
+      
+      if (needsReset) {
+        setTimestamps(newTimestamps);
+      }
+      
+      // Liberar notificações após 3 segundos
+      initialLoadTimerRef.current = setTimeout(() => {
+        isInitialLoadRef.current = false;
+      }, 3000);
+    }
 
     const intervalId = setInterval(() => {
       setState(prev => ({ ...prev, ...calculateTimeLeft() }));
@@ -542,6 +580,9 @@ export const useReminders = () => {
 
     return () => {
       clearInterval(intervalId);
+      if (initialLoadTimerRef.current) {
+        clearTimeout(initialLoadTimerRef.current);
+      }
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", handleVisibility);
     };
