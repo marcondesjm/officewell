@@ -216,6 +216,15 @@ export const useReminders = () => {
       stretchEndTime: timestamps.stretchEndTime,
       waterEndTime: timestamps.waterEndTime,
       isRunning,
+      // Incluir horário de trabalho para o Service Worker verificar
+      workSchedule: schedule.isConfigured ? {
+        startTime: schedule.startTime,
+        lunchStart: schedule.lunchStart,
+        lunchDuration: schedule.lunchDuration,
+        endTime: schedule.endTime,
+        workDays: schedule.workDays,
+        isConfigured: schedule.isConfigured,
+      } : undefined,
     };
     
     // Sincronizar estado para o Service Worker poder verificar em segundo plano
@@ -225,7 +234,7 @@ export const useReminders = () => {
     if (isPushSubscribed && syncTimerStateToBackendRef.current) {
       syncTimerStateToBackendRef.current(timerState);
     }
-  }, [timestamps, isRunning, syncTimerState, isPushSubscribed]);
+  }, [timestamps, isRunning, syncTimerState, isPushSubscribed, schedule]);
 
   // Salvar estado running
   useEffect(() => {
@@ -303,6 +312,12 @@ export const useReminders = () => {
   }, [schedule.isConfigured, getWorkStatus, calculateOptimalIntervals]);
 
   const showNotification = useCallback((type: "eye" | "stretch" | "water") => {
+    // IMPORTANTE: Não notificar fora do horário de trabalho
+    if (!isWithinWorkHours() && schedule.isConfigured) {
+      console.log("Notificação bloqueada - fora do horário de trabalho");
+      return;
+    }
+    
     const notifications = {
       eye: {
         title: "👁️ Descanso Visual",
@@ -413,7 +428,7 @@ export const useReminders = () => {
     } catch (e) {
       console.log("Notificação não disponível:", e);
     }
-  }, [config.soundEnabled, config.soundVolume, config.soundForEye, config.soundForStretch, config.soundForWater, config.notificationTone]);
+  }, [config.soundEnabled, config.soundVolume, config.soundForEye, config.soundForStretch, config.soundForWater, config.notificationTone, isWithinWorkHours, schedule.isConfigured]);
 
   // Timer principal - agora respeita horário de trabalho
   useEffect(() => {

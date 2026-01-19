@@ -197,6 +197,47 @@ async function showCombinedNotification(pendingTypes) {
   }
 }
 
+// Verificar se está dentro do horário de trabalho
+function isWithinWorkHours(workSchedule) {
+  if (!workSchedule || !workSchedule.isConfigured) return true; // Se não configurado, sempre permite
+  
+  const now = new Date();
+  const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const workDays = workSchedule.workDays || [1, 2, 3, 4, 5];
+  
+  // Verificar se é dia de trabalho
+  if (!workDays.includes(currentDay)) {
+    console.log('SW: Dia de descanso, não notificar');
+    return false;
+  }
+  
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  
+  // Parsear horários
+  const [startH, startM] = workSchedule.startTime.split(':').map(Number);
+  const [lunchStartH, lunchStartM] = workSchedule.lunchStart.split(':').map(Number);
+  const [endH, endM] = workSchedule.endTime.split(':').map(Number);
+  
+  const startMinutes = startH * 60 + startM;
+  const lunchStartMinutes = lunchStartH * 60 + lunchStartM;
+  const lunchEndMinutes = lunchStartMinutes + workSchedule.lunchDuration;
+  const endMinutes = endH * 60 + endM;
+  
+  // Verificar se está antes do início ou depois do fim do expediente
+  if (currentMinutes < startMinutes || currentMinutes >= endMinutes) {
+    console.log('SW: Fora do horário de trabalho, não notificar');
+    return false;
+  }
+  
+  // Verificar se está no horário de almoço
+  if (currentMinutes >= lunchStartMinutes && currentMinutes < lunchEndMinutes) {
+    console.log('SW: Horário de almoço, não notificar');
+    return false;
+  }
+  
+  return true;
+}
+
 // Verificar timers e enviar notificações (verificação contínua em background)
 async function checkAndNotify(isResumeCheck = false) {
   try {
@@ -227,6 +268,12 @@ async function checkAndNotify(isResumeCheck = false) {
     }
     
     if (!data.isRunning) {
+      return;
+    }
+    
+    // IMPORTANTE: Verificar se está dentro do horário de trabalho
+    if (!isWithinWorkHours(data.workSchedule)) {
+      console.log('SW: Fora do horário de trabalho, bloqueando notificações');
       return;
     }
     

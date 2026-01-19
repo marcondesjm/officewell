@@ -5,6 +5,14 @@ interface TimerState {
   stretchEndTime: number;
   waterEndTime: number;
   isRunning: boolean;
+  workSchedule?: {
+    startTime: string;
+    lunchStart: string;
+    lunchDuration: number;
+    endTime: string;
+    workDays: number[];
+    isConfigured: boolean;
+  };
 }
 
 // Som de notificação base64 (beep)
