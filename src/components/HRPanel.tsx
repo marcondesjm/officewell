@@ -138,10 +138,10 @@ export const HRPanel = () => {
             <CardTitle className="text-xl text-gradient">Painel RH</CardTitle>
           </div>
           <Button
-            variant="ghost"
+            variant="default"
             size="sm"
             onClick={() => navigate("/rh")}
-            className="gap-2 text-muted-foreground hover:text-primary"
+            className="gap-2 bg-primary/90 hover:bg-primary shadow-md hover:shadow-lg transition-all"
           >
             <Settings className="h-4 w-4" />
             Gerenciar
