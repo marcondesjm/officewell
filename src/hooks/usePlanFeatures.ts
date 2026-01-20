@@ -57,6 +57,17 @@ export const usePlanFeatures = () => {
   const getCurrentPlan = (): PlanType => {
     // 1. First check authenticated user's plan from Supabase
     if (profile?.current_plan) {
+      // Demo plan gets FULL access (enterprise level) during trial period
+      if (profile.current_plan === "demo") {
+        // Check if trial is still active
+        if (profile.trial_ends_at) {
+          const trialEnd = new Date(profile.trial_ends_at);
+          if (trialEnd > new Date()) {
+            return "enterprise"; // Full access during demo trial
+          }
+        }
+        return "basic"; // Expired demo = basic
+      }
       if (profile.current_plan === "enterprise") return "enterprise";
       if (profile.current_plan === "pro") return "pro";
       if (profile.current_plan === "free") return "basic";
