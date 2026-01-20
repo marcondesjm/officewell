@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, User, Sparkles, Phone } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Sparkles, Phone, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AuthModalProps {
@@ -22,12 +22,14 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   
   // Signup form
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
   const [signupWhatsapp, setSignupWhatsapp] = useState('');
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,17 +147,24 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="login-password"
-                          type="password"
+                          type={showLoginPassword ? "text" : "password"}
                           placeholder="••••••••"
                           value={loginPassword}
                           onChange={(e) => setLoginPassword(e.target.value)}
-                          className="pl-10"
+                          className="pl-10 pr-10"
                           disabled={isLoading}
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginPassword(!showLoginPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
                       </div>
                     </div>
                     
-                    <Button 
+                    <Button
                       type="submit" 
                       className="w-full gradient-primary"
                       disabled={isLoading}
@@ -244,20 +253,27 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="signup-password"
-                          type="password"
+                          type={showSignupPassword ? "text" : "password"}
                           placeholder="••••••••"
                           value={signupPassword}
                           onChange={(e) => setSignupPassword(e.target.value)}
-                          className="pl-10"
+                          className="pl-10 pr-10"
                           disabled={isLoading}
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowSignupPassword(!showSignupPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Mínimo de 6 caracteres
                       </p>
                     </div>
                     
-                    <Button 
+                    <Button
                       type="submit" 
                       className="w-full gradient-primary"
                       disabled={isLoading}
