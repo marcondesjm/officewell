@@ -80,6 +80,54 @@ const getSessionId = () => {
   return sessionId;
 };
 
+// Setembro Amarelo - Mental Health Resources
+const SETEMBRO_AMARELO_INFO = {
+  warning_signs: `🎗️ **Setembro Amarelo - Sinais de Alerta**
+
+⚠️ Fique atento a estes sinais em você ou colegas:
+• Isolamento social excessivo
+• Mudanças bruscas de humor
+• Desesperança ou falta de propósito
+• Falar sobre ser um "fardo" para outros
+• Alterações no sono ou apetite
+• Perda de interesse em atividades
+• Despedidas incomuns
+
+💛 Se identificar algum sinal, busque ajuda profissional.`,
+
+  resources: `💛 **Recursos de Ajuda - Você Não Está Sozinho**
+
+📞 **CVV - Centro de Valorização da Vida**
+Ligue 188 (24h) ou acesse cvv.org.br
+
+📱 **CAPS - Centro de Atenção Psicossocial**
+Procure a unidade mais próxima
+
+🏥 **UBS - Unidade Básica de Saúde**
+Atendimento gratuito pelo SUS
+
+💬 **Aplicativos de apoio:**
+• CVV Chat (cvv.org.br)
+• Vittude
+• Zenklub
+
+❤️ Pedir ajuda é um ato de coragem!`,
+
+  general: `🎗️ **Setembro Amarelo - Prevenção ao Suicídio**
+
+Setembro é o mês de conscientização sobre saúde mental e prevenção ao suicídio.
+
+💛 Lembre-se:
+• Está tudo bem não estar bem
+• Buscar ajuda é sinal de força
+• Você importa e faz diferença
+
+📞 CVV: 188 (ligação gratuita, 24h)
+🌐 cvv.org.br (chat online)
+
+Digite "sinais" para ver sinais de alerta ou "recursos" para ver onde buscar ajuda.`
+};
+
 const FAQ: Record<string, string> = {
   "água": "💧 Recomendamos beber água a cada 30-45 minutos. O OfficeWell te lembra automaticamente! Mantenha uma garrafa de água na sua mesa para facilitar.",
   "pausa": "🧘 Pausas regulares são essenciais! Recomendamos uma pausa para alongamento a cada 45-60 minutos e uma pausa para os olhos a cada 20 minutos.",
@@ -90,12 +138,36 @@ const FAQ: Record<string, string> = {
   "ler": "⚠️ LER (Lesão por Esforço Repetitivo) pode ser prevenida com pausas regulares, postura correta e exercícios. O app monitora seu risco.",
   "notificação": "🔔 Configure suas notificações em Configurações. Você pode escolher quais lembretes receber e em quais horários.",
   "meta": "🎯 Defina metas diárias de hidratação e pausas. Metas alcançadas rendem pontos extras e melhoram sua saúde!",
-  "ajuda": "❓ Posso ajudar com: água, pausas, alongamento, olhos, ergonomia, pontos, LER, notificações, metas e humor. Digite uma palavra-chave!",
+  "ajuda": "❓ Posso ajudar com: água, pausas, alongamento, olhos, ergonomia, pontos, LER, notificações, metas, humor e Setembro Amarelo. Digite uma palavra-chave!",
   "humor": "😊 Registre seu humor diariamente no card 'Como você está se sentindo?'. Acompanhar suas emoções ajuda a entender padrões de bem-estar!",
 };
 
 const findAnswer = (question: string, mood: MoodType | null): string => {
   const lowerQuestion = question.toLowerCase();
+  
+  // Check for Setembro Amarelo / Mental Health keywords FIRST (priority)
+  if (lowerQuestion.match(/(setembro amarelo|amarelo|suicídio|suicidio|depressão|depressao|ansiedade|desespero|sem esperança|sem esperanca|não aguento|nao aguento|desistir|me machucar|cvv|188)/)) {
+    // Check for specific sub-topics
+    if (lowerQuestion.match(/(sinal|sinais|alerta|sintoma|identificar)/)) {
+      return SETEMBRO_AMARELO_INFO.warning_signs;
+    }
+    if (lowerQuestion.match(/(recurso|ajuda|apoio|telefone|ligar|onde|cvv|188|caps|psicólogo|psicologo)/)) {
+      return SETEMBRO_AMARELO_INFO.resources;
+    }
+    return SETEMBRO_AMARELO_INFO.general;
+  }
+
+  // Check for crisis keywords - always show resources
+  if (lowerQuestion.match(/(quero morrer|não consigo mais|nao consigo mais|acabar com tudo|sem saída|sem saida|me matar)/)) {
+    return `💛 **Você não está sozinho. Sua vida importa.**
+
+📞 **Ligue agora para o CVV: 188** (gratuito, 24h)
+🌐 Ou acesse cvv.org.br para chat online
+
+Alguém está pronto para te ouvir, sem julgamentos.
+
+❤️ Aguente firme. Buscar ajuda é o primeiro passo.`;
+  }
   
   // Check for mood-related questions
   if (lowerQuestion.match(/(como estou|meu humor|sentindo|emoção|emocional)/)) {
