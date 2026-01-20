@@ -471,7 +471,7 @@ export default function Ergonomia() {
   }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 relative">
+    <div className="min-h-screen p-4 md:p-8 relative bg-background">
       <ParallaxBackground />
       
       <div className="max-w-4xl mx-auto space-y-6 relative z-10">
