@@ -146,8 +146,9 @@ const HRAdmin = () => {
   const [plansOpen, setPlansOpen] = useState(false);
 
   // Plan features and limits
-  const { currentPlan, limits, canAddMore, getRemainingSlots } = usePlanFeatures();
+  const { currentPlan, limits, canAddMore, getRemainingSlots, features } = usePlanFeatures();
   const isBasicPlan = currentPlan === "basic";
+  const hasHRAccess = features.hrPanel;
 
   // Employee form state
   const [employeeDialogOpen, setEmployeeDialogOpen] = useState(false);
@@ -679,6 +680,75 @@ const HRAdmin = () => {
     return (
       <div className="min-h-screen p-4 md:p-8 bg-decoration flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  // Check HR access
+  if (!hasHRAccess) {
+    return (
+      <div className="min-h-screen p-4 md:p-8 bg-decoration">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gradient">Painel Administrativo RH</h1>
+              <p className="text-sm text-muted-foreground">
+                Gerencie funcionários e avisos da empresa
+              </p>
+            </div>
+          </div>
+
+          {/* Locked Content */}
+          <Card className="border-2 border-purple-500/30 bg-purple-500/5">
+            <CardContent className="py-16 text-center">
+              <div className="w-20 h-20 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-6">
+                <Lock className="h-10 w-10 text-purple-500" />
+              </div>
+              <h2 className="text-2xl font-bold mb-3">Painel Administrativo RH</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Gerencie funcionários, aniversários, comunicados internos e dicas de saúde 
+                para toda a empresa em um único lugar.
+              </p>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 max-w-lg mx-auto">
+                <div className="p-3 rounded-lg bg-purple-500/10 text-center">
+                  <Users className="h-5 w-5 text-purple-500 mx-auto mb-1" />
+                  <p className="text-xs font-medium">Funcionários</p>
+                </div>
+                <div className="p-3 rounded-lg bg-purple-500/10 text-center">
+                  <Cake className="h-5 w-5 text-purple-500 mx-auto mb-1" />
+                  <p className="text-xs font-medium">Aniversários</p>
+                </div>
+                <div className="p-3 rounded-lg bg-purple-500/10 text-center">
+                  <Megaphone className="h-5 w-5 text-purple-500 mx-auto mb-1" />
+                  <p className="text-xs font-medium">Comunicados</p>
+                </div>
+                <div className="p-3 rounded-lg bg-purple-500/10 text-center">
+                  <Lightbulb className="h-5 w-5 text-purple-500 mx-auto mb-1" />
+                  <p className="text-xs font-medium">Dicas</p>
+                </div>
+              </div>
+
+              <Button onClick={() => setPlansOpen(true)} size="lg" className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500">
+                <Building className="h-5 w-5" />
+                Fazer Upgrade para Empresarial
+              </Button>
+              <p className="text-xs text-muted-foreground mt-3">
+                🎁 Teste grátis por 7 dias
+              </p>
+            </CardContent>
+          </Card>
+
+          <SubscriptionPlans
+            open={plansOpen}
+            onOpenChange={setPlansOpen}
+            preSelectedPlan="enterprise"
+          />
+        </div>
       </div>
     );
   }

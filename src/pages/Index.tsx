@@ -425,34 +425,44 @@ const Index = () => {
           </div>
         </Card>
 
-        <Card className="p-4 glass-card overflow-hidden">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20">
-                <Target className="h-6 w-6 text-amber-500" />
+        {/* Metas Card - Pro Feature */}
+        {features.customGoals ? (
+          <Card className="p-4 glass-card overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/20">
+                  <Target className="h-6 w-6 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Minhas Metas</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Acompanhe seu progresso diário
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">Minhas Metas</h3>
-                <p className="text-sm text-muted-foreground">
-                  Acompanhe seu progresso diário
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden sm:block">
+                  <p className="text-2xl font-bold text-amber-500">{goalsProgress.toFixed(0)}%</p>
+                  <p className="text-xs text-muted-foreground">Progresso hoje</p>
+                </div>
+                <Button 
+                  onClick={() => navigate("/metas")}
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                >
+                  <Target className="h-4 w-4 mr-2" />
+                  Ver Metas
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-2xl font-bold text-amber-500">{goalsProgress.toFixed(0)}%</p>
-                <p className="text-xs text-muted-foreground">Progresso hoje</p>
-              </div>
-              <Button 
-                onClick={() => navigate("/metas")}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
-              >
-                <Target className="h-4 w-4 mr-2" />
-                Ver Metas
-              </Button>
-            </div>
-          </div>
-        </Card>
+          </Card>
+        ) : (
+          <LockedFeature
+            featureName="Metas Personalizadas"
+            requiredPlan={getRequiredPlan("customGoals")}
+            description="Defina metas diárias personalizadas e acompanhe seu progresso em tempo real."
+            onUpgrade={() => setPlansOpen(true)}
+          />
+        )}
 
         {/* Contador de Água */}
         <WaterTracker />

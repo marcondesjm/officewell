@@ -1,4 +1,5 @@
 import { useTrialStatus } from "./useTrialStatus";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface PlanFeatures {
   // Basic features (available to all)
@@ -37,9 +38,9 @@ const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     maxBirthdaySettings: 1,
   },
   pro: {
-    maxEmployees: 999999,
-    maxAnnouncements: 999999,
-    maxBirthdaySettings: 999999,
+    maxEmployees: 50,
+    maxAnnouncements: 10,
+    maxBirthdaySettings: 5,
   },
   enterprise: {
     maxEmployees: 999999,
@@ -50,13 +51,24 @@ const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
 
 export const usePlanFeatures = () => {
   const { isOnTrial, planId, isExpired } = useTrialStatus();
+  const { profile } = useAuth();
 
-  // Determine current plan
+  // Determine current plan - priority: profile.current_plan > trial > basic
   const getCurrentPlan = (): PlanType => {
+    // 1. First check authenticated user's plan from Supabase
+    if (profile?.current_plan) {
+      if (profile.current_plan === "enterprise") return "enterprise";
+      if (profile.current_plan === "pro") return "pro";
+      if (profile.current_plan === "free") return "basic";
+    }
+    
+    // 2. Then check if user is on active trial
     if (isOnTrial && !isExpired && planId) {
       if (planId === "enterprise") return "enterprise";
       if (planId === "pro") return "pro";
     }
+    
+    // 3. Default to basic
     return "basic";
   };
 

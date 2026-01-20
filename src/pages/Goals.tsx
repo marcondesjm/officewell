@@ -10,11 +10,16 @@ import {
   Trophy,
   Sparkles,
   Save,
-  RotateCcw
+  RotateCcw,
+  Lock,
+  Rocket
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { usePlanFeatures } from "@/hooks/usePlanFeatures";
+import { useState } from "react";
+import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 
 const Goals = () => {
   const navigate = useNavigate();
@@ -24,6 +29,8 @@ const Goals = () => {
     getTotalProgress,
     resetDailyProgress 
   } = useGoals();
+  const { features, currentPlan } = usePlanFeatures();
+  const [plansOpen, setPlansOpen] = useState(false);
 
   const totalProgress = getTotalProgress();
   const completedGoals = goals.filter(g => g.enabled && (g.progress / g.target) >= 1).length;
@@ -41,6 +48,79 @@ const Goals = () => {
       description: "Todas as metas foram zeradas para hoje.",
     });
   };
+
+  // Show locked state for non-Pro users
+  if (!features.customGoals) {
+    return (
+      <div className="min-h-screen p-4 md:p-8 bg-decoration">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Header */}
+          <header className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/")}
+                className="rounded-full"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
+                  <Target className="h-7 w-7 text-primary" />
+                  Minhas Metas
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhe seu progresso diário
+                </p>
+              </div>
+            </div>
+            <ThemeToggle />
+          </header>
+
+          {/* Locked Content */}
+          <Card className="border-2 border-blue-500/30 bg-blue-500/5">
+            <CardContent className="py-16 text-center">
+              <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-6">
+                <Lock className="h-10 w-10 text-blue-500" />
+              </div>
+              <h2 className="text-2xl font-bold mb-3">Metas Personalizadas</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Defina metas diárias personalizadas para água, alongamento, pausas e mais. 
+                Acompanhe seu progresso e mantenha-se motivado!
+              </p>
+              
+              <div className="flex flex-wrap gap-3 justify-center mb-6">
+                <div className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-600 text-sm font-medium">
+                  📊 Progresso visual
+                </div>
+                <div className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-600 text-sm font-medium">
+                  🎯 Metas customizáveis
+                </div>
+                <div className="px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-600 text-sm font-medium">
+                  🏆 Conquistas diárias
+                </div>
+              </div>
+
+              <Button onClick={() => setPlansOpen(true)} size="lg" className="gap-2">
+                <Rocket className="h-5 w-5" />
+                Fazer Upgrade para Pro
+              </Button>
+              <p className="text-xs text-muted-foreground mt-3">
+                🎁 Teste grátis por 7 dias
+              </p>
+            </CardContent>
+          </Card>
+
+          <SubscriptionPlans
+            open={plansOpen}
+            onOpenChange={setPlansOpen}
+            preSelectedPlan="pro"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-decoration">
