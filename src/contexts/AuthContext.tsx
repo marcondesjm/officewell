@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 
-type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
+type SubscriptionPlan = 'demo' | 'free' | 'pro' | 'enterprise';
 type AppRole = 'admin' | 'user';
 
 interface Profile {
@@ -24,7 +24,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, displayName: string, whatsapp?: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, displayName: string, whatsapp?: string, plan?: SubscriptionPlan) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, displayName: string, whatsapp?: string) => {
+  const signUp = async (email: string, password: string, displayName: string, whatsapp?: string, plan?: SubscriptionPlan) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -135,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           display_name: displayName,
           whatsapp: whatsapp || '',
+          selected_plan: plan || 'demo',
         },
       },
     });
