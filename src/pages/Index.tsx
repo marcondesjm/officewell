@@ -29,6 +29,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { AdBanner } from "@/components/AdBanner";
 import { PartnersBanner } from "@/components/PartnersBanner";
+import { UserAccountHeader } from "@/components/UserAccountHeader";
 import logoOfficeWell from "@/assets/logo-officewell.png";
 import { LockedFeature } from "@/components/LockedFeature";
 import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
@@ -201,6 +202,19 @@ const Index = () => {
       <div className="max-w-6xl mx-auto space-y-8 relative z-10">
         {/* Header with HR Announcements */}
         <header className="text-center space-y-6 py-6 animate-fade-in">
+          {/* Top bar with logo and user account */}
+          <div className="flex items-center justify-between mb-4">
+            <img 
+              src={logoOfficeWell} 
+              alt="OfficeWell" 
+              className="h-8 sm:h-10 object-contain"
+            />
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <UserAccountHeader />
+            </div>
+          </div>
+          
           <HRAnnouncementHeader />
           
           {/* Work Status Indicator */}
