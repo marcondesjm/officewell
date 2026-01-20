@@ -143,7 +143,12 @@ export function UserHeaderCard() {
       <>
         <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">Faça login para acessar sua conta</p>
+            <div className="flex flex-col">
+              <p className="text-sm text-muted-foreground">Faça login para acessar sua conta</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">
+                💡 Use a conta demo para testar: <span className="font-medium text-primary">demo@officewell.app</span>
+              </p>
+            </div>
             <Button
               variant="outline"
               size="sm"
