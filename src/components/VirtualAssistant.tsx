@@ -1,81 +1,101 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User, Droplets, Eye, Activity, HelpCircle, Trash2, Smile } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+import { MessageCircle, X, Send, Trash2, Droplets, Eye, PersonStanding, Ribbon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface Message {
+type MoodType = 'great' | 'good' | 'okay' | 'bad' | 'terrible';
+
+interface ChatMessage {
   id: string;
   text: string;
   isBot: boolean;
   timestamp: Date;
 }
 
-interface QuickAction {
-  label: string;
-  icon: React.ReactNode;
-  action: () => void;
+interface VirtualAssistantProps {
+  currentMood?: MoodType | null;
 }
 
-type MoodType = 'great' | 'good' | 'okay' | 'bad' | 'terrible';
-
-const moodEmojis: Record<MoodType, string> = {
+const MOOD_EMOJIS: Record<MoodType, string> = {
   great: '😄',
   good: '🙂',
   okay: '😐',
-  bad: '😕',
-  terrible: '😢',
+  bad: '😔',
+  terrible: '😢'
 };
 
-const moodLabels: Record<MoodType, string> = {
-  great: 'ótimo',
-  good: 'bem',
-  okay: 'neutro',
-  bad: 'mal',
-  terrible: 'péssimo',
+const MOOD_GREETINGS: Record<MoodType, string> = {
+  great: "Que bom te ver radiante hoje! 🌟",
+  good: "Ótimo ter você por aqui! 💪",
+  okay: "Estou aqui para ajudar no que precisar.",
+  bad: "Lamento que não esteja bem. Como posso ajudar? 💙",
+  terrible: "Sinto muito que esteja passando por um momento difícil. Estou aqui por você. 💙"
 };
 
-// Mood-based tips and responses
-const moodTips: Record<MoodType, string[]> = {
+const MOOD_TIPS: Record<MoodType, string[]> = {
   great: [
-    "🌟 Que ótimo que você está se sentindo bem! Aproveite essa energia positiva para manter boas práticas de saúde.",
-    "✨ Seu humor está excelente! Lembre-se de fazer pausas regulares para manter esse bem-estar.",
-    "🎉 Fantástico! Continue assim e não esqueça de se hidratar para manter a energia!",
+    "Continue assim! Que tal compartilhar essa energia boa com um colega?",
+    "Excelente momento para metas desafiadoras!",
+    "Sua energia positiva é contagiante! 🌟"
   ],
   good: [
-    "😊 Bom saber que está bem! Uma pausa para alongamento pode deixar você ainda melhor.",
-    "👍 Está num bom ritmo! Que tal um copo de água para manter a disposição?",
-    "🌈 Ótimo humor! Mantenha a postura correta para continuar se sentindo assim.",
+    "Mantenha o ritmo! Uma pausa para alongamento pode energizar ainda mais.",
+    "Bom momento para focar em tarefas importantes.",
+    "Continue hidratado para manter essa disposição!"
   ],
   okay: [
-    "🧘 Está neutro? Uma pequena pausa para alongamento pode melhorar seu dia!",
-    "💧 Às vezes um copo de água e uma pausa rápida fazem diferença no humor.",
-    "🌱 Que tal uma caminhada rápida ou alguns exercícios de respiração?",
+    "Uma caminhada rápida pode melhorar seu humor.",
+    "Que tal uma pausa para os olhos? Pode ajudar a relaxar.",
+    "Respire fundo algumas vezes. Pequenas pausas fazem diferença."
   ],
   bad: [
-    "💙 Sinto que não está 100%. Uma pausa para descansar os olhos pode ajudar.",
-    "🤗 Dias difíceis acontecem. Tente uma pausa de 5 minutos para respirar.",
-    "🌿 Quando não estamos bem, pequenas pausas fazem diferença. Cuide-se!",
+    "Faça uma pausa. Cuide de você primeiro.",
+    "Um copo de água e alguns alongamentos podem ajudar.",
+    "Converse com alguém de confiança. Não precisa enfrentar tudo sozinho."
   ],
   terrible: [
-    "❤️ Sinto muito que não está bem. Considere uma pausa maior se possível.",
-    "🫂 Dias assim são difíceis. Lembre-se: está tudo bem não estar bem às vezes.",
-    "💜 Se precisar, faça uma pausa. Sua saúde mental é tão importante quanto a física.",
-  ],
+    "Sua saúde mental é prioridade. Considere uma pausa maior.",
+    "Está tudo bem não estar bem. Procure apoio se precisar.",
+    "Lembre-se: isso vai passar. Você é mais forte do que imagina. 💙"
+  ]
 };
 
-const getRandomMoodTip = (mood: MoodType): string => {
-  const tips = moodTips[mood];
-  return tips[Math.floor(Math.random() * tips.length)];
+// Chat history storage
+const CHAT_STORAGE_KEY = 'officewell_chat_history';
+const SESSION_ID_KEY = 'officewell_session_id';
+
+const getStoredMessages = (): ChatMessage[] => {
+  try {
+    const stored = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+    }
+  } catch (e) {
+    console.error('Error loading chat history:', e);
+  }
+  return [];
 };
 
-const getSessionId = () => {
-  let sessionId = localStorage.getItem('officewell_session_id');
+const storeMessages = (messages: ChatMessage[]) => {
+  try {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  } catch (e) {
+    console.error('Error saving chat history:', e);
+  }
+};
+
+const getOrCreateSessionId = (): string => {
+  let sessionId = localStorage.getItem(SESSION_ID_KEY);
   if (!sessionId) {
-    sessionId = crypto.randomUUID();
-    localStorage.setItem('officewell_session_id', sessionId);
+    sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem(SESSION_ID_KEY, sessionId);
   }
   return sessionId;
 };
@@ -131,10 +151,10 @@ Digite "sinais" para ver sinais de alerta ou "recursos" para ver onde buscar aju
 const FAQ: Record<string, string> = {
   "água": "💧 Recomendamos beber água a cada 30-45 minutos. O OfficeWell te lembra automaticamente! Mantenha uma garrafa de água na sua mesa para facilitar.",
   "pausa": "🧘 Pausas regulares são essenciais! Recomendamos uma pausa para alongamento a cada 45-60 minutos e uma pausa para os olhos a cada 20 minutos.",
-  "alongamento": "🤸 Alongamentos ajudam a prevenir LER/DORT. Foque em pescoço, ombros, punhos e costas. O app mostra exercícios guiados durante as pausas.",
-  "olhos": "👁️ A regra 20-20-20: a cada 20 minutos, olhe para algo a 20 pés (6 metros) por 20 segundos. Isso reduz a fadiga ocular.",
-  "ergonomia": "🪑 Postura correta: pés apoiados no chão, costas retas, monitor na altura dos olhos, braços em 90°. Use o checklist ergonômico do app!",
-  "pontos": "⭐ Você ganha pontos completando pausas e metas. Use-os para subir no ranking e desbloquear conquistas!",
+  "alongamento": "🤸 Alongue-se a cada hora! Movimente pescoço, ombros, punhos e costas. Isso previne dores e melhora a circulação.",
+  "olhos": "👁️ Siga a regra 20-20-20: a cada 20 minutos, olhe para algo a 20 pés (6 metros) por 20 segundos. Seus olhos agradecem!",
+  "ergonomia": "🪑 Mantenha a tela na altura dos olhos, pés apoiados no chão, cotovelos a 90°. Faça nosso checklist de ergonomia!",
+  "pontos": "⭐ Ganhe pontos completando pausas, bebendo água e mantendo boa postura. Quanto mais consistente, mais pontos!",
   "ler": "⚠️ LER (Lesão por Esforço Repetitivo) pode ser prevenida com pausas regulares, postura correta e exercícios. O app monitora seu risco.",
   "notificação": "🔔 Configure suas notificações em Configurações. Você pode escolher quais lembretes receber e em quais horários.",
   "meta": "🎯 Defina metas diárias de hidratação e pausas. Metas alcançadas rendem pontos extras e melhoram sua saúde!",
@@ -172,165 +192,98 @@ Alguém está pronto para te ouvir, sem julgamentos.
   // Check for mood-related questions
   if (lowerQuestion.match(/(como estou|meu humor|sentindo|emoção|emocional)/)) {
     if (mood) {
-      return `${moodEmojis[mood]} Você registrou que está se sentindo ${moodLabels[mood]} hoje. ${getRandomMoodTip(mood)}`;
+      const randomTip = MOOD_TIPS[mood][Math.floor(Math.random() * MOOD_TIPS[mood].length)];
+      return `${MOOD_EMOJIS[mood]} Seu humor atual está registrado como "${mood}". ${randomTip}`;
     }
-    return "😊 Você ainda não registrou seu humor hoje. Use o card 'Como você está se sentindo?' para registrar!";
+    return "Você ainda não registrou seu humor hoje. Use o card 'Como você está se sentindo?' para registrar!";
   }
 
-  // Check for tip/suggestion requests
-  if (lowerQuestion.match(/(dica|sugestão|conselho|recomend)/)) {
+  // Check for greetings with mood-aware responses
+  if (lowerQuestion.match(/(oi|olá|ola|hey|bom dia|boa tarde|boa noite|e aí|eai)/)) {
     if (mood) {
-      return getRandomMoodTip(mood);
+      return `${MOOD_EMOJIS[mood]} Olá! ${MOOD_GREETINGS[mood]} Como posso ajudar?`;
     }
-    return "💡 Registre seu humor primeiro para receber dicas personalizadas! Enquanto isso: lembre-se de fazer pausas regulares.";
+    return "👋 Olá! Sou o assistente do OfficeWell. Como posso ajudar você hoje?";
   }
-  
-  for (const [keyword, answer] of Object.entries(FAQ)) {
-    if (lowerQuestion.includes(keyword)) {
-      // Add mood-specific suffix for certain topics
-      if (mood && (mood === 'bad' || mood === 'terrible') && ['pausa', 'alongamento'].includes(keyword)) {
-        return answer + "\n\n💙 Percebi que você não está 100% hoje. Cuide-se e faça pausas quando precisar.";
-      }
-      return answer;
-    }
-  }
-  
-  // Check for greetings - personalize based on mood
-  if (lowerQuestion.match(/^(oi|olá|ola|hey|eae|e aí)/)) {
+
+  // Check for wellness tips based on mood
+  if (lowerQuestion.match(/(dica|sugestão|sugestao|conselho|recomendação|recomendacao)/)) {
     if (mood) {
-      const moodGreeting = mood === 'great' || mood === 'good' 
-        ? `Que bom que você está ${moodLabels[mood]}! ` 
-        : mood === 'bad' || mood === 'terrible'
-        ? `Vi que não está 100% hoje. Estou aqui para ajudar! `
-        : '';
-      return `👋 Olá! ${moodGreeting}Sou o assistente do OfficeWell. Como posso ajudar? Digite 'ajuda' para ver os tópicos disponíveis.`;
+      const randomTip = MOOD_TIPS[mood][Math.floor(Math.random() * MOOD_TIPS[mood].length)];
+      return `💡 Baseado em como você está se sentindo: ${randomTip}`;
     }
-    return "👋 Olá! Sou o assistente do OfficeWell. Como posso ajudar? Digite 'ajuda' para ver os tópicos disponíveis.";
+    return "💡 Dica: Mantenha-se hidratado, faça pausas regulares e cuide da sua postura. Pequenos hábitos fazem grande diferença!";
   }
   
-  if (lowerQuestion.match(/(obrigad|valeu|thanks)/)) {
-    return "😊 Por nada! Estou aqui para ajudar. Cuide-se e boas pausas!";
+  // Check FAQ keywords
+  for (const [key, value] of Object.entries(FAQ)) {
+    if (lowerQuestion.includes(key)) {
+      return value;
+    }
   }
   
-  return "🤔 Não entendi sua pergunta. Tente palavras-chave como: água, pausa, alongamento, olhos, ergonomia, pontos, LER, notificação, meta ou humor.";
-};
-
-const CHAT_STORAGE_KEY = 'officewell_assistant_chat';
-
-const getWelcomeMessage = (): Message => ({
-  id: "welcome",
-  text: "👋 Olá! Sou o assistente virtual do OfficeWell. Como posso ajudar você hoje? Use os botões rápidos ou digite sua dúvida!",
-  isBot: true,
-  timestamp: new Date(),
-});
-
-const loadChatHistory = (): Message[] => {
-  try {
-    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Convert timestamp strings back to Date objects
-      return parsed.map((msg: Message) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp),
-      }));
-    }
-  } catch (e) {
-    console.error('Error loading chat history:', e);
+  // Default response with mood awareness
+  if (mood && (mood === 'bad' || mood === 'terrible')) {
+    return `Entendo que pode estar passando por um momento difícil. 💙 Posso ajudar com: água, pausas, alongamento, olhos, ergonomia, pontos, LER, notificações, metas ou humor. O que você precisa?`;
   }
-  return [getWelcomeMessage()];
+  
+  return "🤔 Não entendi sua pergunta. Tente perguntar sobre: água, pausas, alongamento, olhos, ergonomia, pontos, LER, notificações, metas ou humor!";
 };
 
-const saveChatHistory = (messages: Message[]) => {
-  try {
-    // Keep only last 50 messages to avoid storage bloat
-    const toSave = messages.slice(-50);
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toSave));
-  } catch (e) {
-    console.error('Error saving chat history:', e);
-  }
-};
-
-export function VirtualAssistant() {
+export const VirtualAssistant = ({ currentMood }: VirtualAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentMood, setCurrentMood] = useState<MoodType | null>(null);
-  const [moodAnimating, setMoodAnimating] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(() => loadChatHistory());
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Save messages to localStorage and auto-scroll whenever they change
+  // Load chat history on mount
+  useEffect(() => {
+    const storedMessages = getStoredMessages();
+    if (storedMessages.length > 0) {
+      setMessages(storedMessages);
+    }
+  }, []);
+
+  // Save messages whenever they change
   useEffect(() => {
     if (messages.length > 0) {
-      saveChatHistory(messages);
+      storeMessages(messages);
     }
-    // Auto-scroll to bottom when new messages are added
-    setTimeout(() => {
-      scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
   }, [messages]);
 
-  // Fetch today's mood
+  // Auto-scroll to bottom
   useEffect(() => {
-    const fetchTodayMood = async () => {
-      const sessionId = getSessionId();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-      const { data } = await supabase
-        .from('mood_logs')
-        .select('mood')
-        .eq('session_id', sessionId)
-        .gte('created_at', today.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (data && data.length > 0) {
-        setCurrentMood(data[0].mood as MoodType);
-      }
-    };
-
-    fetchTodayMood();
-  }, []);
-
-  // Listen for mood updates from MoodTracker
+  // Focus input when chat opens
   useEffect(() => {
-    const handleMoodUpdate = (event: CustomEvent<{ mood: MoodType }>) => {
-      setMoodAnimating(true);
-      setCurrentMood(event.detail.mood);
-      setTimeout(() => setMoodAnimating(false), 600);
-    };
-
-    window.addEventListener('moodUpdated', handleMoodUpdate as EventListener);
-    return () => {
-      window.removeEventListener('moodUpdated', handleMoodUpdate as EventListener);
-    };
-  }, []);
-
-  const clearHistory = () => {
-    setMessages([getWelcomeMessage()]);
-  };
-
-  const addMessage = (text: string, isBot: boolean) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text,
-      isBot,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, newMessage]);
-  };
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
 
   const handleSend = () => {
     if (!input.trim()) return;
-    
-    addMessage(input, false);
-    
-    setTimeout(() => {
-      const answer = findAnswer(input, currentMood);
-      addMessage(answer, true);
-    }, 500);
-    
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      text: input,
+      isBot: false,
+      timestamp: new Date()
+    };
+
+    const botResponse: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      text: findAnswer(input, currentMood || null),
+      isBot: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage, botResponse]);
     setInput("");
   };
 
@@ -340,61 +293,60 @@ export function VirtualAssistant() {
     }
   };
 
-  const getMoodResponse = (): string => {
-    if (!currentMood) {
-      return "😊 Você ainda não registrou seu humor hoje! Use o card 'Como você está se sentindo?' para registrar e receber dicas personalizadas.";
-    }
-    return `${moodEmojis[currentMood]} Você está se sentindo ${moodLabels[currentMood]} hoje.\n\n${getRandomMoodTip(currentMood)}`;
+  const handleClearHistory = () => {
+    setMessages([]);
+    localStorage.removeItem(CHAT_STORAGE_KEY);
   };
 
-  const quickActions: QuickAction[] = [
-    {
-      label: "Humor",
-      icon: <Smile className="h-4 w-4" />,
-      action: () => {
-        addMessage("Como estou hoje?", false);
-        setTimeout(() => addMessage(getMoodResponse(), true), 500);
-      },
-    },
-    {
-      label: "Água",
-      icon: <Droplets className="h-4 w-4" />,
-      action: () => {
-        addMessage("Como funciona o lembrete de água?", false);
-        setTimeout(() => addMessage(FAQ["água"], true), 500);
-      },
-    },
-    {
-      label: "Olhos",
-      icon: <Eye className="h-4 w-4" />,
-      action: () => {
-        addMessage("Como cuidar dos olhos?", false);
-        setTimeout(() => addMessage(FAQ["olhos"], true), 500);
-      },
-    },
-    {
-      label: "Ergonomia",
-      icon: <Activity className="h-4 w-4" />,
-      action: () => {
-        addMessage("Dicas de ergonomia", false);
-        setTimeout(() => addMessage(FAQ["ergonomia"], true), 500);
-      },
-    },
-  ];
+  const handleQuickAction = (action: string) => {
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      text: action,
+      isBot: false,
+      timestamp: new Date()
+    };
+
+    const botResponse: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      text: findAnswer(action, currentMood || null),
+      isBot: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage, botResponse]);
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <>
       {/* Floating Button */}
-      <motion.button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl transition-shadow"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: isOpen ? 0 : 1, scale: isOpen ? 0 : 1 }}
+      <motion.div
+        className="fixed bottom-6 right-6 z-50"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
       >
-        <MessageCircle className="h-6 w-6" />
-      </motion.button>
+        <Button
+          onClick={() => setIsOpen(!isOpen)}
+          className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 relative"
+        >
+          {isOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <>
+              <MessageCircle className="h-6 w-6" />
+              {currentMood && (
+                <span className="absolute -top-1 -right-1 text-lg">
+                  {MOOD_EMOJIS[currentMood]}
+                </span>
+              )}
+            </>
+          )}
+        </Button>
+      </motion.div>
 
       {/* Chat Window */}
       <AnimatePresence>
@@ -404,150 +356,131 @@ export function VirtualAssistant() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-6 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] overflow-hidden rounded-2xl border bg-card shadow-2xl"
+            className="fixed bottom-24 right-6 z-50 w-80 sm:w-96"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between bg-gradient-to-r from-primary to-primary/80 p-4 text-primary-foreground">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-                  <Bot className="h-5 w-5" />
+            <Card className="flex flex-col h-[500px] shadow-xl border-2">
+              {/* Header */}
+              <div className="p-4 border-b bg-primary text-primary-foreground rounded-t-lg flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" />
+                  <div>
+                    <h3 className="font-semibold">Assistente OfficeWell</h3>
+                    <p className="text-xs opacity-80">
+                      {currentMood ? `Humor: ${MOOD_EMOJIS[currentMood]}` : 'Como posso ajudar?'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold flex items-center gap-2">
-                    Assistente OfficeWell
-                    <AnimatePresence mode="wait">
-                      {currentMood && (
-                        <motion.span 
-                          key={currentMood}
-                          className="text-lg"
-                          title={`Humor: ${currentMood}`}
-                          initial={{ scale: 0, rotate: -180 }}
-                          animate={{ 
-                            scale: moodAnimating ? [1, 1.4, 1] : 1, 
-                            rotate: 0 
-                          }}
-                          exit={{ scale: 0, rotate: 180 }}
-                          transition={{ 
-                            type: "spring", 
-                            stiffness: 300, 
-                            damping: 15 
-                          }}
-                        >
-                          {moodEmojis[currentMood]}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </h3>
-                  <p className="text-xs opacity-80">Online agora</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={clearHistory}
-                  className="h-8 w-8 text-primary-foreground hover:bg-white/20"
-                  title="Limpar histórico"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="h-8 w-8 text-primary-foreground hover:bg-white/20"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <ScrollArea className="h-[320px] p-4">
-              <div className="flex flex-col gap-3">
-                {messages.map((message) => (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex flex-col ${
-                      message.isBot ? "items-start" : "items-end"
-                    }`}
+                {messages.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleClearHistory}
+                    className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/20"
+                    title="Limpar histórico"
                   >
-                    <div
-                      className={`flex items-start gap-2 ${
-                        message.isBot ? "flex-row" : "flex-row-reverse"
-                      }`}
-                    >
-                      <div
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                          message.isBot
-                            ? "bg-primary/10 text-primary"
-                            : "bg-secondary text-secondary-foreground"
-                        }`}
-                      >
-                        {message.isBot ? (
-                          <Bot className="h-4 w-4" />
-                        ) : (
-                          <User className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div
-                        className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-                          message.isBot
-                            ? "bg-muted text-foreground"
-                            : "bg-primary text-primary-foreground"
-                        }`}
-                      >
-                        {message.text}
-                      </div>
-                    </div>
-                    <span className={`text-[10px] text-muted-foreground mt-1 ${
-                      message.isBot ? "ml-10" : "mr-10"
-                    }`}>
-                      {message.timestamp.toLocaleTimeString('pt-BR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </span>
-                  </motion.div>
-                ))}
-                <div ref={scrollRef} />
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
-            </ScrollArea>
 
-            {/* Quick Actions */}
-            <div className="flex gap-2 border-t bg-muted/30 p-3">
-              {quickActions.map((action) => (
+              {/* Quick Actions */}
+              <div className="p-2 border-b bg-muted/50 flex gap-1 flex-wrap">
                 <Button
-                  key={action.label}
                   variant="outline"
                   size="sm"
-                  onClick={action.action}
-                  className="flex-1 gap-1 text-xs"
+                  className="h-7 text-xs"
+                  onClick={() => handleQuickAction("água")}
                 >
-                  {action.icon}
-                  {action.label}
+                  <Droplets className="h-3 w-3 mr-1" />
+                  Água
                 </Button>
-              ))}
-            </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => handleQuickAction("olhos")}
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  Olhos
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => handleQuickAction("alongamento")}
+                >
+                  <PersonStanding className="h-3 w-3 mr-1" />
+                  Alongar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs bg-yellow-100 hover:bg-yellow-200 border-yellow-400 text-yellow-800 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50 dark:border-yellow-600 dark:text-yellow-300"
+                  onClick={() => handleQuickAction("setembro amarelo")}
+                >
+                  <Ribbon className="h-3 w-3 mr-1" />
+                  Setembro Amarelo
+                </Button>
+              </div>
 
-            {/* Input */}
-            <div className="flex gap-2 border-t p-3">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Digite sua dúvida..."
-                className="flex-1"
-              />
-              <Button onClick={handleSend} size="icon" disabled={!input.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                {messages.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm">Olá! Como posso ajudar?</p>
+                    <p className="text-xs mt-2">
+                      Pergunte sobre água, pausas, ergonomia...
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {messages.map((msg) => (
+                      <div key={msg.id}>
+                        <div
+                          className={`flex ${msg.isBot ? "justify-start" : "justify-end"}`}
+                        >
+                          <div
+                            className={`max-w-[80%] p-3 rounded-lg ${
+                              msg.isBot
+                                ? "bg-muted text-foreground"
+                                : "bg-primary text-primary-foreground"
+                            }`}
+                          >
+                            <p className="text-sm whitespace-pre-line">{msg.text}</p>
+                          </div>
+                        </div>
+                        <div className={`flex ${msg.isBot ? "justify-start" : "justify-end"} mt-1`}>
+                          <span className={`text-[10px] text-muted-foreground ${msg.isBot ? "ml-1" : "mr-1"}`}>
+                            {formatTime(msg.timestamp)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+
+              {/* Input */}
+              <div className="p-4 border-t">
+                <div className="flex gap-2">
+                  <Input
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Digite sua pergunta..."
+                    className="flex-1"
+                  />
+                  <Button onClick={handleSend} size="icon">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
           </motion.div>
         )}
       </AnimatePresence>
     </>
   );
-}
+};
