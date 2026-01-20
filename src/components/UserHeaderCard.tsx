@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote, Pencil } from 'lucide-react';
+import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote, Pencil, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -306,17 +306,38 @@ export function UserHeaderCard() {
               {renderAvatar(profile.avatar_url, initials, 'md')}
               
               <div className="flex flex-col">
-                <span className="text-sm font-semibold leading-tight truncate max-w-[150px]">
-                  {profile.display_name}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold leading-tight truncate max-w-[120px]">
+                    {profile.display_name}
+                  </span>
+                  {/* Report Button */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate('/ergonomia')}
+                          className="h-6 w-6 rounded-full bg-primary/10 hover:bg-primary/20 text-primary"
+                        >
+                          <FileText className="h-3.5 w-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="z-[100]">
+                        <p>Gerar Relatório de Bem-estar</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-4 ${currentPlanInfo.color}`}>
                     {currentPlanInfo.icon}
                     <span className="ml-1">{currentPlanInfo.label}</span>
                   </Badge>
-                  <span className="flex items-center gap-0.5 text-[11px] text-amber-500 font-medium">
+                  <span className="flex items-center gap-0.5 text-[11px] text-amber-500 font-medium bg-amber-500/10 px-1.5 py-0.5 rounded-full">
                     <Star className="h-3 w-3 fill-current" />
-                    {profile.points}
+                    <span className="font-bold">{profile.points}</span>
+                    <span className="text-[9px] text-amber-400/70 ml-0.5">pts</span>
                   </span>
                 </div>
               </div>
