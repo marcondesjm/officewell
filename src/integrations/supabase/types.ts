@@ -418,10 +418,13 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           avatar_url: string | null
           created_at: string
           current_plan: Database["public"]["Enums"]["subscription_plan"]
           display_name: string
+          exercise_hours_per_week: number | null
+          exercise_type: string | null
           id: string
           points: number
           trial_ends_at: string | null
@@ -430,10 +433,13 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          age?: number | null
           avatar_url?: string | null
           created_at?: string
           current_plan?: Database["public"]["Enums"]["subscription_plan"]
           display_name: string
+          exercise_hours_per_week?: number | null
+          exercise_type?: string | null
           id?: string
           points?: number
           trial_ends_at?: string | null
@@ -442,10 +448,13 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          age?: number | null
           avatar_url?: string | null
           created_at?: string
           current_plan?: Database["public"]["Enums"]["subscription_plan"]
           display_name?: string
+          exercise_hours_per_week?: number | null
+          exercise_type?: string | null
           id?: string
           points?: number
           trial_ends_at?: string | null

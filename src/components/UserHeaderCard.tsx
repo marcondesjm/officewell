@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from '@/components/AuthModal';
+import { ProfileEditDialog } from '@/components/ProfileEditDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote } from 'lucide-react';
+import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -85,6 +86,7 @@ interface DailyTip {
 export function UserHeaderCard() {
   const { user, profile, isLoading, signOut, isAdmin } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [profileEditOpen, setProfileEditOpen] = useState(false);
   const [isRequestingUpgrade, setIsRequestingUpgrade] = useState(false);
   const [birthdayPeople, setBirthdayPeople] = useState<Employee[]>([]);
   const [dailyTip, setDailyTip] = useState<{ text: string; emoji: string } | null>(null);
@@ -313,6 +315,13 @@ export function UserHeaderCard() {
                   
                   <DropdownMenuSeparator />
                   
+                  <DropdownMenuItem onClick={() => setProfileEditOpen(true)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Editar Perfil
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
                   <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
                     Trocar Plano
                   </DropdownMenuLabel>
@@ -426,6 +435,7 @@ export function UserHeaderCard() {
       </Card>
       
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+      <ProfileEditDialog open={profileEditOpen} onOpenChange={setProfileEditOpen} />
     </>
   );
 }
