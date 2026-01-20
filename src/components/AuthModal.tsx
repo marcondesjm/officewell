@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, User, Sparkles } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Sparkles, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface AuthModalProps {
@@ -27,6 +27,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupName, setSignupName] = useState('');
+  const [signupWhatsapp, setSignupWhatsapp] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +63,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     }
     
     setIsLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, signupName);
+    const { error } = await signUp(signupEmail, signupPassword, signupName, signupWhatsapp);
     setIsLoading(false);
     
     if (error) {
@@ -211,6 +212,24 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                           placeholder="seu@email.com"
                           value={signupEmail}
                           onChange={(e) => setSignupEmail(e.target.value)}
+                          className="pl-10"
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-whatsapp" className="text-sm font-medium">
+                        WhatsApp
+                      </Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signup-whatsapp"
+                          type="tel"
+                          placeholder="(00) 00000-0000"
+                          value={signupWhatsapp}
+                          onChange={(e) => setSignupWhatsapp(e.target.value)}
                           className="pl-10"
                           disabled={isLoading}
                         />
