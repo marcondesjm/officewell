@@ -47,6 +47,7 @@ import {
   Image,
   Crown,
   Lock,
+  Lightbulb,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -76,6 +77,15 @@ interface BirthdaySettings {
   message: string;
   image_url: string | null;
   display_time: string | null;
+}
+
+interface DailyTip {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  emoji: string;
+  is_active: boolean;
 }
 
 // Helper function to parse date without timezone issues
@@ -166,6 +176,15 @@ const HRAdmin = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Daily tips state
+  const [dailyTips, setDailyTips] = useState<DailyTip[]>([]);
+  const [tipDialogOpen, setTipDialogOpen] = useState(false);
+  const [editingTip, setEditingTip] = useState<DailyTip | null>(null);
+  const [tipTitle, setTipTitle] = useState("");
+  const [tipContent, setTipContent] = useState("");
+  const [tipCategory, setTipCategory] = useState("Geral");
+  const [tipEmoji, setTipEmoji] = useState("💡");
+
   const fetchData = async () => {
     try {
       const { data: empData } = await supabase
@@ -184,8 +203,15 @@ const HRAdmin = () => {
         .limit(1)
         .single();
 
+      // Fetch all tips (active and inactive) for admin panel
+      const { data: tipsData } = await supabase
+        .from("daily_tips")
+        .select("id, title, content, category, emoji, is_active")
+        .order("display_order");
+
       setEmployees(empData || []);
       setAnnouncements(annData || []);
+      setDailyTips(tipsData || []);
       if (bdaySettings) {
         setBirthdaySettings(bdaySettings);
       }
@@ -470,7 +496,98 @@ const HRAdmin = () => {
     urgent: "Urgente",
   };
 
-  // Birthday Settings Functions
+  const TIP_CATEGORIES = [
+    "Geral", "Alimentação", "Visão", "Mental", "Hidratação", 
+    "Postura", "Movimento", "Ambiente", "Sono", "Produtividade"
+  ];
+
+  const TIP_EMOJIS = ["💡", "☕", "👀", "🧘", "💧", "🪑", "🚶", "🌿", "🍎", "😴", "🎯", "💪", "🧠", "❤️"];
+
+  // Daily Tips CRUD
+  const openTipDialog = (tip?: DailyTip) => {
+    if (tip) {
+      setEditingTip(tip);
+      setTipTitle(tip.title);
+      setTipContent(tip.content);
+      setTipCategory(tip.category);
+      setTipEmoji(tip.emoji);
+    } else {
+      setEditingTip(null);
+      setTipTitle("");
+      setTipContent("");
+      setTipCategory("Geral");
+      setTipEmoji("💡");
+    }
+    setTipDialogOpen(true);
+  };
+
+  const saveTip = async () => {
+    if (!tipTitle.trim() || !tipContent.trim()) {
+      toast.error("Título e conteúdo são obrigatórios");
+      return;
+    }
+
+    try {
+      if (editingTip) {
+        const { error } = await supabase
+          .from("daily_tips")
+          .update({
+            title: tipTitle.trim(),
+            content: tipContent.trim(),
+            category: tipCategory,
+            emoji: tipEmoji,
+          })
+          .eq("id", editingTip.id);
+
+        if (error) throw error;
+        toast.success("Dica atualizada!");
+      } else {
+        const { error } = await supabase.from("daily_tips").insert({
+          title: tipTitle.trim(),
+          content: tipContent.trim(),
+          category: tipCategory,
+          emoji: tipEmoji,
+        });
+
+        if (error) throw error;
+        toast.success("Dica adicionada!");
+      }
+
+      setTipDialogOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error saving tip:", error);
+      toast.error("Erro ao salvar dica");
+    }
+  };
+
+  const deleteTip = async (id: string) => {
+    try {
+      const { error } = await supabase.from("daily_tips").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Dica removida!");
+      fetchData();
+    } catch (error) {
+      console.error("Error deleting tip:", error);
+      toast.error("Erro ao remover dica");
+    }
+  };
+
+  const toggleTipActive = async (id: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("daily_tips")
+        .update({ is_active: !currentStatus })
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success(currentStatus ? "Dica desativada" : "Dica ativada");
+      fetchData();
+    } catch (error) {
+      console.error("Error toggling tip:", error);
+      toast.error("Erro ao alterar status");
+    }
+  };
   const openBirthdaySettingsDialog = () => {
     setBirthdayMessage(birthdaySettings?.message || "Desejamos um dia repleto de alegrias, realizações e muita felicidade!");
     setBirthdayImageUrl(birthdaySettings?.image_url || "");
@@ -659,14 +776,16 @@ const HRAdmin = () => {
         )}
 
         <Tabs defaultValue="employees" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="employees" className="gap-2">
               <Users className="h-4 w-4" />
-              Funcionários ({employees.length}{isBasicPlan ? `/${limits.maxEmployees}` : ""})
+              <span className="hidden sm:inline">Funcionários</span>
+              <span className="sm:hidden">{employees.length}</span>
+              <span className="hidden sm:inline">({employees.length}{isBasicPlan ? `/${limits.maxEmployees}` : ""})</span>
             </TabsTrigger>
             <TabsTrigger value="birthdays" className="gap-2 relative">
               <Cake className="h-4 w-4" />
-              Aniversários
+              <span className="hidden sm:inline">Aniversários</span>
               {birthdaysToday.length > 0 && (
                 <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center animate-pulse">
                   {birthdaysToday.length}
@@ -675,7 +794,15 @@ const HRAdmin = () => {
             </TabsTrigger>
             <TabsTrigger value="announcements" className="gap-2">
               <Megaphone className="h-4 w-4" />
-              Avisos ({announcements.length}{isBasicPlan ? `/${limits.maxAnnouncements}` : ""})
+              <span className="hidden sm:inline">Avisos</span>
+              <span className="sm:hidden">{announcements.length}</span>
+              <span className="hidden sm:inline">({announcements.length}{isBasicPlan ? `/${limits.maxAnnouncements}` : ""})</span>
+            </TabsTrigger>
+            <TabsTrigger value="tips" className="gap-2">
+              <Lightbulb className="h-4 w-4" />
+              <span className="hidden sm:inline">Dicas</span>
+              <span className="sm:hidden">{dailyTips.length}</span>
+              <span className="hidden sm:inline">({dailyTips.length})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1336,7 +1463,175 @@ const HRAdmin = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Tips Tab */}
+          <TabsContent value="tips" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {dailyTips.filter(t => t.is_active).length} dica(s) ativa(s)
+              </p>
+              <Button onClick={() => openTipDialog()} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nova Dica
+              </Button>
+            </div>
+
+            <Card>
+              <CardContent className="p-4">
+                {dailyTips.length > 0 ? (
+                  <div className="space-y-3">
+                    {dailyTips.map((tip) => (
+                      <div
+                        key={tip.id}
+                        className={`flex items-start justify-between gap-4 p-4 rounded-lg transition-colors ${
+                          tip.is_active
+                            ? "bg-gradient-to-r from-primary/5 to-info/5 border border-primary/20"
+                            : "bg-muted/50 opacity-60"
+                        }`}
+                      >
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xl">{tip.emoji}</span>
+                            <span className="font-medium">{tip.title}</span>
+                            <Badge variant="secondary" className="text-xs">
+                              {tip.category}
+                            </Badge>
+                            {!tip.is_active && (
+                              <Badge variant="outline" className="text-xs text-muted-foreground">
+                                Inativa
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {tip.content}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleTipActive(tip.id, tip.is_active)}
+                          >
+                            {tip.is_active ? "Desativar" : "Ativar"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openTipDialog(tip)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Remover dica?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta ação não pode ser desfeita. A dica "{tip.title}" será
+                                  removida permanentemente.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteTip(tip.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Remover
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Lightbulb className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p>Nenhuma dica cadastrada</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
+        {/* Tip Dialog */}
+        <Dialog open={tipDialogOpen} onOpenChange={setTipDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingTip ? "Editar Dica" : "Nova Dica"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="tipEmoji">Emoji</Label>
+                <div className="flex flex-wrap gap-2">
+                  {TIP_EMOJIS.map((emoji) => (
+                    <Button
+                      key={emoji}
+                      type="button"
+                      variant={tipEmoji === emoji ? "default" : "outline"}
+                      size="sm"
+                      className="text-lg px-3"
+                      onClick={() => setTipEmoji(emoji)}
+                    >
+                      {emoji}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipTitle">Título</Label>
+                <Input
+                  id="tipTitle"
+                  value={tipTitle}
+                  onChange={(e) => setTipTitle(e.target.value)}
+                  placeholder="Ex: Regra 20-20-20"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipContent">Conteúdo</Label>
+                <Textarea
+                  id="tipContent"
+                  value={tipContent}
+                  onChange={(e) => setTipContent(e.target.value)}
+                  placeholder="Digite o conteúdo da dica..."
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tipCategory">Categoria</Label>
+                <Select value={tipCategory} onValueChange={setTipCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIP_CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => setTipDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={saveTip}>
+                  {editingTip ? "Salvar" : "Adicionar"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Subscription Plans Dialog */}
         <SubscriptionPlans

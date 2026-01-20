@@ -71,6 +71,42 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_tips: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          display_order: number | null
+          emoji: string | null
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          display_order?: number | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          display_order?: number | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           avatar_url: string | null
