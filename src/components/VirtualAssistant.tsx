@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Bot, User, Droplets, Eye, Activity, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -17,6 +18,25 @@ interface QuickAction {
   icon: React.ReactNode;
   action: () => void;
 }
+
+type MoodType = 'great' | 'good' | 'okay' | 'bad' | 'terrible';
+
+const moodEmojis: Record<MoodType, string> = {
+  great: '😄',
+  good: '🙂',
+  okay: '😐',
+  bad: '😕',
+  terrible: '😢',
+};
+
+const getSessionId = () => {
+  let sessionId = localStorage.getItem('officewell_session_id');
+  if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem('officewell_session_id', sessionId);
+  }
+  return sessionId;
+};
 
 const FAQ: Record<string, string> = {
   "água": "💧 Recomendamos beber água a cada 30-45 minutos. O OfficeWell te lembra automaticamente! Mantenha uma garrafa de água na sua mesa para facilitar.",
@@ -54,6 +74,7 @@ const findAnswer = (question: string): string => {
 
 export function VirtualAssistant() {
   const [isOpen, setIsOpen] = useState(false);
+  const [currentMood, setCurrentMood] = useState<MoodType | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -63,6 +84,29 @@ export function VirtualAssistant() {
     },
   ]);
   const [input, setInput] = useState("");
+
+  // Fetch today's mood
+  useEffect(() => {
+    const fetchTodayMood = async () => {
+      const sessionId = getSessionId();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const { data } = await supabase
+        .from('mood_logs')
+        .select('mood')
+        .eq('session_id', sessionId)
+        .gte('created_at', today.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (data && data.length > 0) {
+        setCurrentMood(data[0].mood as MoodType);
+      }
+    };
+
+    fetchTodayMood();
+  }, []);
 
   const addMessage = (text: string, isBot: boolean) => {
     const newMessage: Message = {
@@ -159,7 +203,14 @@ export function VirtualAssistant() {
                   <Bot className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Assistente OfficeWell</h3>
+                  <h3 className="font-semibold flex items-center gap-2">
+                    Assistente OfficeWell
+                    {currentMood && (
+                      <span className="text-lg" title={`Humor: ${currentMood}`}>
+                        {moodEmojis[currentMood]}
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-xs opacity-80">Online agora</p>
                 </div>
               </div>
