@@ -51,6 +51,7 @@ interface MonthlyAward {
 
 interface LeaderboardEntry {
   id: string;
+  user_id: string;
   display_name: string;
   avatar_url: string | null;
   points: number;
@@ -147,15 +148,15 @@ export const MonthlyAwardsAdmin = () => {
       if (awardsError) throw awardsError;
       setAwards(awardsData || []);
 
-      // Fetch leaderboard for user selection
-      const { data: leaderboardData, error: leaderboardError } = await supabase
-        .from('leaderboard')
-        .select('*')
+      // Fetch profiles for user selection (includes user_id for RLS)
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, user_id, display_name, avatar_url, points')
         .order('points', { ascending: false })
         .limit(50);
 
-      if (leaderboardError) throw leaderboardError;
-      setLeaderboard(leaderboardData || []);
+      if (profilesError) throw profilesError;
+      setLeaderboard(profilesData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Erro ao carregar dados');
@@ -197,7 +198,7 @@ export const MonthlyAwardsAdmin = () => {
       return;
     }
 
-    const selectedUser = leaderboard.find(u => u.id === formUserId);
+    const selectedUser = leaderboard.find(u => u.user_id === formUserId);
     if (!selectedUser) {
       toast.error('Usuário não encontrado');
       return;
@@ -210,7 +211,7 @@ export const MonthlyAwardsAdmin = () => {
         user_id: formUserId,
         display_name: selectedUser.display_name,
         avatar_url: selectedUser.avatar_url,
-        points: selectedUser.points,
+        points: selectedUser.points || 0,
         prize_title: formPrizeTitle.trim(),
         prize_description: formPrizeDescription.trim() || null,
       };
@@ -279,10 +280,10 @@ export const MonthlyAwardsAdmin = () => {
       const awardsToInsert = top3.map((user, index) => ({
         month_year: selectedMonth,
         position: index + 1,
-        user_id: user.id,
+        user_id: user.user_id,
         display_name: user.display_name,
         avatar_url: user.avatar_url,
-        points: user.points,
+        points: user.points || 0,
         prize_title: defaultPrizes[index].title,
         prize_description: defaultPrizes[index].description,
       }));
@@ -497,7 +498,7 @@ export const MonthlyAwardsAdmin = () => {
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
                   {leaderboard.map((user, index) => (
-                    <SelectItem key={user.id} value={user.id}>
+                    <SelectItem key={user.user_id} value={user.user_id}>
                       <div className="flex items-center gap-2">
                         <span className="text-muted-foreground text-xs w-4">#{index + 1}</span>
                         <span>{user.display_name}</span>
