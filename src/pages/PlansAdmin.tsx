@@ -190,6 +190,7 @@ export default function PlansAdmin() {
 
   const stats = {
     totalUsers: users.length,
+    demoUsers: users.filter(u => u.current_plan === 'demo').length,
     freeUsers: users.filter(u => u.current_plan === 'free').length,
     proUsers: users.filter(u => u.current_plan === 'pro').length,
     enterpriseUsers: users.filter(u => u.current_plan === 'enterprise').length,
@@ -211,7 +212,7 @@ export default function PlansAdmin() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-2">
@@ -219,6 +220,15 @@ export default function PlansAdmin() {
                 <span className="text-2xl font-bold">{stats.totalUsers}</span>
               </div>
               <p className="text-sm text-muted-foreground">Total de Usuários</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-green-500" />
+                <span className="text-2xl font-bold">{stats.demoUsers}</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Demo (7 dias)</p>
             </CardContent>
           </Card>
           <Card>
