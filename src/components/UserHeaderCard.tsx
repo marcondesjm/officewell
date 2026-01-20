@@ -54,6 +54,44 @@ const planLabels: Record<SubscriptionPlan, { label: string; icon: React.ReactNod
   },
 };
 
+// Pre-configured avatars (same as ProfileEditDialog)
+const defaultAvatars: Record<string, { emoji: string; bg: string }> = {
+  'avatar-1': { emoji: '👤', bg: 'from-blue-500 to-cyan-500' },
+  'avatar-2': { emoji: '👨‍💼', bg: 'from-violet-500 to-purple-500' },
+  'avatar-3': { emoji: '👩‍💼', bg: 'from-pink-500 to-rose-500' },
+  'avatar-4': { emoji: '🧑‍💻', bg: 'from-green-500 to-emerald-500' },
+  'avatar-5': { emoji: '👨‍🔬', bg: 'from-amber-500 to-orange-500' },
+  'avatar-6': { emoji: '👩‍🔬', bg: 'from-red-500 to-pink-500' },
+  'avatar-7': { emoji: '🦸', bg: 'from-indigo-500 to-blue-500' },
+  'avatar-8': { emoji: '🧘', bg: 'from-teal-500 to-cyan-500' },
+};
+
+// Helper to render avatar (supports both URLs and default avatars)
+const renderAvatar = (avatarUrl: string | null, fallbackInitials: string, size: 'sm' | 'md' = 'md') => {
+  const sizeClasses = size === 'sm' ? 'h-7 w-7 text-sm' : 'h-10 w-10 text-lg';
+  
+  if (avatarUrl?.startsWith('default:')) {
+    const avatarId = avatarUrl.replace('default:', '');
+    const avatar = defaultAvatars[avatarId];
+    if (avatar) {
+      return (
+        <div className={`${sizeClasses} rounded-full bg-gradient-to-br ${avatar.bg} flex items-center justify-center border-2 border-primary/20`}>
+          {avatar.emoji}
+        </div>
+      );
+    }
+  }
+  
+  return (
+    <Avatar className={`${sizeClasses} border-2 border-primary/20`}>
+      <AvatarImage src={avatarUrl || undefined} />
+      <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
+        {fallbackInitials}
+      </AvatarFallback>
+    </Avatar>
+  );
+};
+
 // Helper function to parse date without timezone issues
 const parseDateLocal = (dateString: string | null): Date | null => {
   if (!dateString) return null;
@@ -244,12 +282,7 @@ export function UserHeaderCard() {
           {/* User Info Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10 border-2 border-primary/20">
-                <AvatarImage src={profile.avatar_url || undefined} />
-                <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              {renderAvatar(profile.avatar_url, initials, 'md')}
               
               <div className="flex flex-col">
                 <span className="text-sm font-semibold leading-tight truncate max-w-[150px]">
