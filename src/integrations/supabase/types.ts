@@ -691,7 +691,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          avatar_url: string | null
+          current_plan: Database["public"]["Enums"]["subscription_plan"] | null
+          display_name: string | null
+          id: string | null
+          points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          current_plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          display_name?: string | null
+          id?: string | null
+          points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          current_plan?: Database["public"]["Enums"]["subscription_plan"] | null
+          display_name?: string | null
+          id?: string | null
+          points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_trial_expiration: {

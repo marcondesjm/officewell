@@ -36,6 +36,7 @@ import { LockedFeature } from "@/components/LockedFeature";
 import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
 import ParallaxBackground from "@/components/ParallaxBackground";
 import { VirtualAssistant } from "@/components/VirtualAssistant";
+import { LeaderboardCard } from "@/components/LeaderboardCard";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION, SyncStatus } from "@/hooks/useAppRefresh";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -467,6 +468,9 @@ const Index = () => {
 
         {/* Contador de Água */}
         <WaterTracker />
+
+        {/* Ranking de Líderes */}
+        <LeaderboardCard />
 
         {/* Anúncio para plano básico */}
         {!features.noAds && (
