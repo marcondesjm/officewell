@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'sonner';
-import { ArrowLeft, Check, X, Crown, Building2, User, Clock, Users, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Check, X, Crown, Building2, User, Clock, Users, TrendingUp, Phone } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -36,6 +36,7 @@ interface UserProfile {
   avatar_url: string | null;
   current_plan: SubscriptionPlan;
   points: number;
+  whatsapp: string | null;
   created_at: string;
 }
 
@@ -391,10 +392,23 @@ export default function PlansAdmin() {
                       </Avatar>
                       <div>
                         <p className="font-medium">{userProfile.display_name}</p>
-                        <Badge className={planLabels[userProfile.current_plan].color}>
-                          {planLabels[userProfile.current_plan].icon}
-                          <span className="ml-1">{planLabels[userProfile.current_plan].label}</span>
-                        </Badge>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className={planLabels[userProfile.current_plan].color}>
+                            {planLabels[userProfile.current_plan].icon}
+                            <span className="ml-1">{planLabels[userProfile.current_plan].label}</span>
+                          </Badge>
+                          {userProfile.whatsapp && (
+                            <a 
+                              href={`https://wa.me/55${userProfile.whatsapp.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 transition-colors"
+                            >
+                              <Phone className="h-3 w-3" />
+                              {userProfile.whatsapp}
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
