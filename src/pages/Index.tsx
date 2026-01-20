@@ -13,6 +13,7 @@ import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
 import { BirthdayCelebration } from "@/components/BirthdayCelebration";
+import { UserHeaderCard } from "@/components/UserHeaderCard";
 import { PostureCheckModal } from "@/components/PostureCheckModal";
 import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
 import { GamificationCard } from "@/components/GamificationCard";
@@ -202,18 +203,18 @@ const Index = () => {
       <div className="max-w-6xl mx-auto space-y-8 relative z-10">
         {/* Header with HR Announcements */}
         <header className="text-center space-y-6 py-6 animate-fade-in">
-          {/* Top bar with logo and user account */}
+          {/* Top bar with logo and theme toggle */}
           <div className="flex items-center justify-between mb-4">
             <img 
               src={logoOfficeWell} 
               alt="OfficeWell" 
               className="h-8 sm:h-10 object-contain"
             />
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <UserAccountHeader />
-            </div>
+            <ThemeToggle />
           </div>
+          
+          {/* User Card with Account Info + Birthdays */}
+          <UserHeaderCard />
           
           <HRAnnouncementHeader />
           
@@ -572,8 +573,6 @@ const Index = () => {
           onClose={closeWaterModal}
         />
 
-        {/* Celebração de Aniversário */}
-        <BirthdayCelebration />
 
         {/* Modal de Verificação de Postura */}
         <PostureCheckModal
