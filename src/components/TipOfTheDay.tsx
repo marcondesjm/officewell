@@ -2,81 +2,85 @@ import { Lightbulb, RefreshCw } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-const dailyTips = [
+interface DailyTip {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  emoji: string;
+}
+
+// Fallback tips in case database is empty
+const fallbackTips: DailyTip[] = [
   {
-    title: "☕ Menos cafeína, mais energia",
+    id: "1",
+    title: "Menos cafeína, mais energia",
     content: "Limite o café a 2 xícaras antes das 14h. Prefira descafeinado à tarde para manter o sono saudável e energia estável.",
     category: "Alimentação",
+    emoji: "☕",
   },
   {
-    title: "👀 Regra 20-20-20",
+    id: "2",
+    title: "Regra 20-20-20",
     content: "A cada 20 minutos, olhe para algo a 20 metros por 20 segundos. Seus olhos agradecem!",
     category: "Visão",
+    emoji: "👀",
   },
   {
-    title: "🧘 Respire fundo",
+    id: "3",
+    title: "Respire fundo",
     content: "Inspire 4s, segure 4s, expire 4s. Três ciclos reduzem o estresse imediatamente.",
     category: "Mental",
-  },
-  {
-    title: "💧 Hidratação constante",
-    content: "Não espere sentir sede. Beba água a cada hora para manter o foco e evitar dores de cabeça.",
-    category: "Hidratação",
-  },
-  {
-    title: "🪑 Postura correta",
-    content: "Pés no chão, costas retas, tela na altura dos olhos. Previna dores crônicas com pequenos ajustes.",
-    category: "Postura",
-  },
-  {
-    title: "🚶 Levante-se!",
-    content: "A cada 45 minutos, caminhe por 2 minutos. Ativa a circulação e aumenta a produtividade.",
-    category: "Movimento",
-  },
-  {
-    title: "🌿 Contato com a natureza",
-    content: "Plantas no ambiente de trabalho reduzem estresse e melhoram a qualidade do ar.",
-    category: "Ambiente",
-  },
-  {
-    title: "🍎 Lanches inteligentes",
-    content: "Troque doces por frutas e castanhas. Energia estável o dia todo sem picos de açúcar.",
-    category: "Alimentação",
-  },
-  {
-    title: "😴 Durma bem",
-    content: "7-8 horas de sono. Evite telas 1h antes de dormir. Seu desempenho amanhã depende disso.",
-    category: "Sono",
-  },
-  {
-    title: "🎯 Uma tarefa por vez",
-    content: "Multitarefa reduz produtividade em 40%. Foque em uma coisa, termine, depois passe para a próxima.",
-    category: "Produtividade",
+    emoji: "🧘",
   },
 ];
 
 export const TipOfTheDay = () => {
-  const [tip, setTip] = useState(dailyTips[0]);
+  const [tips, setTips] = useState<DailyTip[]>(fallbackTips);
+  const [tip, setTip] = useState<DailyTip>(fallbackTips[0]);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const getTodaysTip = useCallback(() => {
-    const today = new Date();
-    const dayOfYear = Math.floor(
-      (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000
-    );
-    return dailyTips[dayOfYear % dailyTips.length];
+  const fetchTips = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("daily_tips")
+        .select("id, title, content, category, emoji")
+        .eq("is_active", true)
+        .order("display_order");
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setTips(data);
+        // Set today's tip based on day of year
+        const today = new Date();
+        const dayOfYear = Math.floor(
+          (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000
+        );
+        setTip(data[dayOfYear % data.length]);
+      }
+    } catch (error) {
+      console.error("Error fetching tips:", error);
+      // Use fallback tips
+      const today = new Date();
+      const dayOfYear = Math.floor(
+        (today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000
+      );
+      setTip(fallbackTips[dayOfYear % fallbackTips.length]);
+    }
   }, []);
 
   useEffect(() => {
-    setTip(getTodaysTip());
-  }, [getTodaysTip]);
+    fetchTips();
+  }, [fetchTips]);
 
   const handleRefresh = () => {
     setIsAnimating(true);
-    const randomIndex = Math.floor(Math.random() * dailyTips.length);
+    const randomIndex = Math.floor(Math.random() * tips.length);
     setTimeout(() => {
-      setTip(dailyTips[randomIndex]);
+      setTip(tips[randomIndex]);
       setIsAnimating(false);
     }, 300);
   };
@@ -105,7 +109,7 @@ export const TipOfTheDay = () => {
               </div>
               
               <h3 className="text-lg md:text-xl font-bold text-foreground">
-                {tip.title}
+                {tip.emoji} {tip.title}
               </h3>
               
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
