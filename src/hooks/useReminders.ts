@@ -110,7 +110,7 @@ const loadTimestamps = (config: ReminderConfig): TimerTimestamps => {
     // Limpar flag de atualização após leitura
     if (wasAutoUpdate) {
       localStorage.removeItem('app-update-in-progress');
-      console.log('Restaurando timers após atualização automática do app');
+      console.log('🔄 Restaurando timers após atualização automática do app');
     }
     
     if (saved) {
@@ -126,47 +126,48 @@ const loadTimestamps = (config: ReminderConfig): TimerTimestamps => {
           isValidTimestamp(parsed.stretchEndTime) && 
           isValidTimestamp(parsed.waterEndTime)) {
         
-        // Se foi atualização automática, preservar timestamps mesmo que expirados recentemente
-        // Isso evita que a atualização do app reinicie os timers
+        // IMPORTANTE: Timers com tempo restante (não expirados) NUNCA devem ser resetados
+        const eyeHasTimeLeft = parsed.eyeEndTime > now;
+        const stretchHasTimeLeft = parsed.stretchEndTime > now;
+        const waterHasTimeLeft = parsed.waterEndTime > now;
+        
+        console.log('⏱️ Estado dos timers ao carregar:', {
+          eyeHasTimeLeft,
+          stretchHasTimeLeft, 
+          waterHasTimeLeft,
+          eyeSecondsLeft: eyeHasTimeLeft ? Math.round((parsed.eyeEndTime - now) / 1000) : 0,
+          stretchSecondsLeft: stretchHasTimeLeft ? Math.round((parsed.stretchEndTime - now) / 1000) : 0,
+          waterSecondsLeft: waterHasTimeLeft ? Math.round((parsed.waterEndTime - now) / 1000) : 0,
+          wasAutoUpdate
+        });
+        
+        // Se foi atualização automática, preservar TODOS os timestamps que ainda têm tempo
+        // Apenas resetar os que expiraram há muito tempo
         if (wasAutoUpdate) {
-          // Apenas ajustar timestamps que expiraram há muito tempo (mais de 30 min)
           const maxExpiredTime = 30 * 60 * 1000; // 30 minutos
           
-          const eyeEndTime = (parsed.eyeEndTime < now - maxExpiredTime) 
-            ? now + config.eyeInterval * 60 * 1000 
-            : parsed.eyeEndTime;
-          const stretchEndTime = (parsed.stretchEndTime < now - maxExpiredTime) 
-            ? now + config.stretchInterval * 60 * 1000 
-            : parsed.stretchEndTime;
-          const waterEndTime = (parsed.waterEndTime < now - maxExpiredTime) 
-            ? now + config.waterInterval * 60 * 1000 
-            : parsed.waterEndTime;
-          
           return {
-            eyeEndTime,
-            stretchEndTime,
-            waterEndTime,
+            eyeEndTime: eyeHasTimeLeft ? parsed.eyeEndTime : 
+              (parsed.eyeEndTime > now - maxExpiredTime ? parsed.eyeEndTime : now + config.eyeInterval * 60 * 1000),
+            stretchEndTime: stretchHasTimeLeft ? parsed.stretchEndTime :
+              (parsed.stretchEndTime > now - maxExpiredTime ? parsed.stretchEndTime : now + config.stretchInterval * 60 * 1000),
+            waterEndTime: waterHasTimeLeft ? parsed.waterEndTime :
+              (parsed.waterEndTime > now - maxExpiredTime ? parsed.waterEndTime : now + config.waterInterval * 60 * 1000),
             lastPausedAt: parsed.lastPausedAt || null,
           };
         }
         
-        // Comportamento normal: ajustar timestamps que expiraram há mais de 5 min
+        // Comportamento normal: preservar timers com tempo restante, 
+        // ajustar apenas os que expiraram há mais de 5 min
         const maxExpiredTime = 5 * 60 * 1000; // 5 minutos
         
-        const eyeEndTime = (parsed.eyeEndTime < now - maxExpiredTime) 
-          ? now + config.eyeInterval * 60 * 1000 
-          : parsed.eyeEndTime;
-        const stretchEndTime = (parsed.stretchEndTime < now - maxExpiredTime) 
-          ? now + config.stretchInterval * 60 * 1000 
-          : parsed.stretchEndTime;
-        const waterEndTime = (parsed.waterEndTime < now - maxExpiredTime) 
-          ? now + config.waterInterval * 60 * 1000 
-          : parsed.waterEndTime;
-        
         return {
-          eyeEndTime,
-          stretchEndTime,
-          waterEndTime,
+          eyeEndTime: eyeHasTimeLeft ? parsed.eyeEndTime : 
+            (parsed.eyeEndTime > now - maxExpiredTime ? parsed.eyeEndTime : now + config.eyeInterval * 60 * 1000),
+          stretchEndTime: stretchHasTimeLeft ? parsed.stretchEndTime :
+            (parsed.stretchEndTime > now - maxExpiredTime ? parsed.stretchEndTime : now + config.stretchInterval * 60 * 1000),
+          waterEndTime: waterHasTimeLeft ? parsed.waterEndTime :
+            (parsed.waterEndTime > now - maxExpiredTime ? parsed.waterEndTime : now + config.waterInterval * 60 * 1000),
           lastPausedAt: parsed.lastPausedAt || null,
         };
       }
@@ -175,6 +176,7 @@ const loadTimestamps = (config: ReminderConfig): TimerTimestamps => {
     console.error('Erro ao carregar timestamps:', e);
   }
   
+  console.log('⚠️ Nenhum timer salvo encontrado, criando novos');
   const now = Date.now();
   return {
     eyeEndTime: now + config.eyeInterval * 60 * 1000,
@@ -227,7 +229,17 @@ export const useReminders = () => {
   });
 
   const notifiedRef = useRef({ eye: false, stretch: false, water: false });
-  const hasAppliedOptimalIntervalsRef = useRef(false);
+  // Persistir flag de intervalos otimizados para evitar reset ao atualizar o app
+  const [hasAppliedOptimalIntervals, setHasAppliedOptimalIntervals] = useState<boolean>(() => {
+    try {
+      const today = new Date().toDateString();
+      const saved = localStorage.getItem('hasAppliedOptimalIntervalsDate');
+      // Só considerar aplicado se foi no mesmo dia
+      return saved === today;
+    } catch {
+      return false;
+    }
+  });
   const isInitialLoadRef = useRef(true); // Evita abrir modais ao carregar o app
   const initialLoadTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -312,7 +324,8 @@ export const useReminders = () => {
 
   // Aplicar intervalos otimizados quando o expediente começa
   useEffect(() => {
-    if (schedule.isConfigured && getWorkStatus() === 'working' && !hasAppliedOptimalIntervalsRef.current) {
+    // Não resetar timers se já aplicou hoje (evita reset ao atualizar o app)
+    if (schedule.isConfigured && getWorkStatus() === 'working' && !hasAppliedOptimalIntervals) {
       const optimalIntervals = calculateOptimalIntervals();
       
       // Atualizar config com intervalos otimizados
@@ -323,23 +336,37 @@ export const useReminders = () => {
         waterInterval: optimalIntervals.waterInterval,
       }));
       
-      // Resetar timers com novos intervalos
+      // IMPORTANTE: Verificar se os timers atuais já estão em andamento
+      // Se houver tempo restante, NÃO resetar - apenas atualizar os intervalos da config
       const now = Date.now();
-      setTimestamps({
-        eyeEndTime: now + optimalIntervals.eyeInterval * 60 * 1000,
-        stretchEndTime: now + optimalIntervals.stretchInterval * 60 * 1000,
-        waterEndTime: now + optimalIntervals.waterInterval * 60 * 1000,
-        lastPausedAt: null,
-      });
+      const eyeHasTime = timestamps.eyeEndTime > now;
+      const stretchHasTime = timestamps.stretchEndTime > now;
+      const waterHasTime = timestamps.waterEndTime > now;
       
-      hasAppliedOptimalIntervalsRef.current = true;
+      // Só resetar timers se TODOS já expiraram (início do expediente)
+      if (!eyeHasTime && !stretchHasTime && !waterHasTime) {
+        console.log('📊 Aplicando intervalos otimizados - início do expediente');
+        setTimestamps({
+          eyeEndTime: now + optimalIntervals.eyeInterval * 60 * 1000,
+          stretchEndTime: now + optimalIntervals.stretchInterval * 60 * 1000,
+          waterEndTime: now + optimalIntervals.waterInterval * 60 * 1000,
+          lastPausedAt: null,
+        });
+      } else {
+        console.log('⏱️ Mantendo timers existentes - já há tempo restante');
+      }
+      
+      // Marcar como aplicado para este dia
+      setHasAppliedOptimalIntervals(true);
+      localStorage.setItem('hasAppliedOptimalIntervalsDate', new Date().toDateString());
     }
     
     // Reset flag quando sai do horário de trabalho para reaplicar no próximo dia
     if (getWorkStatus() === 'after_work') {
-      hasAppliedOptimalIntervalsRef.current = false;
+      setHasAppliedOptimalIntervals(false);
+      localStorage.removeItem('hasAppliedOptimalIntervalsDate');
     }
-  }, [schedule.isConfigured, getWorkStatus, calculateOptimalIntervals]);
+  }, [schedule.isConfigured, getWorkStatus, calculateOptimalIntervals, hasAppliedOptimalIntervals, timestamps]);
 
   const showNotification = useCallback((type: "eye" | "stretch" | "water") => {
     // IMPORTANTE: Não notificar durante carregamento inicial (PWA resume)
