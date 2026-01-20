@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, X, Send, Bot, User, Droplets, Eye, Activity, HelpCircle, Trash2, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -185,12 +185,17 @@ export function VirtualAssistant() {
   const [moodAnimating, setMoodAnimating] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => loadChatHistory());
   const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Save messages to localStorage whenever they change
+  // Save messages to localStorage and auto-scroll whenever they change
   useEffect(() => {
     if (messages.length > 0) {
       saveChatHistory(messages);
     }
+    // Auto-scroll to bottom when new messages are added
+    setTimeout(() => {
+      scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   }, [messages]);
 
   // Fetch today's mood
@@ -421,6 +426,7 @@ export function VirtualAssistant() {
                     </div>
                   </motion.div>
                 ))}
+                <div ref={scrollRef} />
               </div>
             </ScrollArea>
 
