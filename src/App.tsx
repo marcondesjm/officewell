@@ -14,6 +14,7 @@ import Goals from "./pages/Goals";
 import Demo from "./pages/Demo";
 import Privacidade from "./pages/Privacidade";
 import Ergonomia from "./pages/Ergonomia";
+import PushAdmin from "./pages/PushAdmin";
 import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/privacidade" element={<Privacidade />} />
             <Route path="/termos" element={<Termos />} />
             <Route path="/ergonomia" element={<Ergonomia />} />
+            <Route path="/push" element={<PushAdmin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
