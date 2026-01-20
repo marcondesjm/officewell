@@ -682,7 +682,7 @@ const HRAdmin = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 md:p-8 bg-decoration flex items-center justify-center">
+      <div className="min-h-screen p-4 md:p-8 bg-background bg-decoration flex items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Carregando...</div>
       </div>
     );
@@ -691,7 +691,7 @@ const HRAdmin = () => {
   // Check HR access
   if (!hasHRAccess) {
     return (
-      <div className="min-h-screen p-4 md:p-8 bg-decoration">
+      <div className="min-h-screen p-4 md:p-8 bg-background bg-decoration">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4">
@@ -762,7 +762,7 @@ const HRAdmin = () => {
   const birthdaysThisWeek = employees.filter(emp => isBirthdayThisWeek(emp.birthday) && !isBirthdayToday(emp.birthday));
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-decoration">
+    <div className="min-h-screen p-4 md:p-8 bg-background bg-decoration">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
