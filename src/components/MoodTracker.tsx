@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Smile, Meh, Frown, Heart, ThumbsDown, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "./Confetti";
+import { useAuth } from "@/contexts/AuthContext";
 
 type MoodType = 'great' | 'good' | 'okay' | 'bad' | 'terrible';
 
@@ -44,6 +45,7 @@ const getSessionId = () => {
 };
 
 export const MoodTracker = () => {
+  const { user } = useAuth();
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
   const [note, setNote] = useState('');
   const [todayMood, setTodayMood] = useState<MoodLog | null>(null);
@@ -53,19 +55,26 @@ export const MoodTracker = () => {
   const [showConfetti, setShowConfetti] = useState(false);
 
   const sessionId = getSessionId();
+  // Use user_id if logged in, otherwise fallback to session_id
+  const identifier = user?.id || sessionId;
+  const identifierField = user?.id ? 'session_id' : 'session_id'; // mood_logs uses session_id column
 
   // Fetch today's mood and history
   useEffect(() => {
     const fetchMoods = async () => {
       try {
+        setIsLoading(true);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
+        // Use user_id as session_id when logged in for per-user tracking
+        const queryIdentifier = user?.id || sessionId;
 
         // Fetch today's mood
         const { data: todayData, error: todayError } = await supabase
           .from('mood_logs')
           .select('*')
-          .eq('session_id', sessionId)
+          .eq('session_id', queryIdentifier)
           .gte('created_at', today.toISOString())
           .order('created_at', { ascending: false })
           .limit(1);
@@ -74,6 +83,8 @@ export const MoodTracker = () => {
 
         if (todayData && todayData.length > 0) {
           setTodayMood(todayData[0] as MoodLog);
+        } else {
+          setTodayMood(null);
         }
 
         // Fetch history (last 7 days excluding today)
@@ -84,7 +95,7 @@ export const MoodTracker = () => {
         const { data: historyData, error: historyError } = await supabase
           .from('mood_logs')
           .select('*')
-          .eq('session_id', sessionId)
+          .eq('session_id', queryIdentifier)
           .gte('created_at', weekAgo.toISOString())
           .lt('created_at', today.toISOString())
           .order('created_at', { ascending: false });
@@ -100,16 +111,19 @@ export const MoodTracker = () => {
     };
 
     fetchMoods();
-  }, [sessionId]);
+  }, [user?.id, sessionId]);
 
   const handleSubmit = async () => {
     if (!selectedMood) return;
 
     try {
+      // Use user_id as session_id when logged in for per-user tracking
+      const queryIdentifier = user?.id || sessionId;
+      
       const { data, error } = await supabase
         .from('mood_logs')
         .insert({
-          session_id: sessionId,
+          session_id: queryIdentifier,
           mood: selectedMood,
           note: note.trim() || null,
         })
