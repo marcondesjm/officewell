@@ -122,6 +122,11 @@ export const MoodTracker = () => {
       setSelectedMood(null);
       setNote('');
       
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('moodUpdated', { 
+        detail: { mood: data.mood } 
+      }));
+      
       // Show confetti for positive moods
       if (selectedMood === 'great' || selectedMood === 'good') {
         setShowConfetti(true);
