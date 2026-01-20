@@ -75,6 +75,7 @@ const findAnswer = (question: string): string => {
 export function VirtualAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMood, setCurrentMood] = useState<MoodType | null>(null);
+  const [moodAnimating, setMoodAnimating] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -106,6 +107,20 @@ export function VirtualAssistant() {
     };
 
     fetchTodayMood();
+  }, []);
+
+  // Listen for mood updates from MoodTracker
+  useEffect(() => {
+    const handleMoodUpdate = (event: CustomEvent<{ mood: MoodType }>) => {
+      setMoodAnimating(true);
+      setCurrentMood(event.detail.mood);
+      setTimeout(() => setMoodAnimating(false), 600);
+    };
+
+    window.addEventListener('moodUpdated', handleMoodUpdate as EventListener);
+    return () => {
+      window.removeEventListener('moodUpdated', handleMoodUpdate as EventListener);
+    };
   }, []);
 
   const addMessage = (text: string, isBot: boolean) => {
@@ -205,11 +220,28 @@ export function VirtualAssistant() {
                 <div>
                   <h3 className="font-semibold flex items-center gap-2">
                     Assistente OfficeWell
-                    {currentMood && (
-                      <span className="text-lg" title={`Humor: ${currentMood}`}>
-                        {moodEmojis[currentMood]}
-                      </span>
-                    )}
+                    <AnimatePresence mode="wait">
+                      {currentMood && (
+                        <motion.span 
+                          key={currentMood}
+                          className="text-lg"
+                          title={`Humor: ${currentMood}`}
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ 
+                            scale: moodAnimating ? [1, 1.4, 1] : 1, 
+                            rotate: 0 
+                          }}
+                          exit={{ scale: 0, rotate: 180 }}
+                          transition={{ 
+                            type: "spring", 
+                            stiffness: 300, 
+                            damping: 15 
+                          }}
+                        >
+                          {moodEmojis[currentMood]}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </h3>
                   <p className="text-xs opacity-80">Online agora</p>
                 </div>
