@@ -20,7 +20,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 
-type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
+type SubscriptionPlan = 'free' | 'pro' | 'enterprise' | 'demo';
 
 interface Employee {
   id: string;
@@ -31,6 +31,11 @@ interface Employee {
 }
 
 const planLabels: Record<SubscriptionPlan, { label: string; icon: React.ReactNode; color: string }> = {
+  demo: {
+    label: 'Demo (7 dias)',
+    icon: <Sparkles className="h-3 w-3" />,
+    color: 'bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-600 dark:text-violet-400',
+  },
   free: {
     label: 'Grátis',
     icon: <User className="h-3 w-3" />,
