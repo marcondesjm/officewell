@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User, Droplets, Eye, Activity, HelpCircle } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Droplets, Eye, Activity, HelpCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -143,19 +143,55 @@ const findAnswer = (question: string, mood: MoodType | null): string => {
   return "🤔 Não entendi sua pergunta. Tente palavras-chave como: água, pausa, alongamento, olhos, ergonomia, pontos, LER, notificação, meta ou humor.";
 };
 
+const CHAT_STORAGE_KEY = 'officewell_assistant_chat';
+
+const getWelcomeMessage = (): Message => ({
+  id: "welcome",
+  text: "👋 Olá! Sou o assistente virtual do OfficeWell. Como posso ajudar você hoje? Use os botões rápidos ou digite sua dúvida!",
+  isBot: true,
+  timestamp: new Date(),
+});
+
+const loadChatHistory = (): Message[] => {
+  try {
+    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Convert timestamp strings back to Date objects
+      return parsed.map((msg: Message) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp),
+      }));
+    }
+  } catch (e) {
+    console.error('Error loading chat history:', e);
+  }
+  return [getWelcomeMessage()];
+};
+
+const saveChatHistory = (messages: Message[]) => {
+  try {
+    // Keep only last 50 messages to avoid storage bloat
+    const toSave = messages.slice(-50);
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toSave));
+  } catch (e) {
+    console.error('Error saving chat history:', e);
+  }
+};
+
 export function VirtualAssistant() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMood, setCurrentMood] = useState<MoodType | null>(null);
   const [moodAnimating, setMoodAnimating] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      text: "👋 Olá! Sou o assistente virtual do OfficeWell. Como posso ajudar você hoje? Use os botões rápidos ou digite sua dúvida!",
-      isBot: true,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(() => loadChatHistory());
   const [input, setInput] = useState("");
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveChatHistory(messages);
+    }
+  }, [messages]);
 
   // Fetch today's mood
   useEffect(() => {
@@ -193,6 +229,10 @@ export function VirtualAssistant() {
       window.removeEventListener('moodUpdated', handleMoodUpdate as EventListener);
     };
   }, []);
+
+  const clearHistory = () => {
+    setMessages([getWelcomeMessage()]);
+  };
 
   const addMessage = (text: string, isBot: boolean) => {
     const newMessage: Message = {
@@ -317,14 +357,25 @@ export function VirtualAssistant() {
                   <p className="text-xs opacity-80">Online agora</p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="h-8 w-8 text-primary-foreground hover:bg-white/20"
-              >
-                <X className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={clearHistory}
+                  className="h-8 w-8 text-primary-foreground hover:bg-white/20"
+                  title="Limpar histórico"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="h-8 w-8 text-primary-foreground hover:bg-white/20"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
 
             {/* Messages */}
