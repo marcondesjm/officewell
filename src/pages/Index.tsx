@@ -601,11 +601,11 @@ const Index = () => {
                   onClick={handleCheckUpdates}
                   variant="ghost"
                   size="sm"
-                  className="ml-2 h-8 px-3 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-500/20"
+                  className="ml-2 min-h-10 min-w-10 h-10 w-10 p-0 rounded-xl text-green-600 dark:text-green-400 hover:bg-green-500/20 touch-manipulation active:scale-95 transition-transform"
                   aria-label="Verificar atualizações"
                   disabled={syncStatus === 'checking'}
                 >
-                  <RefreshCw size={14} className={syncStatus === 'checking' ? "animate-spin" : ""} />
+                  <RefreshCw size={18} className={syncStatus === 'checking' ? "animate-spin" : ""} />
                 </Button>
               </div>
             )}
