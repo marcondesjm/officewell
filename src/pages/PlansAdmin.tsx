@@ -12,7 +12,7 @@ import { ArrowLeft, Check, X, Crown, Building2, User, Clock, Users, TrendingUp, 
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
+type SubscriptionPlan = 'free' | 'pro' | 'enterprise' | 'demo';
 
 interface UpgradeRequest {
   id: string;
@@ -44,6 +44,7 @@ const planLabels: Record<SubscriptionPlan, { label: string; icon: React.ReactNod
   free: { label: 'Grátis', icon: <User className="h-4 w-4" />, color: 'bg-muted' },
   pro: { label: 'Pro', icon: <Crown className="h-4 w-4" />, color: 'bg-primary/20 text-primary' },
   enterprise: { label: 'Empresarial', icon: <Building2 className="h-4 w-4" />, color: 'bg-amber-500/20 text-amber-600' },
+  demo: { label: 'Demo (7 dias)', icon: <Crown className="h-4 w-4" />, color: 'bg-green-500/20 text-green-600' },
 };
 
 export default function PlansAdmin() {
