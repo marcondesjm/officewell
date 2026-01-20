@@ -203,7 +203,7 @@ export function UserAccountHeader() {
           <DropdownMenuSeparator />
           
           {isAdmin && (
-            <DropdownMenuItem onClick={() => window.location.href = '/hr-admin'}>
+            <DropdownMenuItem onClick={() => window.location.href = '/plans-admin'}>
               <Settings className="h-4 w-4 mr-2" />
               Painel Admin
             </DropdownMenuItem>
