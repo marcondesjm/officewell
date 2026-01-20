@@ -277,8 +277,29 @@ export function UserHeaderCard() {
 
   return (
     <>
-      <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50">
-        <div className="flex flex-col gap-4">
+      <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50 overflow-hidden">
+        <div className="flex flex-col gap-3">
+          {/* HR Report Reminder Marquee */}
+          <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 rounded-md py-1.5 px-2 border border-amber-500/20">
+            <div className="flex items-center gap-2 animate-marquee whitespace-nowrap">
+              <span className="text-amber-600 dark:text-amber-400 text-xs font-medium flex items-center gap-1.5">
+                ⚠️ <strong>IMPORTANTE:</strong> Lembre-se de enviar o relatório ao RH ao final do dia!
+              </span>
+              <span className="text-amber-500/50 mx-4">•</span>
+              <span className="text-amber-600 dark:text-amber-400 text-xs font-medium flex items-center gap-1.5">
+                📋 Relatório de pausas e bem-estar deve ser enviado antes das 18h.
+              </span>
+              <span className="text-amber-500/50 mx-4">•</span>
+              <span className="text-amber-600 dark:text-amber-400 text-xs font-medium flex items-center gap-1.5">
+                ⚠️ <strong>IMPORTANTE:</strong> Lembre-se de enviar o relatório ao RH ao final do dia!
+              </span>
+              <span className="text-amber-500/50 mx-4">•</span>
+              <span className="text-amber-600 dark:text-amber-400 text-xs font-medium flex items-center gap-1.5">
+                📋 Relatório de pausas e bem-estar deve ser enviado antes das 18h.
+              </span>
+            </div>
+          </div>
+
           {/* User Info Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
