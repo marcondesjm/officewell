@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target, Sparkles, ClipboardCheck } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target, Sparkles, ClipboardCheck, WifiOff } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -33,6 +33,7 @@ import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
 import ParallaxBackground from "@/components/ParallaxBackground";
 import { useReminders } from "@/hooks/useReminders";
 import { useAppRefresh, APP_VERSION, SyncStatus } from "@/hooks/useAppRefresh";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 import { usePlanFeatures } from "@/hooks/usePlanFeatures";
 import { useGoals } from "@/hooks/useGoals";
@@ -100,6 +101,9 @@ const Index = () => {
 
   // Auto-refresh every hour to keep app updated
   const { checkForUpdates, syncStatus } = useAppRefresh(60 * 60 * 1000);
+  
+  // Online status
+  const isOnline = useOnlineStatus();
 
   // Verificação leve de atualizações (sem reload)
   const handleCheckUpdates = async () => {
@@ -540,7 +544,15 @@ const Index = () => {
         <footer className="text-center pt-8 pb-6 space-y-6 animate-fade-in">
           {/* Status de sincronização - destacado */}
           <div className="flex justify-center">
-            {syncStatus === 'synced' && !isRefreshing && (
+            {/* Status Offline - prioridade máxima */}
+            {!isOnline && (
+              <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-red-500/15 text-red-600 dark:text-red-400 text-base font-semibold border-2 border-red-500/30 shadow-sm">
+                <WifiOff size={20} className="flex-shrink-0" />
+                <span>Sem conexão</span>
+              </div>
+            )}
+            
+            {isOnline && syncStatus === 'synced' && !isRefreshing && (
               <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-green-500/15 text-green-600 dark:text-green-400 text-base font-semibold border-2 border-green-500/30 shadow-sm">
                 <Check size={20} className="flex-shrink-0" />
                 <span>App atualizado</span>
@@ -557,14 +569,14 @@ const Index = () => {
               </div>
             )}
             
-            {(syncStatus === 'checking' || syncStatus === 'updating' || isRefreshing) && (
+            {isOnline && (syncStatus === 'checking' || syncStatus === 'updating' || isRefreshing) && (
               <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-blue-500/15 text-blue-600 dark:text-blue-400 text-base font-semibold border-2 border-blue-500/30">
                 <Loader2 size={20} className="animate-spin flex-shrink-0" />
                 <span>{isRefreshing ? 'Atualizando...' : 'Sincronizando...'}</span>
               </div>
             )}
             
-            {syncStatus === 'error' && !isRefreshing && (
+            {isOnline && syncStatus === 'error' && !isRefreshing && (
               <Button
                 onClick={handleCheckUpdates}
                 className="min-h-12 px-6 rounded-2xl bg-orange-500/15 text-orange-600 dark:text-orange-400 border-2 border-orange-500/30 hover:bg-orange-500/25 font-semibold"
