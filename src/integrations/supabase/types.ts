@@ -227,6 +227,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_enabled: boolean | null
+          notification_type: string
+          session_id: string
+          settings: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          notification_type: string
+          session_id: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          notification_type?: string
+          session_id?: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           badge: string | null
@@ -290,36 +320,165 @@ export type Database = {
         }
         Relationships: []
       }
+      push_notification_history: {
+        Row: {
+          click_url: string | null
+          failed_count: number | null
+          icon_url: string | null
+          id: string
+          message: string
+          sent_at: string | null
+          sent_by: string | null
+          sent_count: number | null
+          target_session_ids: string[] | null
+          target_type: string | null
+          title: string
+        }
+        Insert: {
+          click_url?: string | null
+          failed_count?: number | null
+          icon_url?: string | null
+          id?: string
+          message: string
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_count?: number | null
+          target_session_ids?: string[] | null
+          target_type?: string | null
+          title: string
+        }
+        Update: {
+          click_url?: string | null
+          failed_count?: number | null
+          icon_url?: string | null
+          id?: string
+          message?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          sent_count?: number | null
+          target_session_ids?: string[] | null
+          target_type?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string
           created_at: string
           device_info: Json | null
+          device_name: string | null
+          device_token: string | null
           endpoint: string
           id: string
+          is_active: boolean | null
+          last_push_received_at: string | null
+          last_push_title: string | null
           p256dh: string
           session_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           auth: string
           created_at?: string
           device_info?: Json | null
+          device_name?: string | null
+          device_token?: string | null
           endpoint: string
           id?: string
+          is_active?: boolean | null
+          last_push_received_at?: string | null
+          last_push_title?: string | null
           p256dh: string
           session_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           auth?: string
           created_at?: string
           device_info?: Json | null
+          device_name?: string | null
+          device_token?: string | null
           endpoint?: string
           id?: string
+          is_active?: boolean | null
+          last_push_received_at?: string | null
+          last_push_title?: string | null
           p256dh?: string
           session_id?: string
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      scheduled_push_notifications: {
+        Row: {
+          click_url: string | null
+          created_at: string | null
+          created_by: string | null
+          error_message: string | null
+          failed_count: number | null
+          icon_url: string | null
+          id: string
+          last_sent_at: string | null
+          message: string
+          next_run_at: string | null
+          recurrence_end_date: string | null
+          recurrence_type: string | null
+          scheduled_for: string
+          sent_at: string | null
+          sent_count: number | null
+          status: string | null
+          target_session_ids: string[] | null
+          target_type: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          click_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          failed_count?: number | null
+          icon_url?: string | null
+          id?: string
+          last_sent_at?: string | null
+          message: string
+          next_run_at?: string | null
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
+          scheduled_for: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          target_session_ids?: string[] | null
+          target_type?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          click_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          error_message?: string | null
+          failed_count?: number | null
+          icon_url?: string | null
+          id?: string
+          last_sent_at?: string | null
+          message?: string
+          next_run_at?: string | null
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string | null
+          target_session_ids?: string[] | null
+          target_type?: string | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
