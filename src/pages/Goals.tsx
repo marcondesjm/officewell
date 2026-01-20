@@ -52,7 +52,7 @@ const Goals = () => {
   // Show locked state for non-Pro users
   if (!features.customGoals) {
     return (
-      <div className="min-h-screen p-4 md:p-8 bg-decoration">
+      <div className="min-h-screen p-4 md:p-8 bg-background bg-decoration">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}
           <header className="flex items-center justify-between">
@@ -123,7 +123,7 @@ const Goals = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-decoration">
+    <div className="min-h-screen p-4 md:p-8 bg-background bg-decoration">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <header className="flex items-center justify-between">
