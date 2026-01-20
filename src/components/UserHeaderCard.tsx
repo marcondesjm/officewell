@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote, Pencil, FileText, Award, Trophy, Medal, Gem, Target } from 'lucide-react';
+import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote, Pencil, FileText, Award, Trophy, Medal, Gem, Target, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -422,6 +422,29 @@ export function UserHeaderCard() {
                       </TooltipTrigger>
                       <TooltipContent side="bottom" className="z-[100]">
                         <p>Gerar Relatório de Bem-estar</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  {/* Send to HR Button */}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            navigate('/ergonomia');
+                            toast.info('Acesse a página de Ergonomia para gerar e enviar o relatório ao RH');
+                          }}
+                          className="h-6 px-2 gap-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium"
+                        >
+                          <Send className="h-3 w-3" />
+                          <span className="hidden sm:inline">Enviar ao RH</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="z-[100]">
+                        <p>Enviar Relatório ao RH</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
