@@ -1,4 +1,4 @@
-import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target, Sparkles, ClipboardCheck, WifiOff } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target, Sparkles, ClipboardCheck, WifiOff, Bell } from "lucide-react";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -376,7 +376,32 @@ const Index = () => {
           </div>
         </Card>
 
-        {/* Goals Card - Minhas Metas */}
+        {/* Push Notifications Card */}
+        <Card className="p-5 glass-card overflow-hidden hover:shadow-lg transition-all duration-300 group">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 group-hover:scale-110 transition-transform duration-300">
+                <Bell className="h-7 w-7 text-rose-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Push Notifications</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Gerencie e envie notificações push
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => navigate("/push")}
+              variant="secondary"
+              className="min-h-12 px-6 text-base font-semibold rounded-xl w-full sm:w-auto touch-manipulation active:scale-95 transition-transform"
+              aria-label="Gerenciar notificações push"
+            >
+              <Bell className="h-5 w-5 mr-2" />
+              Gerenciar
+            </Button>
+          </div>
+        </Card>
+
         <Card className="p-4 glass-card overflow-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
