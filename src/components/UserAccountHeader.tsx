@@ -12,7 +12,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings } from 'lucide-react';
+import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,6 +43,7 @@ export function UserAccountHeader() {
   const { user, profile, isLoading, signOut, isAdmin } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isRequestingUpgrade, setIsRequestingUpgrade] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
@@ -114,6 +117,28 @@ export function UserAccountHeader() {
 
   return (
     <>
+      {/* Admin Button - Visible only for admins */}
+      {isAdmin && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/plans-admin')}
+                className="gap-2 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400"
+              >
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="z-[100]">
+              <p>Painel de Administração de Planos</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+      
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <motion.button
