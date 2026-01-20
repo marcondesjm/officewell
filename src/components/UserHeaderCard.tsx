@@ -223,9 +223,89 @@ export function UserHeaderCard() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [profileEditOpen, setProfileEditOpen] = useState(false);
   const [isRequestingUpgrade, setIsRequestingUpgrade] = useState(false);
+  const [isSendingReport, setIsSendingReport] = useState(false);
   const [birthdayPeople, setBirthdayPeople] = useState<Employee[]>([]);
   const [dailyTip, setDailyTip] = useState<{ text: string; emoji: string } | null>(null);
   const navigate = useNavigate();
+
+  // Get session ID for localStorage data
+  const getSessionId = () => {
+    let sessionId = localStorage.getItem('sessionId');
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem('sessionId', sessionId);
+    }
+    return sessionId;
+  };
+
+  // Get today's break stats from localStorage
+  const getTodayBreakStats = () => {
+    try {
+      const saved = localStorage.getItem("reminderCompletions");
+      const completions = saved ? JSON.parse(saved) : [];
+      
+      const today = new Date();
+      const todayStats = { eye: 0, stretch: 0, water: 0 };
+      
+      completions.forEach((completion: { type: 'eye' | 'stretch' | 'water'; timestamp: number }) => {
+        const date = new Date(completion.timestamp);
+        if (
+          date.getDate() === today.getDate() &&
+          date.getMonth() === today.getMonth() &&
+          date.getFullYear() === today.getFullYear()
+        ) {
+          todayStats[completion.type]++;
+        }
+      });
+      
+      return todayStats;
+    } catch {
+      return { eye: 0, stretch: 0, water: 0 };
+    }
+  };
+
+  // Send daily report to HR
+  const handleSendDailyReport = async () => {
+    if (!user || !profile) {
+      toast.error('Você precisa estar logado para enviar o relatório');
+      return;
+    }
+
+    setIsSendingReport(true);
+
+    try {
+      const todayStats = getTodayBreakStats();
+      const sessionId = getSessionId();
+      const totalBreaks = todayStats.eye + todayStats.stretch + todayStats.water;
+
+      const { error } = await supabase
+        .from('daily_reports')
+        .upsert({
+          user_id: user.id,
+          session_id: sessionId,
+          display_name: profile.display_name,
+          report_date: new Date().toISOString().split('T')[0],
+          water_breaks: todayStats.water,
+          stretch_breaks: todayStats.stretch,
+          eye_breaks: todayStats.eye,
+          total_breaks: totalBreaks,
+          points_earned: profile.points,
+        }, { 
+          onConflict: 'user_id,report_date' 
+        });
+
+      if (error) throw error;
+
+      toast.success('Relatório enviado ao RH!', {
+        description: `Pausas hoje: ${totalBreaks} (💧${todayStats.water} 🧘${todayStats.stretch} 👁️${todayStats.eye})`,
+      });
+    } catch (error) {
+      console.error('Error sending daily report:', error);
+      toast.error('Erro ao enviar relatório');
+    } finally {
+      setIsSendingReport(false);
+    }
+  };
 
   // Fetch daily tip from database
   const fetchDailyTip = useCallback(async () => {
@@ -433,18 +513,16 @@ export function UserHeaderCard() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            navigate('/ergonomia');
-                            toast.info('Acesse a página de Ergonomia para gerar e enviar o relatório ao RH');
-                          }}
-                          className="h-6 px-2 gap-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium"
+                          onClick={handleSendDailyReport}
+                          disabled={isSendingReport}
+                          className="h-6 px-2 gap-1 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium disabled:opacity-50"
                         >
                           <Send className="h-3 w-3" />
-                          <span className="hidden sm:inline">Enviar ao RH</span>
+                          <span className="hidden sm:inline">{isSendingReport ? 'Enviando...' : 'Enviar ao RH'}</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" className="z-[100]">
-                        <p>Enviar Relatório ao RH</p>
+                        <p>Enviar Relatório Diário ao RH</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
