@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake } from 'lucide-react';
+import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,6 +61,26 @@ const isBirthdayToday = (birthday: string | null): boolean => {
   const bday = parseDateLocal(birthday);
   if (!bday) return false;
   return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
+};
+
+// Mensagens motivacionais
+const motivationalMessages = [
+  { text: "Cuide de você! Seu corpo é seu maior patrimônio. 💪", emoji: "🌟" },
+  { text: "Pequenas pausas fazem grandes diferenças na sua saúde.", emoji: "✨" },
+  { text: "Hidrate-se! A água é essencial para sua produtividade.", emoji: "💧" },
+  { text: "Respire fundo. Cada momento de pausa é um investimento em você.", emoji: "🧘" },
+  { text: "Alongue-se! Seu corpo agradece cada movimento.", emoji: "🤸" },
+  { text: "Olhe para longe. Seus olhos merecem descanso.", emoji: "👀" },
+  { text: "Você está fazendo um ótimo trabalho! Continue assim.", emoji: "🏆" },
+  { text: "A saúde é a maior riqueza. Cuide dela hoje.", emoji: "❤️" },
+  { text: "Cada pausa é um passo rumo ao equilíbrio.", emoji: "⚖️" },
+  { text: "Levante, estique, respire. Sua mente agradece!", emoji: "🌈" },
+];
+
+const getDailyMessage = () => {
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+  return motivationalMessages[dayOfYear % motivationalMessages.length];
 };
 
 export function UserHeaderCard() {
@@ -298,38 +318,62 @@ export function UserHeaderCard() {
             </div>
           </div>
 
-          {/* Birthday Section */}
-          {birthdayPeople.length > 0 && (
-            <div className="pt-3 border-t border-border/50">
-              <div className="flex items-center justify-center gap-2 mb-3 text-sm text-muted-foreground">
-                <Cake className="h-4 w-4 text-pink-500" />
-                <span>🎉 Aniversariantes de Hoje 🎉</span>
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                {birthdayPeople.map((person) => (
-                  <motion.div
-                    key={person.id}
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20"
-                  >
-                    <Avatar className="h-8 w-8 border-2 border-pink-500/30">
-                      <AvatarImage src={person.avatar_url || undefined} />
-                      <AvatarFallback className="text-xs font-medium bg-pink-500/20 text-pink-600 dark:text-pink-400">
-                        {person.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold">{person.name}</span>
-                      {person.department && (
-                        <span className="text-[10px] text-muted-foreground">{person.department}</span>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+          {/* Birthday & Motivational Message Section */}
+          <div className="pt-3 border-t border-border/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Birthday Section */}
+              {birthdayPeople.length > 0 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20"
+                >
+                  <div className="flex items-center justify-center gap-2 mb-2 text-sm text-muted-foreground">
+                    <Cake className="h-4 w-4 text-pink-500" />
+                    <span>🎉 Aniversariantes 🎉</span>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {birthdayPeople.map((person) => (
+                      <div
+                        key={person.id}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-background/50"
+                      >
+                        <Avatar className="h-7 w-7 border-2 border-pink-500/30">
+                          <AvatarImage src={person.avatar_url || undefined} />
+                          <AvatarFallback className="text-[10px] font-medium bg-pink-500/20 text-pink-600 dark:text-pink-400">
+                            {person.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-semibold">{person.name}</span>
+                          {person.department && (
+                            <span className="text-[9px] text-muted-foreground">{person.department}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* Motivational Message */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className={`p-3 rounded-xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 ${birthdayPeople.length === 0 ? 'sm:col-span-2' : ''}`}
+              >
+                <div className="flex items-center justify-center gap-2 mb-2 text-sm text-muted-foreground">
+                  <Quote className="h-4 w-4 text-primary" />
+                  <span>💡 Dica do Dia</span>
+                </div>
+                <p className="text-center text-sm font-medium">
+                  <span className="mr-1">{getDailyMessage().emoji}</span>
+                  {getDailyMessage().text}
+                </p>
+              </motion.div>
             </div>
-          )}
+          </div>
         </div>
       </Card>
       
