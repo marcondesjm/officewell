@@ -263,6 +263,45 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_awards: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          month_year: string
+          points: number
+          position: number
+          prize_description: string | null
+          prize_title: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          month_year: string
+          points?: number
+          position: number
+          prize_description?: string | null
+          prize_title: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          month_year?: string
+          points?: number
+          position?: number
+          prize_description?: string | null
+          prize_title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mood_logs: {
         Row: {
           created_at: string
