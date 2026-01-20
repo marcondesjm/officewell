@@ -1,0 +1,334 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { AuthModal } from '@/components/AuthModal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake } from 'lucide-react';
+import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNavigate } from 'react-router-dom';
+import { Card } from '@/components/ui/card';
+
+type SubscriptionPlan = 'free' | 'pro' | 'enterprise';
+
+interface Employee {
+  id: string;
+  name: string;
+  department: string | null;
+  birthday: string | null;
+  avatar_url: string | null;
+}
+
+const planLabels: Record<SubscriptionPlan, { label: string; icon: React.ReactNode; color: string }> = {
+  free: {
+    label: 'Grátis',
+    icon: <User className="h-3 w-3" />,
+    color: 'bg-muted text-muted-foreground',
+  },
+  pro: {
+    label: 'Pro',
+    icon: <Crown className="h-3 w-3" />,
+    color: 'bg-primary/20 text-primary',
+  },
+  enterprise: {
+    label: 'Empresarial',
+    icon: <Building2 className="h-3 w-3" />,
+    color: 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400',
+  },
+};
+
+// Helper function to parse date without timezone issues
+const parseDateLocal = (dateString: string | null): Date | null => {
+  if (!dateString) return null;
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const isBirthdayToday = (birthday: string | null): boolean => {
+  if (!birthday) return false;
+  const today = new Date();
+  const bday = parseDateLocal(birthday);
+  if (!bday) return false;
+  return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
+};
+
+export function UserHeaderCard() {
+  const { user, profile, isLoading, signOut, isAdmin } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [isRequestingUpgrade, setIsRequestingUpgrade] = useState(false);
+  const [birthdayPeople, setBirthdayPeople] = useState<Employee[]>([]);
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Logout realizado com sucesso');
+  };
+
+  const handleRequestUpgrade = async (targetPlan: SubscriptionPlan) => {
+    if (!user || !profile) return;
+    
+    if (profile.current_plan === targetPlan) {
+      toast.info('Você já está neste plano');
+      return;
+    }
+
+    setIsRequestingUpgrade(true);
+    
+    try {
+      const { error } = await supabase
+        .from('plan_upgrade_requests')
+        .insert({
+          user_id: user.id,
+          current_plan: profile.current_plan,
+          requested_plan: targetPlan,
+        });
+
+      if (error) throw error;
+      
+      toast.success('Solicitação de upgrade enviada!', {
+        description: 'Um administrador irá analisar seu pedido em breve.',
+      });
+    } catch (error) {
+      console.error('Error requesting upgrade:', error);
+      toast.error('Erro ao solicitar upgrade');
+    } finally {
+      setIsRequestingUpgrade(false);
+    }
+  };
+
+  // Fetch birthdays
+  const checkBirthdays = useCallback(async () => {
+    try {
+      const { data: empData, error: empError } = await supabase
+        .from("employees")
+        .select("*");
+
+      if (empError) throw empError;
+
+      const todayBirthdays = (empData || []).filter((emp) => 
+        isBirthdayToday(emp.birthday)
+      );
+
+      setBirthdayPeople(todayBirthdays);
+    } catch (error) {
+      console.error("Error checking birthdays:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkBirthdays();
+  }, [checkBirthdays]);
+
+  if (isLoading) {
+    return (
+      <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50">
+        <div className="h-12 bg-muted animate-pulse rounded-lg" />
+      </Card>
+    );
+  }
+
+  if (!user || !profile) {
+    return (
+      <>
+        <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Faça login para acessar sua conta</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAuthModalOpen(true)}
+              className="gap-2"
+            >
+              <LogIn className="h-4 w-4" />
+              Entrar
+            </Button>
+          </div>
+        </Card>
+        <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+      </>
+    );
+  }
+
+  const currentPlanInfo = planLabels[profile.current_plan];
+  const initials = profile.display_name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <>
+      <Card className="p-4 bg-card/80 backdrop-blur-sm border-border/50">
+        <div className="flex flex-col gap-4">
+          {/* User Info Row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border-2 border-primary/20">
+                <AvatarImage src={profile.avatar_url || undefined} />
+                <AvatarFallback className="text-sm font-medium bg-primary/10 text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold leading-tight truncate max-w-[150px]">
+                  {profile.display_name}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-4 ${currentPlanInfo.color}`}>
+                    {currentPlanInfo.icon}
+                    <span className="ml-1">{currentPlanInfo.label}</span>
+                  </Badge>
+                  <span className="flex items-center gap-0.5 text-[11px] text-amber-500 font-medium">
+                    <Star className="h-3 w-3 fill-current" />
+                    {profile.points}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Admin Button */}
+              {isAdmin && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/plans-admin')}
+                        className="gap-2 border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400"
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span className="hidden sm:inline">Admin</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="z-[100]">
+                      <p>Painel de Administração de Planos</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+
+              {/* Dropdown Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                
+                <DropdownMenuContent align="end" className="w-64 z-[9999]">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{profile.display_name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={currentPlanInfo.color}>
+                          {currentPlanInfo.icon}
+                          <span className="ml-1">Plano {currentPlanInfo.label}</span>
+                        </Badge>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">
+                    Trocar Plano
+                  </DropdownMenuLabel>
+                  
+                  {profile.current_plan !== 'free' && (
+                    <DropdownMenuItem 
+                      onClick={() => handleRequestUpgrade('free')}
+                      disabled={isRequestingUpgrade}
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Plano Grátis
+                    </DropdownMenuItem>
+                  )}
+                  
+                  {profile.current_plan !== 'pro' && (
+                    <DropdownMenuItem 
+                      onClick={() => handleRequestUpgrade('pro')}
+                      disabled={isRequestingUpgrade}
+                    >
+                      <Crown className="h-4 w-4 mr-2 text-primary" />
+                      Plano Pro
+                      <Sparkles className="h-3 w-3 ml-auto text-primary" />
+                    </DropdownMenuItem>
+                  )}
+                  
+                  {profile.current_plan !== 'enterprise' && (
+                    <DropdownMenuItem 
+                      onClick={() => handleRequestUpgrade('enterprise')}
+                      disabled={isRequestingUpgrade}
+                    >
+                      <Building2 className="h-4 w-4 mr-2 text-amber-500" />
+                      Plano Empresarial
+                      <Sparkles className="h-3 w-3 ml-auto text-amber-500" />
+                    </DropdownMenuItem>
+                  )}
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Birthday Section */}
+          {birthdayPeople.length > 0 && (
+            <div className="pt-3 border-t border-border/50">
+              <div className="flex items-center justify-center gap-2 mb-3 text-sm text-muted-foreground">
+                <Cake className="h-4 w-4 text-pink-500" />
+                <span>🎉 Aniversariantes de Hoje 🎉</span>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {birthdayPeople.map((person) => (
+                  <motion.div
+                    key={person.id}
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20"
+                  >
+                    <Avatar className="h-8 w-8 border-2 border-pink-500/30">
+                      <AvatarImage src={person.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs font-medium bg-pink-500/20 text-pink-600 dark:text-pink-400">
+                        {person.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{person.name}</span>
+                      {person.department && (
+                        <span className="text-[10px] text-muted-foreground">{person.department}</span>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+      
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+    </>
+  );
+}
