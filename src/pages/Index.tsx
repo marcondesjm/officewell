@@ -577,27 +577,31 @@ const Index = () => {
               </div>
             )}
             
-            {isOnline && syncStatus === 'synced' && !isRefreshing && (
+            {isOnline && (syncStatus === 'synced' || syncStatus === 'checking') && !isRefreshing && (
               <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-green-500/15 text-green-600 dark:text-green-400 text-base font-semibold border-2 border-green-500/30 shadow-sm">
-                <Check size={20} className="flex-shrink-0" />
-                <span>App atualizado</span>
+                {syncStatus === 'checking' ? (
+                  <Loader2 size={20} className="animate-spin flex-shrink-0" />
+                ) : (
+                  <Check size={20} className="flex-shrink-0" />
+                )}
+                <span>{syncStatus === 'checking' ? 'Verificando...' : 'App atualizado'}</span>
                 <Button
                   onClick={handleCheckUpdates}
                   variant="ghost"
                   size="sm"
                   className="ml-2 h-8 px-3 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-500/20"
                   aria-label="Verificar atualizações"
-                  disabled={isRefreshing}
+                  disabled={syncStatus === 'checking'}
                 >
-                  <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+                  <RefreshCw size={14} className={syncStatus === 'checking' ? "animate-spin" : ""} />
                 </Button>
               </div>
             )}
             
-            {isOnline && (syncStatus === 'checking' || syncStatus === 'updating' || isRefreshing) && (
+            {isOnline && (syncStatus === 'updating' || isRefreshing) && (
               <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-blue-500/15 text-blue-600 dark:text-blue-400 text-base font-semibold border-2 border-blue-500/30">
                 <Loader2 size={20} className="animate-spin flex-shrink-0" />
-                <span>{isRefreshing ? 'Atualizando...' : 'Sincronizando...'}</span>
+                <span>{syncStatus === 'updating' ? 'Atualizando...' : 'Sincronizando...'}</span>
               </div>
             )}
             
