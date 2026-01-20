@@ -71,6 +71,51 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_reports: {
+        Row: {
+          created_at: string
+          display_name: string
+          eye_breaks: number
+          id: string
+          notes: string | null
+          points_earned: number
+          report_date: string
+          session_id: string
+          stretch_breaks: number
+          total_breaks: number
+          user_id: string
+          water_breaks: number
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          eye_breaks?: number
+          id?: string
+          notes?: string | null
+          points_earned?: number
+          report_date?: string
+          session_id: string
+          stretch_breaks?: number
+          total_breaks?: number
+          user_id: string
+          water_breaks?: number
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          eye_breaks?: number
+          id?: string
+          notes?: string | null
+          points_earned?: number
+          report_date?: string
+          session_id?: string
+          stretch_breaks?: number
+          total_breaks?: number
+          user_id?: string
+          water_breaks?: number
+        }
+        Relationships: []
+      }
       daily_tips: {
         Row: {
           category: string
