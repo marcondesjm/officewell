@@ -48,7 +48,9 @@ import {
   Crown,
   Lock,
   Lightbulb,
+  Trophy,
 } from "lucide-react";
+import { MonthlyAwardsAdmin } from "@/components/MonthlyAwardsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePlanFeatures } from "@/hooks/usePlanFeatures";
@@ -846,33 +848,34 @@ const HRAdmin = () => {
         )}
 
         <Tabs defaultValue="employees" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="employees" className="gap-2">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="employees" className="gap-1 text-xs sm:text-sm">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Funcionários</span>
               <span className="sm:hidden">{employees.length}</span>
-              <span className="hidden sm:inline">({employees.length}{isBasicPlan ? `/${limits.maxEmployees}` : ""})</span>
             </TabsTrigger>
-            <TabsTrigger value="birthdays" className="gap-2 relative">
+            <TabsTrigger value="birthdays" className="gap-1 text-xs sm:text-sm relative">
               <Cake className="h-4 w-4" />
               <span className="hidden sm:inline">Aniversários</span>
               {birthdaysToday.length > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center animate-pulse">
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center animate-pulse">
                   {birthdaysToday.length}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="announcements" className="gap-2">
+            <TabsTrigger value="announcements" className="gap-1 text-xs sm:text-sm">
               <Megaphone className="h-4 w-4" />
               <span className="hidden sm:inline">Avisos</span>
               <span className="sm:hidden">{announcements.length}</span>
-              <span className="hidden sm:inline">({announcements.length}{isBasicPlan ? `/${limits.maxAnnouncements}` : ""})</span>
             </TabsTrigger>
-            <TabsTrigger value="tips" className="gap-2">
+            <TabsTrigger value="tips" className="gap-1 text-xs sm:text-sm">
               <Lightbulb className="h-4 w-4" />
               <span className="hidden sm:inline">Dicas</span>
               <span className="sm:hidden">{dailyTips.length}</span>
-              <span className="hidden sm:inline">({dailyTips.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="awards" className="gap-1 text-xs sm:text-sm">
+              <Trophy className="h-4 w-4 text-yellow-500" />
+              <span className="hidden sm:inline">Premiações</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1628,6 +1631,11 @@ const HRAdmin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Awards Tab */}
+          <TabsContent value="awards" className="space-y-4">
+            <MonthlyAwardsAdmin />
           </TabsContent>
         </Tabs>
 
