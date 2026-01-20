@@ -7,6 +7,7 @@ import { DonationDialog } from "@/components/DonationDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { HealthTips } from "@/components/HealthTips";
 import { TipOfTheDay } from "@/components/TipOfTheDay";
+import { MoodTracker } from "@/components/MoodTracker";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
@@ -259,8 +260,11 @@ const Index = () => {
         {/* Trial Banner */}
         <TrialBanner onUpgrade={() => setPlansOpen(true)} />
 
-        {/* Dica do Dia */}
-        <TipOfTheDay />
+        {/* Mood Tracker e Dica do Dia */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <MoodTracker />
+          <TipOfTheDay />
+        </div>
 
         {/* Ranking e Pontuação */}
         <GamificationCard />

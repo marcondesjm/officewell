@@ -263,6 +263,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_logs: {
+        Row: {
+          created_at: string
+          id: string
+          mood: string
+          note: string | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mood: string
+          note?: string | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mood?: string
+          note?: string | null
+          session_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string | null
