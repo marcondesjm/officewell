@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote, Pencil, FileText } from 'lucide-react';
+import { LogIn, LogOut, User, Crown, Sparkles, Building2, Star, ChevronDown, Settings, Shield, Cake, Quote, Pencil, FileText, Award, Trophy, Medal, Gem, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,6 +53,103 @@ const planLabels: Record<SubscriptionPlan, { label: string; icon: React.ReactNod
     color: 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400',
   },
 };
+
+// Achievement/Badge system based on points
+interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  emoji: string;
+  icon: React.ReactNode;
+  minPoints: number;
+  color: string;
+  bgColor: string;
+}
+
+const achievements: Achievement[] = [
+  {
+    id: 'iniciante',
+    name: 'Iniciante',
+    description: 'Bem-vindo ao OfficeWell!',
+    emoji: '🌱',
+    icon: <Target className="h-3 w-3" />,
+    minPoints: 0,
+    color: 'text-green-600 dark:text-green-400',
+    bgColor: 'bg-green-500/20',
+  },
+  {
+    id: 'bronze',
+    name: 'Bronze',
+    description: 'Conquistou 50 pontos de bem-estar',
+    emoji: '🥉',
+    icon: <Medal className="h-3 w-3" />,
+    minPoints: 50,
+    color: 'text-amber-700 dark:text-amber-500',
+    bgColor: 'bg-amber-600/20',
+  },
+  {
+    id: 'prata',
+    name: 'Prata',
+    description: 'Conquistou 150 pontos de bem-estar',
+    emoji: '🥈',
+    icon: <Medal className="h-3 w-3" />,
+    minPoints: 150,
+    color: 'text-slate-500 dark:text-slate-300',
+    bgColor: 'bg-slate-400/20',
+  },
+  {
+    id: 'ouro',
+    name: 'Ouro',
+    description: 'Conquistou 300 pontos de bem-estar',
+    emoji: '🥇',
+    icon: <Award className="h-3 w-3" />,
+    minPoints: 300,
+    color: 'text-yellow-600 dark:text-yellow-400',
+    bgColor: 'bg-yellow-500/20',
+  },
+  {
+    id: 'diamante',
+    name: 'Diamante',
+    description: 'Conquistou 500 pontos de bem-estar',
+    emoji: '💎',
+    icon: <Gem className="h-3 w-3" />,
+    minPoints: 500,
+    color: 'text-cyan-500 dark:text-cyan-400',
+    bgColor: 'bg-cyan-500/20',
+  },
+  {
+    id: 'mestre',
+    name: 'Mestre',
+    description: 'Conquistou 1000 pontos de bem-estar',
+    emoji: '👑',
+    icon: <Trophy className="h-3 w-3" />,
+    minPoints: 1000,
+    color: 'text-purple-600 dark:text-purple-400',
+    bgColor: 'bg-purple-500/20',
+  },
+];
+
+// Get current achievement based on points
+const getCurrentAchievement = (points: number): Achievement => {
+  const earned = achievements.filter(a => points >= a.minPoints);
+  return earned[earned.length - 1] || achievements[0];
+};
+
+// Get next achievement
+const getNextAchievement = (points: number): Achievement | null => {
+  const next = achievements.find(a => points < a.minPoints);
+  return next || null;
+};
+
+// Get progress to next achievement
+const getProgressToNext = (points: number): number => {
+  const current = getCurrentAchievement(points);
+  const next = getNextAchievement(points);
+  if (!next) return 100;
+  const range = next.minPoints - current.minPoints;
+  const progress = points - current.minPoints;
+  return Math.min(100, Math.round((progress / range) * 100));
+}
 
 // Pre-configured avatars (same as ProfileEditDialog)
 const defaultAvatars: Record<string, { emoji: string; bg: string }> = {
@@ -329,11 +426,62 @@ export function UserHeaderCard() {
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-4 ${currentPlanInfo.color}`}>
                     {currentPlanInfo.icon}
                     <span className="ml-1">{currentPlanInfo.label}</span>
                   </Badge>
+                  
+                  {/* Achievement Badge */}
+                  {(() => {
+                    const achievement = getCurrentAchievement(profile.points);
+                    const nextAchievement = getNextAchievement(profile.points);
+                    const progress = getProgressToNext(profile.points);
+                    return (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <motion.div
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 h-4 rounded-full ${achievement.bgColor} ${achievement.color} font-medium cursor-help`}
+                            >
+                              <span>{achievement.emoji}</span>
+                              <span className="hidden sm:inline">{achievement.name}</span>
+                            </motion.div>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="z-[100] max-w-[200px]">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">{achievement.emoji}</span>
+                                <div>
+                                  <p className="font-semibold">{achievement.name}</p>
+                                  <p className="text-xs text-muted-foreground">{achievement.description}</p>
+                                </div>
+                              </div>
+                              {nextAchievement && (
+                                <div className="pt-1 border-t border-border/50">
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    Próximo: {nextAchievement.emoji} {nextAchievement.name} ({nextAchievement.minPoints} pts)
+                                  </p>
+                                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary rounded-full transition-all"
+                                      style={{ width: `${progress}%` }}
+                                    />
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5 text-right">
+                                    {progress}% completo
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  })()}
+                  
                   <span className="flex items-center gap-0.5 text-[11px] text-amber-500 font-medium bg-amber-500/10 px-1.5 py-0.5 rounded-full">
                     <Star className="h-3 w-3 fill-current" />
                     <span className="font-bold">{profile.points}</span>
