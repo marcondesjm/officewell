@@ -49,8 +49,10 @@ import {
   Lock,
   Lightbulb,
   Trophy,
+  FileText,
 } from "lucide-react";
 import { MonthlyAwardsAdmin } from "@/components/MonthlyAwardsAdmin";
+import { DailyReportsAdmin } from "@/components/DailyReportsAdmin";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { usePlanFeatures } from "@/hooks/usePlanFeatures";
@@ -848,7 +850,7 @@ const HRAdmin = () => {
         )}
 
         <Tabs defaultValue="employees" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="employees" className="gap-1 text-xs sm:text-sm">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Funcionários</span>
@@ -867,6 +869,10 @@ const HRAdmin = () => {
               <Megaphone className="h-4 w-4" />
               <span className="hidden sm:inline">Avisos</span>
               <span className="sm:hidden">{announcements.length}</span>
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="gap-1 text-xs sm:text-sm">
+              <FileText className="h-4 w-4 text-emerald-500" />
+              <span className="hidden sm:inline">Relatórios</span>
             </TabsTrigger>
             <TabsTrigger value="tips" className="gap-1 text-xs sm:text-sm">
               <Lightbulb className="h-4 w-4" />
@@ -1631,6 +1637,11 @@ const HRAdmin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Reports Tab */}
+          <TabsContent value="reports" className="space-y-4">
+            <DailyReportsAdmin />
           </TabsContent>
 
           {/* Awards Tab */}
