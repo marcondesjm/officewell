@@ -5,6 +5,8 @@ import { User, Session } from '@supabase/supabase-js';
 type SubscriptionPlan = 'demo' | 'free' | 'pro' | 'enterprise';
 type AppRole = 'admin' | 'user';
 
+type ExerciseType = 'none' | 'light' | 'moderate' | 'intense';
+
 interface Profile {
   id: string;
   user_id: string;
@@ -15,6 +17,9 @@ interface Profile {
   trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
+  age: number | null;
+  exercise_type: ExerciseType | null;
+  exercise_hours_per_week: number | null;
 }
 
 interface AuthContextType {
