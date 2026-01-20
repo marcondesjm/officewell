@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User, Droplets, Eye, Activity, HelpCircle, Trash2 } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Droplets, Eye, Activity, HelpCircle, Trash2, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -263,7 +263,22 @@ export function VirtualAssistant() {
     }
   };
 
+  const getMoodResponse = (): string => {
+    if (!currentMood) {
+      return "😊 Você ainda não registrou seu humor hoje! Use o card 'Como você está se sentindo?' para registrar e receber dicas personalizadas.";
+    }
+    return `${moodEmojis[currentMood]} Você está se sentindo ${moodLabels[currentMood]} hoje.\n\n${getRandomMoodTip(currentMood)}`;
+  };
+
   const quickActions: QuickAction[] = [
+    {
+      label: "Humor",
+      icon: <Smile className="h-4 w-4" />,
+      action: () => {
+        addMessage("Como estou hoje?", false);
+        setTimeout(() => addMessage(getMoodResponse(), true), 500);
+      },
+    },
     {
       label: "Água",
       icon: <Droplets className="h-4 w-4" />,
@@ -286,14 +301,6 @@ export function VirtualAssistant() {
       action: () => {
         addMessage("Dicas de ergonomia", false);
         setTimeout(() => addMessage(FAQ["ergonomia"], true), 500);
-      },
-    },
-    {
-      label: "Ajuda",
-      icon: <HelpCircle className="h-4 w-4" />,
-      action: () => {
-        addMessage("Ajuda", false);
-        setTimeout(() => addMessage(FAQ["ajuda"], true), 500);
       },
     },
   ];
