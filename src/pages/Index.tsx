@@ -1,4 +1,5 @@
 import { Eye, Dumbbell, Droplets, Download, Heart, Crown, RefreshCw, Coffee, Moon, Briefcase, ScanFace, Activity, Target, Sparkles, ClipboardCheck, WifiOff, Bell } from "lucide-react";
+import { NotificationPermissionBanner } from "@/components/NotificationPermissionBanner";
 import { WaterTracker } from "@/components/WaterTracker";
 import { ControlPanel } from "@/components/ControlPanel";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -257,6 +258,9 @@ const Index = () => {
         {inactivityInfo && (
           <InactivityWarning info={inactivityInfo} onDismiss={dismissInactivityWarning} />
         )}
+
+        {/* Notification Permission Banner - Most visible position */}
+        <NotificationPermissionBanner onRequestPermission={requestNotificationPermission} />
 
         {/* Trial Banner */}
         <TrialBanner onUpgrade={() => setPlansOpen(true)} />
