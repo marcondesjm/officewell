@@ -63,32 +63,69 @@ const isBirthdayToday = (birthday: string | null): boolean => {
   return bday.getDate() === today.getDate() && bday.getMonth() === today.getMonth();
 };
 
-// Mensagens motivacionais
-const motivationalMessages = [
-  { text: "Cuide de você! Seu corpo é seu maior patrimônio. 💪", emoji: "🌟" },
+// Fallback messages if no tips in database
+const fallbackMessages = [
+  { text: "Cuide de você! Seu corpo é seu maior patrimônio.", emoji: "💪" },
   { text: "Pequenas pausas fazem grandes diferenças na sua saúde.", emoji: "✨" },
   { text: "Hidrate-se! A água é essencial para sua produtividade.", emoji: "💧" },
-  { text: "Respire fundo. Cada momento de pausa é um investimento em você.", emoji: "🧘" },
-  { text: "Alongue-se! Seu corpo agradece cada movimento.", emoji: "🤸" },
-  { text: "Olhe para longe. Seus olhos merecem descanso.", emoji: "👀" },
-  { text: "Você está fazendo um ótimo trabalho! Continue assim.", emoji: "🏆" },
-  { text: "A saúde é a maior riqueza. Cuide dela hoje.", emoji: "❤️" },
-  { text: "Cada pausa é um passo rumo ao equilíbrio.", emoji: "⚖️" },
-  { text: "Levante, estique, respire. Sua mente agradece!", emoji: "🌈" },
 ];
 
-const getDailyMessage = () => {
-  const today = new Date();
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-  return motivationalMessages[dayOfYear % motivationalMessages.length];
-};
+interface DailyTip {
+  id: string;
+  title: string;
+  content: string;
+  emoji: string | null;
+}
 
 export function UserHeaderCard() {
   const { user, profile, isLoading, signOut, isAdmin } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [isRequestingUpgrade, setIsRequestingUpgrade] = useState(false);
   const [birthdayPeople, setBirthdayPeople] = useState<Employee[]>([]);
+  const [dailyTip, setDailyTip] = useState<{ text: string; emoji: string } | null>(null);
   const navigate = useNavigate();
+
+  // Fetch daily tip from database
+  const fetchDailyTip = useCallback(async () => {
+    try {
+      const { data: tips, error } = await supabase
+        .from("daily_tips")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+
+      if (error) throw error;
+
+      if (tips && tips.length > 0) {
+        // Rotate based on day of year
+        const today = new Date();
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+        const tipIndex = dayOfYear % tips.length;
+        const selectedTip = tips[tipIndex];
+        setDailyTip({
+          text: selectedTip.content,
+          emoji: selectedTip.emoji || "💡"
+        });
+      } else {
+        // Use fallback if no tips in database
+        const today = new Date();
+        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+        const fallbackTip = fallbackMessages[dayOfYear % fallbackMessages.length];
+        setDailyTip(fallbackTip);
+      }
+    } catch (error) {
+      console.error("Error fetching daily tip:", error);
+      // Use fallback on error
+      const today = new Date();
+      const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
+      const fallbackTip = fallbackMessages[dayOfYear % fallbackMessages.length];
+      setDailyTip(fallbackTip);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDailyTip();
+  }, [fetchDailyTip]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -367,10 +404,16 @@ export function UserHeaderCard() {
                   <Quote className="h-4 w-4 text-primary" />
                   <span>💡 Dica do Dia</span>
                 </div>
-                <p className="text-center text-sm font-medium">
-                  <span className="mr-1">{getDailyMessage().emoji}</span>
-                  {getDailyMessage().text}
-                </p>
+                {dailyTip ? (
+                  <p className="text-center text-sm font-medium">
+                    <span className="mr-1">{dailyTip.emoji}</span>
+                    {dailyTip.text}
+                  </p>
+                ) : (
+                  <p className="text-center text-sm font-medium text-muted-foreground">
+                    Carregando dica...
+                  </p>
+                )}
               </motion.div>
             </div>
           </div>
