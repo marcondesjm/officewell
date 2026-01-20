@@ -100,7 +100,7 @@ const Index = () => {
   }, [needsWorkScheduleConfig]);
 
   // Auto-refresh every hour to keep app updated
-  const { checkForUpdates, syncStatus } = useAppRefresh(60 * 60 * 1000);
+  const { checkForUpdates, syncStatus, lastSyncTime } = useAppRefresh(60 * 60 * 1000);
   
   // Online status
   const isOnline = useOnlineStatus();
@@ -584,7 +584,14 @@ const Index = () => {
                 ) : (
                   <Check size={20} className="flex-shrink-0" />
                 )}
-                <span>{syncStatus === 'checking' ? 'Verificando...' : 'App atualizado'}</span>
+                <div className="flex flex-col">
+                  <span>{syncStatus === 'checking' ? 'Verificando...' : 'App atualizado'}</span>
+                  {syncStatus === 'synced' && lastSyncTime && (
+                    <span className="text-xs font-normal opacity-75">
+                      {lastSyncTime.toLocaleDateString('pt-BR')} às {lastSyncTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
                 <Button
                   onClick={handleCheckUpdates}
                   variant="ghost"
