@@ -228,7 +228,28 @@ export const useReminders = () => {
     showWaterModal: false,
   });
 
-  const notifiedRef = useRef({ eye: false, stretch: false, water: false });
+  // Inicializar notifiedRef com base nos timers expirados para evitar notificação imediata
+  const notifiedRef = useRef((() => {
+    const now = Date.now();
+    const savedTimestamps = localStorage.getItem("timerTimestamps");
+    const savedConfig = localStorage.getItem("reminderConfig");
+    const notifyOnResume = savedConfig ? JSON.parse(savedConfig).notifyOnResume ?? false : false;
+    
+    // Se notifyOnResume está DESATIVADO, marcar timers expirados como já notificados
+    if (!notifyOnResume && savedTimestamps) {
+      try {
+        const parsed = JSON.parse(savedTimestamps);
+        return {
+          eye: parsed.eyeEndTime <= now,
+          stretch: parsed.stretchEndTime <= now,
+          water: parsed.waterEndTime <= now,
+        };
+      } catch {
+        return { eye: false, stretch: false, water: false };
+      }
+    }
+    return { eye: false, stretch: false, water: false };
+  })());
   // Persistir flag de intervalos otimizados para evitar reset ao atualizar o app
   const [hasAppliedOptimalIntervals, setHasAppliedOptimalIntervals] = useState<boolean>(() => {
     try {
@@ -242,6 +263,9 @@ export const useReminders = () => {
   });
   const isInitialLoadRef = useRef(true); // Evita abrir modais ao carregar o app
   const initialLoadTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Flag para garantir que o reset silencioso só ocorra uma vez no carregamento inicial
+  const hasPerformedInitialResetRef = useRef(false);
 
   // Salvar config
   useEffect(() => {
@@ -585,37 +609,45 @@ export const useReminders = () => {
 
     setState(prev => ({ ...prev, ...calculateTimeLeft() }));
     
-    // Aguardar 3 segundos antes de permitir notificações (evita abrir modais ao abrir o app)
-    // Durante este tempo, resetar timers expirados para os intervalos normais (se notifyOnResume desativado)
-    if (isInitialLoadRef.current) {
+    // Reset silencioso IMEDIATO no carregamento inicial (antes de qualquer intervalo)
+    // Isso garante que os timers expirados sejam resetados ANTES do checkAndNotify rodar
+    if (isInitialLoadRef.current && !hasPerformedInitialResetRef.current && !config.notifyOnResume) {
+      hasPerformedInitialResetRef.current = true;
       const now = Date.now();
       let needsReset = false;
       const newTimestamps = { ...timestamps };
       
-      // Se notifyOnResume está desativado, resetar timers expirados silenciosamente
-      if (!config.notifyOnResume) {
-        if (timestamps.eyeEndTime <= now) {
-          newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
-          notifiedRef.current.eye = true; // Marcar como notificado para evitar notificação imediata
-          needsReset = true;
-        }
-        if (timestamps.stretchEndTime <= now) {
-          newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
-          notifiedRef.current.stretch = true;
-          needsReset = true;
-        }
-        if (timestamps.waterEndTime <= now) {
-          newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
-          notifiedRef.current.water = true;
-          needsReset = true;
-        }
-        
-        if (needsReset) {
-          setTimestamps(newTimestamps);
-        }
+      if (timestamps.eyeEndTime <= now) {
+        newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
+        notifiedRef.current.eye = true;
+        needsReset = true;
+      }
+      if (timestamps.stretchEndTime <= now) {
+        newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
+        notifiedRef.current.stretch = true;
+        needsReset = true;
+      }
+      if (timestamps.waterEndTime <= now) {
+        newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
+        notifiedRef.current.water = true;
+        needsReset = true;
       }
       
-      // Liberar notificações após 3 segundos (ou imediatamente se notifyOnResume ativo)
+      if (needsReset) {
+        console.log('🔇 Reset silencioso de timers expirados ao abrir o app');
+        setTimestamps(newTimestamps);
+        // Garantir que os modais não abram
+        setState(prev => ({
+          ...prev,
+          showEyeModal: false,
+          showStretchModal: false,
+          showWaterModal: false,
+        }));
+      }
+    }
+    
+    // Liberar notificações após delay
+    if (isInitialLoadRef.current) {
       const delay = config.notifyOnResume ? 500 : 3000;
       initialLoadTimerRef.current = setTimeout(() => {
         isInitialLoadRef.current = false;
@@ -681,9 +713,50 @@ export const useReminders = () => {
       // IMPORTANTE: Marcar como carregamento inicial ao retomar para evitar modais imediatos
       if (!config.notifyOnResume) {
         isInitialLoadRef.current = true;
+        // Permitir que o reset ocorra novamente no próximo ciclo do effect
+        hasPerformedInitialResetRef.current = false;
         
-        // Resetar timers expirados silenciosamente
-        silentlyResetExpiredTimers();
+        // Resetar timers expirados silenciosamente IMEDIATAMENTE
+        const now = Date.now();
+        let needsReset = false;
+        const newTimestamps = { ...timestamps };
+        
+        // Ler do localStorage para pegar os valores mais recentes
+        const savedTimestamps = localStorage.getItem("timerTimestamps");
+        if (savedTimestamps) {
+          try {
+            const parsed = JSON.parse(savedTimestamps);
+            if (parsed.eyeEndTime <= now) {
+              newTimestamps.eyeEndTime = now + config.eyeInterval * 60 * 1000;
+              notifiedRef.current.eye = true;
+              needsReset = true;
+            }
+            if (parsed.stretchEndTime <= now) {
+              newTimestamps.stretchEndTime = now + config.stretchInterval * 60 * 1000;
+              notifiedRef.current.stretch = true;
+              needsReset = true;
+            }
+            if (parsed.waterEndTime <= now) {
+              newTimestamps.waterEndTime = now + config.waterInterval * 60 * 1000;
+              notifiedRef.current.water = true;
+              needsReset = true;
+            }
+          } catch (e) {
+            console.error('Erro ao parsear timestamps:', e);
+          }
+        }
+        
+        if (needsReset) {
+          console.log('🔇 Reset silencioso ao retomar o app');
+          setTimestamps(newTimestamps);
+          // Fechar modais abertos IMEDIATAMENTE
+          setState(prev => ({
+            ...prev,
+            showEyeModal: false,
+            showStretchModal: false,
+            showWaterModal: false,
+          }));
+        }
         
         // Liberar notificações após delay
         if (initialLoadTimerRef.current) {
