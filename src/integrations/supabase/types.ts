@@ -424,6 +424,7 @@ export type Database = {
           display_name: string
           id: string
           points: number
+          trial_ends_at: string | null
           updated_at: string
           user_id: string
           whatsapp: string | null
@@ -435,6 +436,7 @@ export type Database = {
           display_name: string
           id?: string
           points?: number
+          trial_ends_at?: string | null
           updated_at?: string
           user_id: string
           whatsapp?: string | null
@@ -446,6 +448,7 @@ export type Database = {
           display_name?: string
           id?: string
           points?: number
+          trial_ends_at?: string | null
           updated_at?: string
           user_id?: string
           whatsapp?: string | null
@@ -682,6 +685,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_trial_expiration: {
+        Args: { user_uuid: string }
+        Returns: {
+          expired: boolean
+          plan: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -689,6 +699,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      migrate_expired_trials: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"

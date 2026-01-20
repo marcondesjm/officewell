@@ -12,6 +12,7 @@ interface Profile {
   avatar_url: string | null;
   current_plan: SubscriptionPlan;
   points: number;
+  trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +41,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      // First check if trial has expired and migrate if needed
+      const { data: trialCheck } = await supabase.rpc('check_trial_expiration', {
+        user_uuid: userId
+      });
+      
+      if (trialCheck && trialCheck.length > 0 && trialCheck[0].expired) {
+        console.log('Trial expired, migrated to free plan');
+      }
+      
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
