@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,7 +83,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-gradient-to-b from-background to-muted/20">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-gradient-to-b from-background to-muted/20 max-h-[90vh]">
+        <ScrollArea className="max-h-[85vh]">
         <div className="relative">
           {/* Header decorativo */}
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent h-32 pointer-events-none" />
@@ -293,6 +295,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </Tabs>
           </div>
         </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
