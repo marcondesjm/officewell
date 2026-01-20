@@ -29,6 +29,48 @@ const moodEmojis: Record<MoodType, string> = {
   terrible: '😢',
 };
 
+const moodLabels: Record<MoodType, string> = {
+  great: 'ótimo',
+  good: 'bem',
+  okay: 'neutro',
+  bad: 'mal',
+  terrible: 'péssimo',
+};
+
+// Mood-based tips and responses
+const moodTips: Record<MoodType, string[]> = {
+  great: [
+    "🌟 Que ótimo que você está se sentindo bem! Aproveite essa energia positiva para manter boas práticas de saúde.",
+    "✨ Seu humor está excelente! Lembre-se de fazer pausas regulares para manter esse bem-estar.",
+    "🎉 Fantástico! Continue assim e não esqueça de se hidratar para manter a energia!",
+  ],
+  good: [
+    "😊 Bom saber que está bem! Uma pausa para alongamento pode deixar você ainda melhor.",
+    "👍 Está num bom ritmo! Que tal um copo de água para manter a disposição?",
+    "🌈 Ótimo humor! Mantenha a postura correta para continuar se sentindo assim.",
+  ],
+  okay: [
+    "🧘 Está neutro? Uma pequena pausa para alongamento pode melhorar seu dia!",
+    "💧 Às vezes um copo de água e uma pausa rápida fazem diferença no humor.",
+    "🌱 Que tal uma caminhada rápida ou alguns exercícios de respiração?",
+  ],
+  bad: [
+    "💙 Sinto que não está 100%. Uma pausa para descansar os olhos pode ajudar.",
+    "🤗 Dias difíceis acontecem. Tente uma pausa de 5 minutos para respirar.",
+    "🌿 Quando não estamos bem, pequenas pausas fazem diferença. Cuide-se!",
+  ],
+  terrible: [
+    "❤️ Sinto muito que não está bem. Considere uma pausa maior se possível.",
+    "🫂 Dias assim são difíceis. Lembre-se: está tudo bem não estar bem às vezes.",
+    "💜 Se precisar, faça uma pausa. Sua saúde mental é tão importante quanto a física.",
+  ],
+};
+
+const getRandomMoodTip = (mood: MoodType): string => {
+  const tips = moodTips[mood];
+  return tips[Math.floor(Math.random() * tips.length)];
+};
+
 const getSessionId = () => {
   let sessionId = localStorage.getItem('officewell_session_id');
   if (!sessionId) {
@@ -48,20 +90,49 @@ const FAQ: Record<string, string> = {
   "ler": "⚠️ LER (Lesão por Esforço Repetitivo) pode ser prevenida com pausas regulares, postura correta e exercícios. O app monitora seu risco.",
   "notificação": "🔔 Configure suas notificações em Configurações. Você pode escolher quais lembretes receber e em quais horários.",
   "meta": "🎯 Defina metas diárias de hidratação e pausas. Metas alcançadas rendem pontos extras e melhoram sua saúde!",
-  "ajuda": "❓ Posso ajudar com: água, pausas, alongamento, olhos, ergonomia, pontos, LER, notificações e metas. Digite uma palavra-chave!",
+  "ajuda": "❓ Posso ajudar com: água, pausas, alongamento, olhos, ergonomia, pontos, LER, notificações, metas e humor. Digite uma palavra-chave!",
+  "humor": "😊 Registre seu humor diariamente no card 'Como você está se sentindo?'. Acompanhar suas emoções ajuda a entender padrões de bem-estar!",
 };
 
-const findAnswer = (question: string): string => {
+const findAnswer = (question: string, mood: MoodType | null): string => {
   const lowerQuestion = question.toLowerCase();
+  
+  // Check for mood-related questions
+  if (lowerQuestion.match(/(como estou|meu humor|sentindo|emoção|emocional)/)) {
+    if (mood) {
+      return `${moodEmojis[mood]} Você registrou que está se sentindo ${moodLabels[mood]} hoje. ${getRandomMoodTip(mood)}`;
+    }
+    return "😊 Você ainda não registrou seu humor hoje. Use o card 'Como você está se sentindo?' para registrar!";
+  }
+
+  // Check for tip/suggestion requests
+  if (lowerQuestion.match(/(dica|sugestão|conselho|recomend)/)) {
+    if (mood) {
+      return getRandomMoodTip(mood);
+    }
+    return "💡 Registre seu humor primeiro para receber dicas personalizadas! Enquanto isso: lembre-se de fazer pausas regulares.";
+  }
   
   for (const [keyword, answer] of Object.entries(FAQ)) {
     if (lowerQuestion.includes(keyword)) {
+      // Add mood-specific suffix for certain topics
+      if (mood && (mood === 'bad' || mood === 'terrible') && ['pausa', 'alongamento'].includes(keyword)) {
+        return answer + "\n\n💙 Percebi que você não está 100% hoje. Cuide-se e faça pausas quando precisar.";
+      }
       return answer;
     }
   }
   
-  // Check for greetings
+  // Check for greetings - personalize based on mood
   if (lowerQuestion.match(/^(oi|olá|ola|hey|eae|e aí)/)) {
+    if (mood) {
+      const moodGreeting = mood === 'great' || mood === 'good' 
+        ? `Que bom que você está ${moodLabels[mood]}! ` 
+        : mood === 'bad' || mood === 'terrible'
+        ? `Vi que não está 100% hoje. Estou aqui para ajudar! `
+        : '';
+      return `👋 Olá! ${moodGreeting}Sou o assistente do OfficeWell. Como posso ajudar? Digite 'ajuda' para ver os tópicos disponíveis.`;
+    }
     return "👋 Olá! Sou o assistente do OfficeWell. Como posso ajudar? Digite 'ajuda' para ver os tópicos disponíveis.";
   }
   
@@ -69,7 +140,7 @@ const findAnswer = (question: string): string => {
     return "😊 Por nada! Estou aqui para ajudar. Cuide-se e boas pausas!";
   }
   
-  return "🤔 Não entendi sua pergunta. Tente palavras-chave como: água, pausa, alongamento, olhos, ergonomia, pontos, LER, notificação ou meta.";
+  return "🤔 Não entendi sua pergunta. Tente palavras-chave como: água, pausa, alongamento, olhos, ergonomia, pontos, LER, notificação, meta ou humor.";
 };
 
 export function VirtualAssistant() {
@@ -139,7 +210,7 @@ export function VirtualAssistant() {
     addMessage(input, false);
     
     setTimeout(() => {
-      const answer = findAnswer(input);
+      const answer = findAnswer(input, currentMood);
       addMessage(answer, true);
     }, 500);
     
