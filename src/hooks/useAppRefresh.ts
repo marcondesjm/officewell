@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState } from "react";
 import { toast } from "sonner";
 
 // Versão do app - atualize aqui a cada release
-export const APP_VERSION = "1.2.3";
+export const APP_VERSION = "1.2.4";
 
 export type SyncStatus = 'synced' | 'checking' | 'updating' | 'error';
 
@@ -26,6 +26,33 @@ const forceServiceWorkerUpdate = async (): Promise<boolean> => {
     console.error('Erro ao atualizar Service Worker:', error);
     return false;
   }
+};
+
+// Função para limpeza agressiva de cache
+const forceFullCacheClear = async (): Promise<void> => {
+  console.log('[PWA Cache] Starting aggressive cache clear...');
+  
+  // 1. Clear all caches
+  if ('caches' in window) {
+    const cacheNames = await caches.keys();
+    console.log(`[PWA Cache] Clearing ${cacheNames.length} caches:`, cacheNames);
+    await Promise.all(cacheNames.map(name => caches.delete(name)));
+  }
+  
+  // 2. Unregister all service workers
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    console.log(`[PWA Cache] Unregistering ${registrations.length} service workers`);
+    for (const registration of registrations) {
+      await registration.unregister();
+    }
+  }
+  
+  // 3. Clear localStorage version tracking
+  localStorage.removeItem('app-version-hash');
+  sessionStorage.removeItem('app-update-in-progress');
+  
+  console.log('[PWA Cache] Cache clear complete');
 };
 
 export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1 hour
@@ -98,6 +125,31 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
     }
   }, []);
 
+  // Função para forçar limpeza total e reload
+  const forceHardRefresh = useCallback(async () => {
+    setSyncStatus('updating');
+    toast.info("🧹 Limpando cache...", {
+      description: "Aguarde enquanto baixamos a versão mais recente.",
+      duration: 3000,
+    });
+    
+    try {
+      await forceFullCacheClear();
+      
+      // Marcar para mostrar toast de sucesso após reload
+      localStorage.setItem('app-just-updated', 'true');
+      
+      // Hard reload with cache bypass
+      setTimeout(() => {
+        window.location.href = window.location.href.split('?')[0] + '?cache_bust=' + Date.now();
+      }, 1000);
+    } catch (error) {
+      console.error("Erro ao limpar cache:", error);
+      toast.error("Erro ao limpar cache. Tente recarregar a página manualmente.");
+      setSyncStatus('error');
+    }
+  }, []);
+
   useEffect(() => {
     // Check on mount
     checkForUpdates();
@@ -120,5 +172,5 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
     };
   }, [checkForUpdates, checkInterval]);
 
-  return { checkForUpdates, syncStatus, lastSyncTime };
+  return { checkForUpdates, forceHardRefresh, syncStatus, lastSyncTime };
 };
