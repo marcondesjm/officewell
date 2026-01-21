@@ -10,23 +10,23 @@ const Demo = () => {
   
   useEffect(() => {
     const redirectTo = searchParams.get('redirect') || '/';
-    const showTour = searchParams.get('tour') === 'true';
     
-    // If tour is requested, always reset tour state
-    if (showTour) {
-      localStorage.removeItem('officewell_tour_completed');
-      sessionStorage.setItem('officewell_new_demo', 'true');
-    }
+    // Always reset demo state for fresh experience
+    localStorage.removeItem('officewell_tour_completed');
+    localStorage.removeItem('officewell_water_count');
+    localStorage.removeItem('officewell_stretch_count');
+    localStorage.removeItem('officewell_eye_count');
+    localStorage.removeItem('officewell_points');
+    localStorage.removeItem('officewell_daily_goal');
+    localStorage.removeItem('officewell_mood_today');
+    localStorage.removeItem('officewell_last_report_date');
+    sessionStorage.setItem('officewell_new_demo', 'true');
     
-    // If not on enterprise trial, start one
-    if (!isOnTrial || planId !== 'enterprise') {
-      startTrial('enterprise', 'Empresarial', 7);
-      // Set flag for onboarding tour
-      sessionStorage.setItem('officewell_new_demo', 'true');
-      toast.success('🎉 Conta Demo ativada! Todas as funcionalidades liberadas por 7 dias.', {
-        duration: 5000,
-      });
-    }
+    // Always start fresh enterprise trial
+    startTrial('enterprise', 'Empresarial', 7);
+    toast.success('🎉 Conta Demo ativada! Painel resetado com todas as funcionalidades por 7 dias.', {
+      duration: 5000,
+    });
     
     // Redirect to the requested page or home
     navigate(redirectTo, { replace: true });
