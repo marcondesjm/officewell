@@ -6,7 +6,7 @@ import { Trophy, Crown, Medal, Star, Gift, Calendar, Sparkles } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format, subMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import Confetti from '@/components/Confetti';
 import { useAuth } from '@/contexts/AuthContext';
@@ -96,9 +96,9 @@ export const MonthlyAwardsCard = () => {
   const [showConfetti, setShowConfetti] = useState(false);
   const { user } = useAuth();
 
-  // Get last month in YYYY-MM format
-  const lastMonth = format(subMonths(new Date(), 1), 'yyyy-MM');
-  const lastMonthDisplay = format(subMonths(new Date(), 1), 'MMMM yyyy', { locale: ptBR });
+  // Get current month in YYYY-MM format (awards are shown for current month)
+  const currentMonth = format(new Date(), 'yyyy-MM');
+  const currentMonthDisplay = format(new Date(), 'MMMM yyyy', { locale: ptBR });
 
   useEffect(() => {
     const fetchAwards = async () => {
@@ -106,7 +106,7 @@ export const MonthlyAwardsCard = () => {
         const { data, error } = await supabase
           .from('monthly_awards')
           .select('*')
-          .eq('month_year', lastMonth)
+          .eq('month_year', currentMonth)
           .order('position', { ascending: true });
 
         if (error) throw error;
@@ -128,7 +128,7 @@ export const MonthlyAwardsCard = () => {
     };
 
     fetchAwards();
-  }, [lastMonth, user]);
+  }, [currentMonth, user]);
 
   if (loading) {
     return (
@@ -163,14 +163,14 @@ export const MonthlyAwardsCard = () => {
             <span>Premiação Mensal</span>
             <Badge variant="secondary" className="text-[10px] bg-purple-500/20 text-purple-600 dark:text-purple-400">
               <Calendar className="h-3 w-3 mr-1" />
-              {lastMonthDisplay}
+              {currentMonthDisplay}
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-6">
           <Gift className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">
-            Nenhuma premiação registrada para {lastMonthDisplay}
+            Nenhuma premiação registrada para {currentMonthDisplay}
           </p>
           <p className="text-xs text-muted-foreground/70 mt-1">
             Os vencedores serão anunciados em breve!
@@ -230,7 +230,7 @@ export const MonthlyAwardsCard = () => {
             </div>
             <Badge variant="secondary" className="text-[10px] bg-purple-500/20 text-purple-600 dark:text-purple-400">
               <Calendar className="h-3 w-3 mr-1" />
-              {lastMonthDisplay}
+              {currentMonthDisplay}
             </Badge>
           </CardTitle>
         </CardHeader>
@@ -299,14 +299,21 @@ export const MonthlyAwardsCard = () => {
 
                     {/* Prize */}
                     <motion.div 
-                      className={`mt-2 px-2 py-1 rounded-lg bg-gradient-to-r ${config.bgColor} border ${config.borderColor}`}
+                      className={`mt-2 px-2 py-1.5 rounded-lg bg-gradient-to-r ${config.bgColor} border ${config.borderColor} max-w-[120px]`}
                       whileHover={{ scale: 1.05 }}
                     >
-                      <div className="flex items-center gap-1">
-                        <Gift className={`h-3 w-3 ${config.color}`} />
-                        <span className={`text-[10px] font-medium ${config.color}`}>
-                          {award.prize_title}
-                        </span>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <div className="flex items-center gap-1">
+                          <Gift className={`h-3 w-3 ${config.color}`} />
+                          <span className={`text-[10px] font-bold ${config.color}`}>
+                            {award.prize_title}
+                          </span>
+                        </div>
+                        {award.prize_description && (
+                          <span className="text-[9px] text-muted-foreground text-center leading-tight">
+                            {award.prize_description}
+                          </span>
+                        )}
                       </div>
                     </motion.div>
                   </motion.div>
