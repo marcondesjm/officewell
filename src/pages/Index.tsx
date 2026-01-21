@@ -92,7 +92,9 @@ const Index = () => {
   const [postureCheckOpen, setPostureCheckOpen] = useState(false);
   const [dailySessionOpen, setDailySessionOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    return sessionStorage.getItem('officewell_demo_active') === 'true';
+  });
 
   const navigate = useNavigate();
   const { features } = usePlanFeatures();
@@ -138,6 +140,22 @@ const Index = () => {
     } else if (isDemo) {
       setIsDemoMode(true);
     }
+  }, []);
+  
+  // Keep isDemoMode in sync with sessionStorage
+  useEffect(() => {
+    const checkDemoMode = () => {
+      const isDemo = sessionStorage.getItem('officewell_demo_active') === 'true';
+      setIsDemoMode(isDemo);
+    };
+    
+    const interval = setInterval(checkDemoMode, 1000);
+    window.addEventListener('storage', checkDemoMode);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', checkDemoMode);
+    };
   }, []);
 
   // Show work schedule setup on first load
