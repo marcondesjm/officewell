@@ -35,6 +35,7 @@ import { EnterpriseRenewCard } from "@/components/EnterpriseRenewCard";
 import { PartnersBanner } from "@/components/PartnersBanner";
 import { AdBanner } from "@/components/AdBanner";
 import { HealthTips } from "@/components/HealthTips";
+import { DemoBanner } from "@/components/DemoBanner";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,7 @@ const Index = () => {
   const [postureCheckOpen, setPostureCheckOpen] = useState(false);
   const [dailySessionOpen, setDailySessionOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   const navigate = useNavigate();
   const { features } = usePlanFeatures();
@@ -91,6 +93,38 @@ const Index = () => {
   const { resetTour } = useTour();
   const { checkForUpdates, syncStatus, lastSyncTime } = useAppRefresh(60 * 60 * 1000);
   const isOnline = useOnlineStatus();
+
+  // Auto-activate demo mode on first visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('officewell_has_visited');
+    const isDemo = sessionStorage.getItem('officewell_demo_active') === 'true';
+    
+    if (!hasVisited) {
+      // First visit - activate demo mode
+      localStorage.setItem('officewell_has_visited', 'true');
+      sessionStorage.setItem('officewell_demo_active', 'true');
+      setIsDemoMode(true);
+      
+      // Reset all demo state for fresh experience
+      localStorage.removeItem('officewell_tour_completed');
+      localStorage.removeItem('officewell_water_count');
+      localStorage.removeItem('officewell_stretch_count');
+      localStorage.removeItem('officewell_eye_count');
+      localStorage.removeItem('officewell_points');
+      localStorage.removeItem('officewell_daily_goal');
+      localStorage.removeItem('officewell_mood_today');
+      localStorage.removeItem('officewell_last_report_date');
+      sessionStorage.setItem('officewell_new_demo', 'true');
+      
+      import("sonner").then(({ toast }) => {
+        toast.success('🎉 Bem-vindo! Você está usando a Conta Demo com todas as funcionalidades liberadas.', {
+          duration: 6000,
+        });
+      });
+    } else if (isDemo) {
+      setIsDemoMode(true);
+    }
+  }, []);
 
   // Show work schedule setup on first load
   useEffect(() => {
@@ -215,6 +249,11 @@ const Index = () => {
 
         {/* Content Area */}
         <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
+          {/* Demo Banner */}
+          {isDemoMode && (
+            <DemoBanner onUpgrade={() => setPlansOpen(true)} />
+          )}
+          
           {renderSection()}
 
           {/* Plans/Renew Section - Show on home */}
