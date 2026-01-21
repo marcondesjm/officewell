@@ -55,26 +55,28 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
         throw new Error(`HTTP ${response.status}`);
       }
       
-      // Extrair versão do HTML ou usar ETag/Last-Modified
+      // Extrair versão do HTML - buscar a constante APP_VERSION
       const html = await response.text();
-      const versionMatch = html.match(/APP_VERSION["\s:=]+["']([^"']+)["']/);
-      const serverVersion = versionMatch?.[1] || response.headers.get('etag') || response.headers.get('last-modified') || '';
+      const versionMatch = html.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
+      const serverVersion = versionMatch?.[1] || null;
+      
+      // Usar a versão encontrada no HTML, ou ETag como fallback
+      const etag = response.headers.get('etag');
+      const serverHash = serverVersion || etag || '';
       
       const storedVersion = localStorage.getItem('app-version-hash');
-      const currentHash = serverVersion || `${timestamp}`;
       
-      console.log(`[PWA Update] Local: ${storedVersion}, Server: ${currentHash}, SW Updated: ${swUpdated}`);
+      console.log(`[PWA Update] Local: ${storedVersion}, Server: ${serverHash}, SW Updated: ${swUpdated}`);
       
-      // Se o SW foi atualizado OU a versão mudou, recarregar
-      if (swUpdated || (storedVersion && storedVersion !== currentHash && currentHash)) {
+      // Se o SW foi atualizado, aplicar imediatamente
+      if (swUpdated) {
         setSyncStatus('updating');
         toast.info("🔄 Nova versão disponível!", {
-          description: "O app será atualizado agora...",
+          description: "Aplicando atualização...",
           duration: 2000,
         });
         
-        localStorage.setItem('app-version-hash', currentHash);
-        localStorage.setItem('app-update-in-progress', 'true');
+        localStorage.setItem('app-version-hash', serverHash || APP_VERSION);
         localStorage.setItem('app-just-updated', 'true');
         
         // Limpar caches do PWA para forçar download dos novos arquivos
@@ -89,11 +91,38 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
         }, 1500);
         
         return true;
-      } 
+      }
       
-      // Sem atualizações, salvar versão atual
-      if (currentHash) {
-        localStorage.setItem('app-version-hash', currentHash);
+      // Verificar se versão do servidor é diferente da local
+      const hasNewVersion = serverHash && storedVersion && serverHash !== storedVersion;
+      
+      if (hasNewVersion) {
+        setSyncStatus('updating');
+        toast.info("🔄 Nova versão disponível!", {
+          description: "Aplicando atualização...",
+          duration: 2000,
+        });
+        
+        localStorage.setItem('app-version-hash', serverHash);
+        localStorage.setItem('app-just-updated', 'true');
+        
+        // Limpar caches do PWA
+        if ('caches' in window) {
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+        }
+        
+        // Reload após breve delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+        
+        return true;
+      }
+      
+      // Sem atualizações - salvar versão atual se ainda não tiver
+      if (serverHash && !storedVersion) {
+        localStorage.setItem('app-version-hash', serverHash);
       }
       
       setSyncStatus('synced');
