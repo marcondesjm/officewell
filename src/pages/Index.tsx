@@ -31,6 +31,7 @@ import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { PlanDemoModal } from "@/components/PlanDemoModal";
 import { PlansHighlight } from "@/components/PlansHighlight";
+import { EnterpriseRenewCard } from "@/components/EnterpriseRenewCard";
 import { PartnersBanner } from "@/components/PartnersBanner";
 import { AdBanner } from "@/components/AdBanner";
 import { HealthTips } from "@/components/HealthTips";
@@ -216,9 +217,10 @@ const Index = () => {
         <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
           {renderSection()}
 
-          {/* Plans Highlight - Show on home */}
+          {/* Plans/Renew Section - Show on home */}
           {currentSection === "home" && (
             <>
+              {/* Ads for non-enterprise users */}
               {!features.noAds && (
                 <>
                   <PartnersBanner />
@@ -226,16 +228,21 @@ const Index = () => {
                 </>
               )}
               
-              <PlansHighlight 
-                onSelectPlan={(planId) => {
-                  setSelectedPlanId(planId || null);
-                  setPlansOpen(true);
-                }} 
-                onShowDemo={(planId) => {
-                  setDemoPlanId(planId);
-                  setDemoOpen(true);
-                }}
-              />
+              {/* Enterprise users see renew card, others see plans */}
+              {features.hrPanel ? (
+                <EnterpriseRenewCard onRenew={() => setPlansOpen(true)} />
+              ) : (
+                <PlansHighlight 
+                  onSelectPlan={(planId) => {
+                    setSelectedPlanId(planId || null);
+                    setPlansOpen(true);
+                  }} 
+                  onShowDemo={(planId) => {
+                    setDemoPlanId(planId);
+                    setDemoOpen(true);
+                  }}
+                />
+              )}
 
               {!features.noAds && (
                 <AdBanner onUpgrade={() => setPlansOpen(true)} variant="inline" />
