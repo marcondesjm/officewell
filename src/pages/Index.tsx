@@ -113,20 +113,23 @@ const Index = () => {
   // Online status
   const isOnline = useOnlineStatus();
 
-  // Verificação leve de atualizações (sem reload)
+  // Verificação de atualizações com feedback claro
   const handleCheckUpdates = async () => {
     setIsRefreshing(true);
     
     try {
       const { toast } = await import("sonner");
       
-      // Apenas verificar se há atualizações disponíveis
+      toast.loading("🔍 Verificando atualizações...", { id: 'update-check' });
+      
+      // Verificar se há atualizações disponíveis
       const hasUpdates = await checkForUpdates();
       
       if (!hasUpdates) {
-        toast.success("✅ App já está atualizado!", {
-          description: `Versão ${APP_VERSION}`,
-          duration: 2000,
+        toast.success("✅ App sincronizado!", {
+          id: 'update-check',
+          description: `Versão ${APP_VERSION} • Tudo atualizado`,
+          duration: 3000,
         });
       }
       // Se hasUpdates = true, o hook useAppRefresh já mostra o toast e faz o reload
@@ -134,7 +137,11 @@ const Index = () => {
     } catch (e) {
       console.error('Erro ao verificar atualizações:', e);
       const { toast } = await import("sonner");
-      toast.error("Erro ao verificar atualizações", { duration: 2000 });
+      toast.error("❌ Erro ao verificar", { 
+        id: 'update-check',
+        description: "Toque para tentar novamente",
+        duration: 3000 
+      });
     } finally {
       setIsRefreshing(false);
     }
