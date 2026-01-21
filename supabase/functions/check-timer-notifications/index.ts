@@ -38,12 +38,17 @@ Deno.serve(async (req) => {
 
     const now = Date.now();
     const notificationsSent: Array<{ session_id: string; type: string }> = [];
+    
+    // Considerar timers inativos após 2 horas sem atualização (app provavelmente fechado há muito tempo)
+    const maxInactiveTime = 2 * 60 * 60 * 1000; // 2 horas
+    const minUpdateTime = new Date(now - maxInactiveTime).toISOString();
 
-    // Buscar todos os timer states que estão rodando
+    // Buscar timer states com pelo menos um end_time no futuro OU recentemente expirado
+    // NÃO depender de is_running porque o app pode fechar sem atualizar
     const { data: timerStates, error: timerError } = await supabase
       .from('timer_states')
       .select('*')
-      .eq('is_running', true);
+      .gte('updated_at', minUpdateTime); // Apenas timers atualizados nas últimas 2 horas
 
     if (timerError) {
       throw new Error(`Erro ao buscar timer states: ${timerError.message}`);
@@ -51,18 +56,24 @@ Deno.serve(async (req) => {
 
     if (!timerStates || timerStates.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, message: 'Nenhum timer ativo', notifications: 0 }),
+        JSON.stringify({ success: true, message: 'Nenhum timer recente encontrado', notifications: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log(`📋 Verificando ${timerStates.length} timer states`);
+    
+    // Tempo máximo de expiração para considerar: 30 minutos
+    // (não enviar notificação para timers expirados há muito tempo)
+    const maxExpiredTime = 30 * 60 * 1000;
 
     // Para cada timer state, verificar se algum timer expirou
     for (const state of timerStates) {
       const timersToNotify: string[] = [];
       const updates: Record<string, number> = {};
 
-      // Verificar timer de olhos
-      if (state.eye_end_time && state.eye_end_time <= now) {
+      // Verificar timer de olhos (expirado E dentro do tempo máximo)
+      if (state.eye_end_time && state.eye_end_time <= now && (now - state.eye_end_time) < maxExpiredTime) {
         const lastNotified = state.last_notified_eye || 0;
         if (now - lastNotified >= NOTIFICATION_COOLDOWN) {
           timersToNotify.push('eye');
@@ -71,7 +82,7 @@ Deno.serve(async (req) => {
       }
 
       // Verificar timer de alongamento
-      if (state.stretch_end_time && state.stretch_end_time <= now) {
+      if (state.stretch_end_time && state.stretch_end_time <= now && (now - state.stretch_end_time) < maxExpiredTime) {
         const lastNotified = state.last_notified_stretch || 0;
         if (now - lastNotified >= NOTIFICATION_COOLDOWN) {
           timersToNotify.push('stretch');
@@ -80,7 +91,7 @@ Deno.serve(async (req) => {
       }
 
       // Verificar timer de água
-      if (state.water_end_time && state.water_end_time <= now) {
+      if (state.water_end_time && state.water_end_time <= now && (now - state.water_end_time) < maxExpiredTime) {
         const lastNotified = state.last_notified_water || 0;
         if (now - lastNotified >= NOTIFICATION_COOLDOWN) {
           timersToNotify.push('water');

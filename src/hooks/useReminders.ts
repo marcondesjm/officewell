@@ -311,7 +311,7 @@ export const useReminders = () => {
     localStorage.setItem("timersRunning", String(isRunning));
   }, [isRunning]);
 
-  // Salvar estado antes de fechar/minimizar o app
+  // Salvar estado antes de fechar/minimizar o app + sincronizar com backend periodicamente
   useEffect(() => {
     const saveStateBeforeUnload = () => {
       const stateToSave = {
@@ -329,6 +329,15 @@ export const useReminders = () => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
         saveStateBeforeUnload();
+        // IMPORTANTE: Sincronizar com backend ao minimizar o app
+        if (isPushSubscribed && hasActiveDbSubscription && isRunning) {
+          syncTimerStateToBackend({
+            eyeEndTime: timestamps.eyeEndTime,
+            stretchEndTime: timestamps.stretchEndTime,
+            waterEndTime: timestamps.waterEndTime,
+            isRunning: true, // Forçar isRunning: true para o backend continuar verificando
+          });
+        }
       }
     };
 
@@ -339,8 +348,19 @@ export const useReminders = () => {
     // Também salvar ao perder foco
     window.addEventListener("blur", saveStateBeforeUnload);
     
-    // Salvar periodicamente a cada 30 segundos como backup
-    const saveInterval = setInterval(saveStateBeforeUnload, 30000);
+    // Sincronizar periodicamente com backend a cada 30 segundos (CRUCIAL para notificações)
+    const saveInterval = setInterval(() => {
+      saveStateBeforeUnload();
+      // Sincronizar com backend periodicamente
+      if (isPushSubscribed && hasActiveDbSubscription && isRunning) {
+        syncTimerStateToBackend({
+          eyeEndTime: timestamps.eyeEndTime,
+          stretchEndTime: timestamps.stretchEndTime,
+          waterEndTime: timestamps.waterEndTime,
+          isRunning: true,
+        });
+      }
+    }, 30000);
 
     return () => {
       window.removeEventListener("beforeunload", saveStateBeforeUnload);
@@ -348,7 +368,7 @@ export const useReminders = () => {
       window.removeEventListener("blur", saveStateBeforeUnload);
       clearInterval(saveInterval);
     };
-  }, [timestamps, isRunning]);
+  }, [timestamps, isRunning, isPushSubscribed, hasActiveDbSubscription, syncTimerStateToBackend]);
 
   // Aplicar intervalos otimizados quando o expediente começa
   useEffect(() => {
