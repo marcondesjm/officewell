@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useBackgroundSync } from "./useBackgroundSync";
 import { useReminderStats } from "./useReminderStats";
 import { useWorkSchedule } from "./useWorkSchedule";
+import { usePushNotificationsNew } from "./usePushNotificationsNew";
 
 export type NotificationTone = 'soft-beep' | 'chime' | 'bell' | 'digital' | 'gentle' | 'alert';
 
@@ -211,9 +212,12 @@ export const useReminders = () => {
     getRemainingWorkMinutes 
   } = useWorkSchedule();
   
-  // Push notifications state - será sincronizado via effects
-  const [isPushSubscribed, setIsPushSubscribed] = useState(false);
-  const syncTimerStateToBackendRef = useRef<((state: any) => void) | null>(null);
+  // Usar o hook de push notifications para sincronizar timers com backend
+  const { 
+    isSubscribed: isPushSubscribed, 
+    syncTimerStateToBackend,
+    hasActiveDbSubscription 
+  } = usePushNotificationsNew();
   
   const [config, setConfig] = useState<ReminderConfig>(initialConfig.current);
   const [timestamps, setTimestamps] = useState<TimerTimestamps>(() => loadTimestamps(initialConfig.current));
@@ -297,10 +301,10 @@ export const useReminders = () => {
     syncTimerState(timerState);
     
     // Sincronizar com backend para push notifications (se habilitado)
-    if (isPushSubscribed && syncTimerStateToBackendRef.current) {
-      syncTimerStateToBackendRef.current(timerState);
+    if (isPushSubscribed && hasActiveDbSubscription) {
+      syncTimerStateToBackend(timerState);
     }
-  }, [timestamps, isRunning, syncTimerState, isPushSubscribed, schedule, config.notifyOnResume]);
+  }, [timestamps, isRunning, syncTimerState, isPushSubscribed, hasActiveDbSubscription, syncTimerStateToBackend, schedule, config.notifyOnResume]);
 
   // Salvar estado running
   useEffect(() => {
