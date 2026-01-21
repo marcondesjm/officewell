@@ -120,23 +120,45 @@ export const AppSidebar = ({
             const Icon = item.icon;
 
             return (
-              <li key={item.id}>
+              <li key={item.id} className="relative">
+                {/* Animated active indicator */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeSection"
+                    className="absolute inset-0 bg-primary/15 rounded-xl shadow-sm"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  />
+                )}
+                
+                {/* Active bar indicator on the left */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeBar"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  />
+                )}
+                
                 <button
                   onClick={() => handleNavClick(item)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
+                    "relative w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200",
                     "hover:bg-primary/10 active:scale-[0.98]",
-                    isActive && "bg-primary/15 text-primary font-semibold shadow-sm",
+                    isActive && "text-primary font-semibold",
                     !isActive && "text-muted-foreground hover:text-foreground",
                     item.locked && "opacity-60"
                   )}
                 >
-                  <div className={cn(
-                    "flex items-center justify-center w-9 h-9 rounded-lg shrink-0",
-                    isActive ? "bg-primary/20" : "bg-muted/50"
-                  )}>
+                  <motion.div 
+                    className={cn(
+                      "flex items-center justify-center w-9 h-9 rounded-lg shrink-0",
+                      isActive ? "bg-primary/20" : "bg-muted/50"
+                    )}
+                    animate={isActive ? { scale: [1, 1.1, 1] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
                     <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
-                  </div>
+                  </motion.div>
                   
                   <AnimatePresence mode="wait">
                     {!isCollapsed && (
