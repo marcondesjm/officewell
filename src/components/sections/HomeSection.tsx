@@ -6,6 +6,7 @@ import { NotificationPermissionBanner } from "@/components/NotificationPermissio
 import { BackgroundPushBanner } from "@/components/BackgroundPushBanner";
 import { TrialBanner } from "@/components/TrialBanner";
 import { InactivityWarning } from "@/components/InactivityWarning";
+import { MonthlyBirthdaysCard } from "@/components/MonthlyBirthdaysCard";
 import { Briefcase, Coffee, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -108,6 +109,9 @@ export const HomeSection = ({
         <MoodTracker />
         <TipOfTheDay />
       </div>
+
+      {/* Monthly Birthdays */}
+      <MonthlyBirthdaysCard />
     </section>
   );
 };
