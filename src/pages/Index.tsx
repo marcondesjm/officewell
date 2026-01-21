@@ -94,13 +94,17 @@ const Index = () => {
   const { checkForUpdates, syncStatus, lastSyncTime } = useAppRefresh(60 * 60 * 1000);
   const isOnline = useOnlineStatus();
 
-  // Auto-activate demo mode on first visit
+  // Auto-activate demo mode on first visit or PWA access
   useEffect(() => {
     const hasVisited = localStorage.getItem('officewell_has_visited');
     const isDemo = sessionStorage.getItem('officewell_demo_active') === 'true';
+    const isStandalonePWA = window.matchMedia("(display-mode: standalone)").matches;
     
-    if (!hasVisited) {
-      // First visit - activate demo mode
+    // For PWA users who haven't set up yet, auto-activate demo
+    const shouldActivateDemo = !hasVisited || (isStandalonePWA && !isDemo && !hasVisited);
+    
+    if (shouldActivateDemo) {
+      // First visit or new PWA install - activate demo mode
       localStorage.setItem('officewell_has_visited', 'true');
       sessionStorage.setItem('officewell_demo_active', 'true');
       setIsDemoMode(true);
