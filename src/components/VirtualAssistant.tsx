@@ -330,7 +330,7 @@ export const VirtualAssistant = ({ currentMood }: VirtualAssistantProps) => {
     <>
       {/* Floating Button */}
       <motion.div
-        className="fixed bottom-6 right-6 z-50"
+        className="fixed bottom-24 right-6 z-40 md:bottom-6"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 20 }}
@@ -362,7 +362,7 @@ export const VirtualAssistant = ({ currentMood }: VirtualAssistantProps) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-6 z-50 w-80 sm:w-96"
+            className="fixed bottom-40 right-6 z-40 w-80 sm:w-96 md:bottom-24"
           >
             <Card className="flex flex-col h-[500px] shadow-xl border-2">
               {/* Header */}
