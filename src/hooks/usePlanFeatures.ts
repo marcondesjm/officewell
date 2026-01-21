@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useTrialStatus } from "./useTrialStatus";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -53,9 +54,33 @@ export const usePlanFeatures = () => {
   const { isOnTrial, planId, isExpired } = useTrialStatus();
   const { profile } = useAuth();
 
-  // Check if demo mode is active via sessionStorage
-  const isDemoModeActive = typeof window !== 'undefined' && 
-    sessionStorage.getItem('officewell_demo_active') === 'true';
+  // Check if demo mode is active via sessionStorage - use state to be reactive
+  const [isDemoModeActive, setIsDemoModeActive] = useState(() => {
+    return typeof window !== 'undefined' && 
+      sessionStorage.getItem('officewell_demo_active') === 'true';
+  });
+
+  // Re-check demo mode on mount and when storage changes
+  useEffect(() => {
+    const checkDemoMode = () => {
+      const isDemo = sessionStorage.getItem('officewell_demo_active') === 'true';
+      setIsDemoModeActive(isDemo);
+    };
+    
+    // Check immediately
+    checkDemoMode();
+    
+    // Listen for storage changes (in case demo is activated elsewhere)
+    window.addEventListener('storage', checkDemoMode);
+    
+    // Also check periodically in case sessionStorage was set in same tab
+    const interval = setInterval(checkDemoMode, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', checkDemoMode);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Determine current plan - priority: demo mode > profile.current_plan > trial > basic
   const getCurrentPlan = (): PlanType => {
