@@ -36,80 +36,40 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
     setSyncStatus('checking');
     
     try {
+      // Verificar se já está em processo de atualização para evitar loop
+      const isUpdating = sessionStorage.getItem('app-update-in-progress');
+      if (isUpdating === 'true') {
+        // Limpar flag e considerar atualizado
+        sessionStorage.removeItem('app-update-in-progress');
+        localStorage.setItem('app-version-hash', APP_VERSION);
+        setSyncStatus('synced');
+        setLastSyncTime(new Date());
+        return false;
+      }
+      
       // 1. Tentar atualizar o Service Worker primeiro
       const swUpdated = await forceServiceWorkerUpdate();
       
-      // 2. Buscar versão do servidor com cache-busting agressivo
-      const timestamp = Date.now();
-      const response = await fetch(`${window.location.origin}/index.html?_nocache=${timestamp}`, {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      // Extrair versão do HTML - buscar a constante APP_VERSION
-      const html = await response.text();
-      const versionMatch = html.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
-      const serverVersion = versionMatch?.[1] || null;
-      
-      // Usar a versão encontrada no HTML, ou ETag como fallback
-      const etag = response.headers.get('etag');
-      const serverHash = serverVersion || etag || '';
-      
       const storedVersion = localStorage.getItem('app-version-hash');
       
-      console.log(`[PWA Update] Current: ${APP_VERSION}, Local: ${storedVersion}, Server: ${serverHash}, SW Updated: ${swUpdated}`);
+      console.log(`[PWA Update] Current: ${APP_VERSION}, Stored: ${storedVersion}, SW Updated: ${swUpdated}`);
       
-      // Verificar se versão atual do código é diferente da armazenada
-      const localVersionMismatch = storedVersion && storedVersion !== APP_VERSION;
+      // Verificar se versão armazenada é diferente da atual no código
+      const needsUpdate = swUpdated || (storedVersion && storedVersion !== APP_VERSION);
       
-      // Se o SW foi atualizado OU versão local não bate com a atual, aplicar imediatamente
-      if (swUpdated || localVersionMismatch) {
+      if (needsUpdate) {
         setSyncStatus('updating');
         toast.info("🔄 Nova versão disponível!", {
           description: "Aplicando atualização...",
           duration: 2000,
         });
         
-        localStorage.setItem('app-version-hash', serverHash || APP_VERSION);
+        // Marcar que estamos atualizando para evitar loop
+        sessionStorage.setItem('app-update-in-progress', 'true');
+        localStorage.setItem('app-version-hash', APP_VERSION);
         localStorage.setItem('app-just-updated', 'true');
         
         // Limpar caches do PWA para forçar download dos novos arquivos
-        if ('caches' in window) {
-          const cacheNames = await caches.keys();
-          await Promise.all(cacheNames.map(name => caches.delete(name)));
-        }
-        
-        // Reload após breve delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-        
-        return true;
-      }
-      
-      // Verificar se versão do servidor é diferente da local
-      const hasNewVersion = serverHash && storedVersion && serverHash !== storedVersion;
-      
-      if (hasNewVersion) {
-        setSyncStatus('updating');
-        toast.info("🔄 Nova versão disponível!", {
-          description: "Aplicando atualização...",
-          duration: 2000,
-        });
-        
-        localStorage.setItem('app-version-hash', serverHash);
-        localStorage.setItem('app-just-updated', 'true');
-        
-        // Limpar caches do PWA
         if ('caches' in window) {
           const cacheNames = await caches.keys();
           await Promise.all(cacheNames.map(name => caches.delete(name)));
