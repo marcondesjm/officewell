@@ -70,8 +70,14 @@ const Index = () => {
     getRemainingWorkMinutes,
   } = useReminders();
 
-  // Section navigation
+  // Section navigation with scroll to top
   const [currentSection, setCurrentSection] = useState("home");
+  
+  const handleSectionChange = (section: string) => {
+    setCurrentSection(section);
+    // Scroll to top when changing sections
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Modal states
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -238,7 +244,7 @@ const Index = () => {
       {/* Desktop Sidebar */}
       <AppSidebar
         currentSection={currentSection}
-        onSectionChange={setCurrentSection}
+        onSectionChange={handleSectionChange}
         onOpenPlans={() => setPlansOpen(true)}
         onOpenDonation={() => setDonationOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
@@ -403,7 +409,7 @@ const Index = () => {
       </main>
 
       {/* Mobile Navigation */}
-      <MobileNav currentSection={currentSection} onSectionChange={setCurrentSection} />
+      <MobileNav currentSection={currentSection} onSectionChange={handleSectionChange} />
 
       {/* Modals */}
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} config={config} onSave={updateConfig} />
