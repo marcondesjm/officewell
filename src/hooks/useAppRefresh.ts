@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState } from "react";
 import { toast } from "sonner";
 
 // Versão do app - atualize aqui a cada release
-export const APP_VERSION = "1.2.4";
+export const APP_VERSION = "1.2.5";
 
 export type SyncStatus = 'synced' | 'checking' | 'updating' | 'error';
 
