@@ -307,29 +307,51 @@ export const SubscriptionPlans = ({ open, onOpenChange, preSelectedPlan }: Subsc
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter>
-                    <Button 
-                      className={`w-full ${
-                        plan.popular 
-                          ? "gradient-primary text-primary-foreground" 
-                          : plan.id === "basic" 
-                            ? "bg-success hover:bg-success/90 text-success-foreground" 
-                            : plan.id === "enterprise"
-                              ? "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-                              : ""
-                      }`}
-                      variant={plan.popular ? "default" : "outline"}
-                      onClick={() => handleSelectPlan(plan.id)}
-                      disabled={isOnTrial && currentTrialPlanId === plan.id}
-                    >
-                      {plan.id === "basic" 
-                        ? "Plano Atual" 
-                        : isOnTrial && currentTrialPlanId === plan.id 
-                          ? "✓ Em Teste" 
-                          : plan.trial 
-                            ? "Testar Grátis" 
-                            : "Escolher Plano"}
-                    </Button>
+                  <CardFooter className="flex-col gap-2">
+                    {plan.id === "basic" ? (
+                      <Button 
+                        className="w-full bg-success hover:bg-success/90 text-success-foreground"
+                        disabled
+                      >
+                        Plano Atual
+                      </Button>
+                    ) : (
+                      <>
+                        {/* Testar Grátis button */}
+                        {plan.trial && (
+                          <Button 
+                            className={`w-full ${
+                              plan.popular 
+                                ? "gradient-primary text-primary-foreground" 
+                                : plan.id === "enterprise"
+                                  ? "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                                  : ""
+                            }`}
+                            onClick={() => handleSelectPlan(plan.id)}
+                            disabled={isOnTrial && currentTrialPlanId === plan.id}
+                          >
+                            {isOnTrial && currentTrialPlanId === plan.id 
+                              ? "✓ Em Teste" 
+                              : "Testar Grátis"}
+                          </Button>
+                        )}
+                        
+                        {/* Contratar button */}
+                        <Button 
+                          variant="outline"
+                          className={`w-full border-2 ${
+                            plan.popular 
+                              ? "border-primary/50 text-primary hover:bg-primary/10" 
+                              : plan.id === "enterprise"
+                                ? "border-secondary/50 text-secondary hover:bg-secondary/10"
+                                : "border-muted-foreground/30 hover:bg-muted"
+                          }`}
+                          onClick={() => handleSelectPlan(plan.id)}
+                        >
+                          Contratar Agora
+                        </Button>
+                      </>
+                    )}
                   </CardFooter>
                 </Card>
               );
