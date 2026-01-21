@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download, Heart, Crown, RefreshCw, Sparkles } from "lucide-react";
+import { Download, Heart, Crown, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import { Check, AlertCircle, Loader2, WifiOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -100,7 +100,7 @@ const Index = () => {
   const { features } = usePlanFeatures();
   const { inactivityInfo, dismissInactivityWarning } = useGamification();
   const { resetTour } = useTour();
-  const { checkForUpdates, syncStatus, lastSyncTime } = useAppRefresh(60 * 60 * 1000);
+  const { checkForUpdates, forceHardRefresh, syncStatus, lastSyncTime } = useAppRefresh(60 * 60 * 1000);
   const isOnline = useOnlineStatus();
 
   // Auto-activate demo mode on first visit or PWA access
@@ -355,10 +355,21 @@ const Index = () => {
                     onClick={handleCheckUpdates}
                     variant="ghost"
                     size="sm"
-                    className="ml-2 min-h-10 min-w-10 h-10 w-10 p-0 rounded-xl text-green-600 dark:text-green-400 hover:bg-green-500/20"
+                    className="min-h-10 min-w-10 h-10 w-10 p-0 rounded-xl text-green-600 dark:text-green-400 hover:bg-green-500/20"
                     disabled={syncStatus === 'checking'}
+                    title="Verificar atualizações"
                   >
                     <RefreshCw size={18} className={syncStatus === 'checking' ? "animate-spin" : ""} />
+                  </Button>
+                  <Button
+                    onClick={forceHardRefresh}
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-10 min-w-10 h-10 w-10 p-0 rounded-xl text-orange-500 dark:text-orange-400 hover:bg-orange-500/20"
+                    disabled={syncStatus === 'checking'}
+                    title="Limpar cache e recarregar"
+                  >
+                    <Trash2 size={18} />
                   </Button>
                 </div>
               )}
