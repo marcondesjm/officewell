@@ -32,6 +32,7 @@ import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
 import { PlanDemoModal } from "@/components/PlanDemoModal";
 import { PlansHighlight } from "@/components/PlansHighlight";
 import { EnterpriseRenewCard } from "@/components/EnterpriseRenewCard";
+import { MonthlyAwardsCard } from "@/components/MonthlyAwardsCard";
 import { PartnersBanner } from "@/components/PartnersBanner";
 import { AdBanner } from "@/components/AdBanner";
 import { HealthTips } from "@/components/HealthTips";
@@ -280,8 +281,10 @@ const Index = () => {
                 </>
               )}
               
-              {/* Enterprise users see renew card, others see plans */}
-              {features.hrPanel ? (
+              {/* Demo mode shows Monthly Awards, Enterprise shows renew card, others see plans */}
+              {isDemoMode ? (
+                <MonthlyAwardsCard />
+              ) : features.hrPanel ? (
                 <EnterpriseRenewCard onRenew={() => setPlansOpen(true)} />
               ) : (
                 <PlansHighlight 
