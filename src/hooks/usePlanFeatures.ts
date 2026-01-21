@@ -53,8 +53,17 @@ export const usePlanFeatures = () => {
   const { isOnTrial, planId, isExpired } = useTrialStatus();
   const { profile } = useAuth();
 
-  // Determine current plan - priority: profile.current_plan > trial > basic
+  // Check if demo mode is active via sessionStorage
+  const isDemoModeActive = typeof window !== 'undefined' && 
+    sessionStorage.getItem('officewell_demo_active') === 'true';
+
+  // Determine current plan - priority: demo mode > profile.current_plan > trial > basic
   const getCurrentPlan = (): PlanType => {
+    // 0. DEMO MODE - Full enterprise access (highest priority)
+    if (isDemoModeActive) {
+      return "enterprise";
+    }
+    
     // 1. First check authenticated user's plan from Supabase
     if (profile?.current_plan) {
       // Demo plan gets FULL access (enterprise level) during trial period
