@@ -2,7 +2,7 @@ import { useEffect, useCallback, useState } from "react";
 import { toast } from "sonner";
 
 // Versão do app - atualize aqui a cada release
-export const APP_VERSION = "1.2.1";
+export const APP_VERSION = "1.2.2";
 
 export type SyncStatus = 'synced' | 'checking' | 'updating' | 'error';
 
@@ -66,10 +66,13 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
       
       const storedVersion = localStorage.getItem('app-version-hash');
       
-      console.log(`[PWA Update] Local: ${storedVersion}, Server: ${serverHash}, SW Updated: ${swUpdated}`);
+      console.log(`[PWA Update] Current: ${APP_VERSION}, Local: ${storedVersion}, Server: ${serverHash}, SW Updated: ${swUpdated}`);
       
-      // Se o SW foi atualizado, aplicar imediatamente
-      if (swUpdated) {
+      // Verificar se versão atual do código é diferente da armazenada
+      const localVersionMismatch = storedVersion && storedVersion !== APP_VERSION;
+      
+      // Se o SW foi atualizado OU versão local não bate com a atual, aplicar imediatamente
+      if (swUpdated || localVersionMismatch) {
         setSyncStatus('updating');
         toast.info("🔄 Nova versão disponível!", {
           description: "Aplicando atualização...",
@@ -121,8 +124,8 @@ export const useAppRefresh = (checkInterval = 60 * 60 * 1000) => { // Default: 1
       }
       
       // Sem atualizações - salvar versão atual se ainda não tiver
-      if (serverHash && !storedVersion) {
-        localStorage.setItem('app-version-hash', serverHash);
+      if (!storedVersion) {
+        localStorage.setItem('app-version-hash', APP_VERSION);
       }
       
       setSyncStatus('synced');
