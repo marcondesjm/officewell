@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import logoOfficeWell from "@/assets/logo-officewell.png";
 import { usePlanFeatures } from "@/hooks/usePlanFeatures";
-
+import { ThemeToggle } from "@/components/ThemeToggle";
 interface NavItem {
   id: string;
   label: string;
@@ -82,7 +82,7 @@ export const AppSidebar = ({
     >
       {/* Logo */}
       <div className="p-4 border-b border-border/50">
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-between">
           <AnimatePresence mode="wait">
             {!isCollapsed ? (
               <motion.img
@@ -106,6 +106,9 @@ export const AppSidebar = ({
               </motion.div>
             )}
           </AnimatePresence>
+          
+          {/* Theme Toggle */}
+          <ThemeToggle collapsed={isCollapsed} />
         </div>
       </div>
 
