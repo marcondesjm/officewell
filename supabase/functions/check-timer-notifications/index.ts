@@ -94,16 +94,17 @@ Deno.serve(async (req) => {
         const { data: subscriptions } = await supabase
           .from('push_subscriptions')
           .select('*')
-          .eq('session_id', state.session_id);
+          .eq('session_id', state.session_id)
+          .eq('is_active', true);
 
         if (subscriptions && subscriptions.length > 0) {
           // Enviar notificação para cada timer expirado
           for (const type of timersToNotify) {
             const message = NOTIFICATION_MESSAGES[type as keyof typeof NOTIFICATION_MESSAGES];
             
-            // Chamar função de envio de push
+            // Chamar função send-push-to-device (mais robusta)
             try {
-              const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+              const pushResponse = await fetch(`${supabaseUrl}/functions/v1/send-push-to-device`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -111,19 +112,30 @@ Deno.serve(async (req) => {
                 },
                 body: JSON.stringify({
                   session_id: state.session_id,
-                  type,
                   title: message.title,
                   body: message.body,
+                  url: '/',
+                  data: { type, source: 'timer-check' },
                 }),
               });
 
               if (pushResponse.ok) {
-                notificationsSent.push({ session_id: state.session_id, type });
+                const result = await pushResponse.json();
+                if (result.success) {
+                  notificationsSent.push({ session_id: state.session_id, type });
+                  console.log(`✅ Push enviado para ${state.session_id}: ${type}`);
+                } else {
+                  console.error(`❌ Push falhou para ${state.session_id}:`, result.error);
+                }
+              } else {
+                console.error(`❌ HTTP ${pushResponse.status} ao enviar push`);
               }
             } catch (pushError) {
               console.error(`Erro ao enviar push para ${state.session_id}:`, pushError);
             }
           }
+        } else {
+          console.log(`⚠️ Nenhuma subscription ativa para session_id ${state.session_id}`);
         }
 
         // Atualizar last_notified no banco

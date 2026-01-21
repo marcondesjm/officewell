@@ -34,6 +34,7 @@ import { UserAccountHeader } from "@/components/UserAccountHeader";
 import logoOfficeWell from "@/assets/logo-officewell.png";
 import { LockedFeature } from "@/components/LockedFeature";
 import { LGPDConsentBanner } from "@/components/LGPDConsentBanner";
+import { BackgroundPushBanner } from "@/components/BackgroundPushBanner";
 import ParallaxBackground from "@/components/ParallaxBackground";
 import { VirtualAssistant } from "@/components/VirtualAssistant";
 import { LeaderboardCard } from "@/components/LeaderboardCard";
@@ -278,6 +279,9 @@ const Index = () => {
 
         {/* Notification Permission Banner - Most visible position */}
         <NotificationPermissionBanner onRequestPermission={requestNotificationPermission} />
+        
+        {/* Background Push Banner - For receiving notifications when app is closed */}
+        <BackgroundPushBanner />
 
         {/* Trial Banner */}
         <TrialBanner onUpgrade={() => setPlansOpen(true)} />
