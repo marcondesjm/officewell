@@ -69,35 +69,39 @@ interface Employee {
 const priorityConfig = {
   low: { 
     label: "Baixa", 
-    color: "bg-muted/50 text-muted-foreground border-muted-foreground/20", 
+    color: "bg-slate-500/30 text-slate-300 border-slate-400/50", 
     icon: Info,
-    gradient: "from-slate-500/10 to-slate-600/5",
-    iconColor: "text-slate-400",
-    glow: ""
+    gradient: "from-slate-600/20 via-slate-500/15 to-slate-700/20",
+    iconColor: "text-slate-300",
+    glow: "shadow-slate-500/10",
+    borderColor: "border-slate-400/40"
   },
   normal: { 
     label: "Normal", 
-    color: "bg-blue-500/20 text-blue-400 border-blue-400/30", 
+    color: "bg-blue-500/30 text-blue-300 border-blue-400/50", 
     icon: Info,
-    gradient: "from-blue-500/10 via-indigo-500/5 to-blue-600/10",
-    iconColor: "text-blue-400",
-    glow: ""
+    gradient: "from-blue-600/25 via-cyan-500/20 to-indigo-600/25",
+    iconColor: "text-blue-300",
+    glow: "shadow-blue-500/30 shadow-lg",
+    borderColor: "border-blue-400/50"
   },
   high: { 
     label: "Alta", 
-    color: "bg-amber-500/20 text-amber-400 border-amber-400/30", 
+    color: "bg-amber-500/40 text-amber-200 border-amber-400/60 font-semibold", 
     icon: AlertCircle,
-    gradient: "from-amber-500/15 via-orange-500/10 to-yellow-500/15",
-    iconColor: "text-amber-400",
-    glow: "shadow-amber-500/20"
+    gradient: "from-amber-500/30 via-orange-500/25 to-yellow-500/30",
+    iconColor: "text-amber-300",
+    glow: "shadow-amber-500/40 shadow-xl",
+    borderColor: "border-amber-400/60"
   },
   urgent: { 
     label: "Urgente", 
-    color: "bg-red-500/20 text-red-400 border-red-400/30 animate-pulse", 
+    color: "bg-red-500/40 text-red-200 border-red-400/60 animate-pulse font-bold", 
     icon: AlertTriangle,
-    gradient: "from-red-500/20 via-rose-500/15 to-red-600/20",
-    iconColor: "text-red-400",
-    glow: "shadow-red-500/30 shadow-lg"
+    gradient: "from-red-600/35 via-rose-500/30 to-red-700/35",
+    iconColor: "text-red-300 animate-pulse",
+    glow: "shadow-red-500/50 shadow-2xl",
+    borderColor: "border-red-400/70"
   },
 };
 
@@ -482,92 +486,94 @@ export const HRAnnouncementHeader = () => {
           const PriorityIcon = config.icon;
           
           return (
-            <div className={`relative overflow-hidden rounded-2xl border border-border/50 backdrop-blur-xl bg-gradient-to-br ${config.gradient} ${config.glow} transition-all duration-500`}>
-              {/* Background decoration */}
+            <div className={`relative overflow-hidden rounded-2xl border-2 ${config.borderColor || 'border-primary/40'} backdrop-blur-xl bg-gradient-to-br ${config.gradient} ${config.glow} transition-all duration-500 shadow-2xl`}>
+              {/* Background decoration - More vibrant */}
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${config.gradient} blur-3xl opacity-50`} />
-                <div className={`absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-gradient-to-tr ${config.gradient} blur-2xl opacity-30`} />
+                <div className={`absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br ${config.gradient} blur-3xl opacity-70`} />
+                <div className={`absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-gradient-to-tr ${config.gradient} blur-2xl opacity-50`} />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/30 to-transparent" />
               </div>
 
-              <div className="relative p-6">
-                {/* Header with icon */}
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <div className={`p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 ${config.glow}`}>
-                    <Megaphone className="h-5 w-5 text-primary" />
+              <div className="relative p-4 md:p-6">
+                {/* Header with icon - More compact on mobile */}
+                <div className="flex items-center justify-center gap-2 md:gap-3 mb-3 md:mb-4">
+                  <div className={`p-1.5 md:p-2 rounded-lg md:rounded-xl bg-gradient-to-br from-primary/30 to-primary/20 ${config.glow} ring-2 ring-primary/30`}>
+                    <Megaphone className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                   </div>
-                  <span className="text-sm font-semibold text-muted-foreground tracking-wide uppercase">
+                  <span className="text-xs md:text-sm font-bold text-primary tracking-wide uppercase">
                     Comunicados do RH
                   </span>
                   {announcements.length > 1 && (
-                    <Badge variant="secondary" className="text-xs bg-muted/50">
+                    <Badge variant="secondary" className="text-[10px] md:text-xs bg-primary/20 text-primary font-bold px-2">
                       {currentIndex + 1}/{announcements.length}
                     </Badge>
                   )}
                 </div>
 
-                <div className="min-h-[100px] flex flex-col items-center justify-center">
+                {/* Content area - with padding for arrows on mobile */}
+                <div className="min-h-[90px] md:min-h-[100px] flex flex-col items-center justify-center px-8 md:px-12">
                   {currentAnnouncement && (
                     <div 
                       key={currentAnnouncement.id} 
-                      className="text-center animate-fade-in space-y-3"
+                      className="text-center animate-fade-in space-y-2 md:space-y-3"
                     >
                       {/* Title with priority indicator */}
-                      <div className="flex items-center justify-center gap-3 flex-wrap">
-                        <div className="flex items-center gap-2">
-                          <PriorityIcon className={`h-5 w-5 ${config.iconColor}`} />
-                          <h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+                      <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap">
+                        <div className="flex items-center gap-1.5 md:gap-2">
+                          <PriorityIcon className={`h-4 w-4 md:h-5 md:w-5 ${config.iconColor}`} />
+                          <h3 className="text-base md:text-xl lg:text-2xl font-bold text-foreground">
                             {currentAnnouncement.title}
                           </h3>
                         </div>
                         <Badge 
                           variant="outline" 
-                          className={`text-xs font-medium ${config.color} border px-3 py-0.5`}
+                          className={`text-[10px] md:text-xs font-semibold ${config.color} border-2 px-2 md:px-3 py-0.5 shadow-sm`}
                         >
                           {config.label}
                         </Badge>
                       </div>
                       
                       {/* Content */}
-                      <p className="text-muted-foreground text-sm md:text-base max-w-lg mx-auto leading-relaxed">
+                      <p className="text-muted-foreground text-xs md:text-sm lg:text-base max-w-md mx-auto leading-relaxed">
                         {currentAnnouncement.content}
                       </p>
                       
                       {/* Timestamp */}
-                      <p className="text-xs text-muted-foreground/60">
+                      <p className="text-[10px] md:text-xs text-muted-foreground/70">
                         {format(parseISO(currentAnnouncement.created_at), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Navigation */}
+                {/* Navigation arrows - repositioned for mobile */}
                 {announcements.length > 1 && (
                   <>
                     <button
                       onClick={goToPrevious}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-muted/80 hover:scale-110 transition-all duration-200 shadow-lg"
+                      className="absolute left-1 md:left-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2.5 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/40 hover:bg-primary/40 hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
                       aria-label="Anterior"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                     </button>
                     <button
                       onClick={goToNext}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-muted/80 hover:scale-110 transition-all duration-200 shadow-lg"
+                      className="absolute right-1 md:right-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2.5 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/40 hover:bg-primary/40 hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg"
                       aria-label="Próximo"
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                     </button>
 
                     {/* Enhanced dots indicator */}
-                    <div className="flex items-center justify-center gap-2 mt-5">
+                    <div className="flex items-center justify-center gap-1.5 md:gap-2 mt-3 md:mt-5">
                       {announcements.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setCurrentIndex(index)}
-                          className={`h-2 rounded-full transition-all duration-300 ${
+                          className={`h-1.5 md:h-2 rounded-full transition-all duration-300 ${
                             index === currentIndex 
-                              ? "bg-primary w-6 shadow-lg shadow-primary/30" 
-                              : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50 hover:w-3"
+                              ? "bg-primary w-5 md:w-6 shadow-lg shadow-primary/40" 
+                              : "bg-primary/30 w-1.5 md:w-2 hover:bg-primary/50 hover:w-2 md:hover:w-3"
                           }`}
                           aria-label={`Ir para aviso ${index + 1}`}
                         />
