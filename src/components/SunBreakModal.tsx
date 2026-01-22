@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Lock, Unlock, Star } from "lucide-react";
@@ -249,55 +250,57 @@ export const SunBreakModal = ({ open, onClose }: SunBreakModalProps) => {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div className="relative rounded-xl overflow-hidden shadow-lg">
-            <img 
-              src={currentImage} 
-              alt="Banho de sol e vitamina D no trabalho"
-              className="w-full h-auto object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-          </div>
-          
-          <div className="bg-orange-500/10 rounded-lg p-4 space-y-2">
-            <h4 className="font-semibold text-orange-500 text-sm">{tipSet.title}</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              {tipSet.tips.map((tip, index) => (
-                <li key={index}>• {tip}</li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Mandatory timer indicator */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="flex items-center gap-2 text-muted-foreground">
-                {canClose ? (
-                  <Unlock className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Lock className="h-4 w-4 text-orange-500 animate-pulse" />
-                )}
-                {canClose ? "Pausa concluída!" : "Aguarde para concluir"}
-              </span>
-              <span className="font-mono font-bold">
-                {canClose ? "✓" : `${remaining}s`}
-              </span>
+        <ScrollArea className="max-h-[65vh]">
+          <div className="space-y-4 pr-2">
+            <div className="relative rounded-xl overflow-hidden shadow-lg">
+              <img 
+                src={currentImage} 
+                alt="Banho de sol e vitamina D no trabalho"
+                className="w-full h-auto object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
             </div>
-            <Progress value={progress} className="h-2" />
+            
+            <div className="bg-orange-500/10 rounded-lg p-4 space-y-2">
+              <h4 className="font-semibold text-orange-500 text-sm">{tipSet.title}</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {tipSet.tips.map((tip, index) => (
+                  <li key={index}>• {tip}</li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Mandatory timer indicator */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  {canClose ? (
+                    <Unlock className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Lock className="h-4 w-4 text-orange-500 animate-pulse" />
+                  )}
+                  {canClose ? "Pausa concluída!" : "Aguarde para concluir"}
+                </span>
+                <span className="font-mono font-bold">
+                  {canClose ? "✓" : `${remaining}s`}
+                </span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+            
+            <Button 
+              onClick={handleClose} 
+              disabled={!canClose}
+              className={`w-full font-semibold transition-all ${
+                canClose 
+                  ? "bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600" 
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
+              }`}
+            >
+              {canClose ? "Concluído! ✓" : `Aguarde ${remaining}s...`}
+            </Button>
           </div>
-          
-          <Button 
-            onClick={handleClose} 
-            disabled={!canClose}
-            className={`w-full font-semibold transition-all ${
-              canClose 
-                ? "bg-gradient-to-r from-orange-500 to-yellow-500 text-white hover:from-orange-600 hover:to-yellow-600" 
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            }`}
-          >
-            {canClose ? "Concluído! ✓" : `Aguarde ${remaining}s...`}
-          </Button>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
