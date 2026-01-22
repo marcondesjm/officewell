@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 
 interface ReminderCompletion {
-  type: "eye" | "stretch" | "water";
+  type: "eye" | "stretch" | "water" | "sun";
   timestamp: number;
 }
 
 interface ReminderStats {
-  today: { eye: number; stretch: number; water: number };
-  week: { eye: number; stretch: number; water: number };
-  total: { eye: number; stretch: number; water: number };
+  today: { eye: number; stretch: number; water: number; sun: number };
+  week: { eye: number; stretch: number; water: number; sun: number };
+  total: { eye: number; stretch: number; water: number; sun: number };
 }
 
 const STORAGE_KEY = "reminderCompletions";
@@ -49,9 +49,9 @@ const isThisWeek = (timestamp: number): boolean => {
 
 const calculateStats = (completions: ReminderCompletion[]): ReminderStats => {
   const stats: ReminderStats = {
-    today: { eye: 0, stretch: 0, water: 0 },
-    week: { eye: 0, stretch: 0, water: 0 },
-    total: { eye: 0, stretch: 0, water: 0 },
+    today: { eye: 0, stretch: 0, water: 0, sun: 0 },
+    week: { eye: 0, stretch: 0, water: 0, sun: 0 },
+    total: { eye: 0, stretch: 0, water: 0, sun: 0 },
   };
 
   completions.forEach(completion => {
@@ -78,16 +78,16 @@ export const useReminderStats = () => {
     setStats(calculateStats(completions));
   }, [completions]);
 
-  const recordCompletion = useCallback((type: "eye" | "stretch" | "water") => {
+  const recordCompletion = useCallback((type: "eye" | "stretch" | "water" | "sun") => {
     setCompletions(prev => [...prev, { type, timestamp: Date.now() }]);
   }, []);
 
   const getTodayTotal = useCallback(() => {
-    return stats.today.eye + stats.today.stretch + stats.today.water;
+    return stats.today.eye + stats.today.stretch + stats.today.water + stats.today.sun;
   }, [stats]);
 
   const getWeekTotal = useCallback(() => {
-    return stats.week.eye + stats.week.stretch + stats.week.water;
+    return stats.week.eye + stats.week.stretch + stats.week.water + stats.week.sun;
   }, [stats]);
 
   return {

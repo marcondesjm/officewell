@@ -26,6 +26,7 @@ import { SubscriptionPlans } from "@/components/SubscriptionPlans";
 import { StretchBreakModal } from "@/components/StretchBreakModal";
 import { EyeBreakModal } from "@/components/EyeBreakModal";
 import { WaterBreakModal } from "@/components/WaterBreakModal";
+import { SunBreakModal } from "@/components/SunBreakModal";
 import { PostureCheckModal } from "@/components/PostureCheckModal";
 import { DailyErgonomicsSession } from "@/components/DailyErgonomicsSession";
 import { WorkScheduleSetup } from "@/components/WorkScheduleSetup";
@@ -91,6 +92,7 @@ const Index = () => {
   const [workScheduleOpen, setWorkScheduleOpen] = useState(false);
   const [postureCheckOpen, setPostureCheckOpen] = useState(false);
   const [dailySessionOpen, setDailySessionOpen] = useState(false);
+  const [sunBreakOpen, setSunBreakOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(() => {
     return sessionStorage.getItem('officewell_demo_active') === 'true';
@@ -234,6 +236,7 @@ const Index = () => {
             resetTimers={resetTimers}
             onSettings={() => setSettingsOpen(true)}
             requestNotificationPermission={requestNotificationPermission}
+            onSunBreak={() => setSunBreakOpen(true)}
           />
         );
       case "water":
@@ -466,6 +469,7 @@ const Index = () => {
       <StretchBreakModal open={state.showStretchModal} onClose={closeStretchModal} />
       <EyeBreakModal open={state.showEyeModal} onClose={closeEyeModal} />
       <WaterBreakModal open={state.showWaterModal} onClose={closeWaterModal} />
+      <SunBreakModal open={sunBreakOpen} onClose={() => setSunBreakOpen(false)} />
       <PostureCheckModal open={postureCheckOpen} onOpenChange={setPostureCheckOpen} />
       <DailyErgonomicsSession open={dailySessionOpen} onOpenChange={setDailySessionOpen} />
       <WorkScheduleSetup

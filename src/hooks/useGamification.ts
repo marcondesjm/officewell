@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 export interface ActivityRecord {
-  type: "stretch" | "eye" | "water" | "posture" | "daily_session";
+  type: "stretch" | "eye" | "water" | "posture" | "daily_session" | "sun";
   points: number;
   timestamp: number;
   date: string;
@@ -17,6 +17,7 @@ export interface UserStats {
   eyeBreaksCompleted: number;
   waterBreaksCompleted: number;
   postureChecksCompleted: number;
+  sunBreaksCompleted: number;
   lastActivityDate: string | null;
   lastOpenDate: string | null;
   inactivityPenaltyApplied: boolean;
@@ -58,6 +59,7 @@ const POINTS_CONFIG = {
   stretch: 20,
   eye: 15,
   water: 10,
+  sun: 25, // Sun break - vitamina D
   posture: 5,
   streak_bonus: 10, // Per day of streak
   inactivity_penalty_per_day: 15, // Points lost per day inactive
@@ -105,6 +107,7 @@ const loadStats = (): UserStats => {
     eyeBreaksCompleted: 0,
     waterBreaksCompleted: 0,
     postureChecksCompleted: 0,
+    sunBreaksCompleted: 0,
     lastActivityDate: null,
     lastOpenDate: null,
     inactivityPenaltyApplied: false,
@@ -292,6 +295,9 @@ export const useGamification = () => {
         case "water":
           updates.waterBreaksCompleted = prev.waterBreaksCompleted + 1;
           break;
+        case "sun":
+          updates.sunBreaksCompleted = (prev.sunBreaksCompleted || 0) + 1;
+          break;
         case "posture":
           updates.postureChecksCompleted = prev.postureChecksCompleted + 1;
           break;
@@ -323,6 +329,7 @@ export const useGamification = () => {
       eyeBreaksCompleted: 0,
       waterBreaksCompleted: 0,
       postureChecksCompleted: 0,
+      sunBreaksCompleted: 0,
       lastActivityDate: null,
       lastOpenDate: null,
       inactivityPenaltyApplied: false,

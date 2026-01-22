@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 export interface Goal {
   id: string;
-  type: 'posture' | 'breaks' | 'water' | 'ergonomics_session' | 'eye_exercises' | 'focus';
+  type: 'posture' | 'breaks' | 'water' | 'ergonomics_session' | 'eye_exercises' | 'focus' | 'sun';
   name: string;
   description: string;
   icon: string;
@@ -81,6 +81,19 @@ const defaultGoals: Goal[] = [
     description: 'Descanse seus olhos regularmente',
     icon: 'eye',
     target: 6,
+    unit: 'times',
+    frequency: 'daily',
+    enabled: true,
+    progress: 0,
+    lastUpdated: new Date().toISOString().split('T')[0],
+  },
+  {
+    id: 'sun',
+    type: 'sun',
+    name: 'Banho de Sol',
+    description: 'Tome sol para produção de vitamina D',
+    icon: 'sun',
+    target: 2,
     unit: 'times',
     frequency: 'daily',
     enabled: true,

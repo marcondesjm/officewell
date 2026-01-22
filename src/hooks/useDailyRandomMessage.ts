@@ -5,6 +5,7 @@ interface UsedMessages {
   eye: { descriptions: number[]; tipSets: number[]; images: number[] };
   stretch: { descriptions: number[]; tipSets: number[]; images: number[] };
   water: { descriptions: number[]; tipSets: number[]; images: number[] };
+  sun: { descriptions: number[]; tipSets: number[]; images: number[] };
 }
 
 const STORAGE_KEY = "usedDailyMessages";
@@ -17,12 +18,13 @@ const loadUsedMessages = (): UsedMessages => {
     if (saved) {
       const data = JSON.parse(saved);
       if (data.date === getDateKey()) {
-        // Migrate old data that doesn't have images array
+        // Migrate old data that doesn't have images array or sun
         return {
           date: data.date,
           eye: { ...getDefaultTypeData(), ...data.eye },
           stretch: { ...getDefaultTypeData(), ...data.stretch },
           water: { ...getDefaultTypeData(), ...data.water },
+          sun: { ...getDefaultTypeData(), ...data.sun },
         };
       }
     }
@@ -35,6 +37,7 @@ const loadUsedMessages = (): UsedMessages => {
     eye: getDefaultTypeData(),
     stretch: getDefaultTypeData(),
     water: getDefaultTypeData(),
+    sun: getDefaultTypeData(),
   };
 };
 
@@ -43,7 +46,7 @@ const saveUsedMessages = (data: UsedMessages) => {
 };
 
 export const getRandomIndex = (
-  type: "eye" | "stretch" | "water",
+  type: "eye" | "stretch" | "water" | "sun",
   category: "descriptions" | "tipSets" | "images",
   totalItems: number
 ): number => {
