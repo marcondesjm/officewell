@@ -101,7 +101,7 @@ export const useTrialStatus = () => {
       const endDate = new Date(profile.trial_ends_at);
       const now = new Date();
 
-      const totalMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+      const totalMs = 90 * 24 * 60 * 60 * 1000; // 3 months (90 days)
       const elapsedMs = now.getTime() - startDate.getTime();
       const remainingMs = endDate.getTime() - now.getTime();
 
@@ -141,7 +141,7 @@ export const useTrialStatus = () => {
       const endDate = new Date(profile.trial_ends_at);
       const now = new Date();
 
-      const totalMs = 7 * 24 * 60 * 60 * 1000;
+      const totalMs = 90 * 24 * 60 * 60 * 1000; // 3 months
       const elapsedMs = now.getTime() - startDate.getTime();
       const remainingMs = endDate.getTime() - now.getTime();
 
@@ -170,7 +170,7 @@ export const useTrialStatus = () => {
   }, [profile]);
 
   // These are now no-ops since trial is managed by backend
-  const startTrial = useCallback((_planId: string, _planName: string, _trialDays: number = 7) => {
+  const startTrial = useCallback((_planId: string, _planName: string, _trialDays: number = 90) => {
     console.log('Trial is now managed by backend');
   }, []);
 

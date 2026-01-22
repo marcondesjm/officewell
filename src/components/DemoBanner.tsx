@@ -122,20 +122,20 @@ export const DemoBanner = ({ onUpgrade }: DemoBannerProps) => {
                   value={progressValue} 
                   className={`h-3 ${isUrgent ? "[&>div]:bg-gradient-to-r [&>div]:from-amber-500 [&>div]:to-orange-500" : "[&>div]:bg-gradient-to-r [&>div]:from-violet-500 [&>div]:to-fuchsia-500"}`}
                 />
-                {/* Day markers */}
+                {/* Month markers for 3-month trial */}
                 <div className="absolute top-0 left-0 right-0 h-full flex justify-between px-0.5 pointer-events-none">
-                  {[1, 2, 3, 4, 5, 6].map((day) => (
+                  {[1, 2].map((month) => (
                     <div 
-                      key={day} 
+                      key={month} 
                       className="w-px h-full bg-foreground/20"
-                      style={{ left: `${(day / 7) * 100}%` }}
+                      style={{ left: `${(month / 3) * 100}%` }}
                     />
                   ))}
                 </div>
               </div>
               <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                <span>Dia 1</span>
-                <span>Dia 7</span>
+                <span>Mês 1</span>
+                <span>Mês 3</span>
               </div>
             </div>
           </div>
