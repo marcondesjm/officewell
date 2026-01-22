@@ -1,6 +1,8 @@
-import { Eye, Dumbbell, Droplets } from "lucide-react";
+import { Eye, Dumbbell, Droplets, Sun } from "lucide-react";
 import { ActiveTimerCard } from "@/components/ActiveTimerCard";
 import { ControlPanel } from "@/components/ControlPanel";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface TimersSectionProps {
   config: {
@@ -18,6 +20,7 @@ interface TimersSectionProps {
   resetTimers: () => void;
   onSettings: () => void;
   requestNotificationPermission: () => void;
+  onSunBreak?: () => void;
 }
 
 export const TimersSection = ({
@@ -27,6 +30,7 @@ export const TimersSection = ({
   resetTimers,
   onSettings,
   requestNotificationPermission,
+  onSunBreak,
 }: TimersSectionProps) => {
   return (
     <section className="space-y-6 animate-fade-in">
@@ -70,6 +74,29 @@ export const TimersSection = ({
           variant="accent"
         />
       </div>
+
+      {/* Sun Break Card */}
+      <Card className="p-6 bg-gradient-to-br from-orange-500/10 to-yellow-500/10 border-orange-500/30">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-yellow-500 text-white">
+              <Sun className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">☀️ Banho de Sol</h3>
+              <p className="text-sm text-muted-foreground">
+                Tome sol por 1-5 min para vitamina D (recomendado 1-2x ao dia)
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={onSunBreak}
+            className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold"
+          >
+            Iniciar
+          </Button>
+        </div>
+      </Card>
     </section>
   );
 };
